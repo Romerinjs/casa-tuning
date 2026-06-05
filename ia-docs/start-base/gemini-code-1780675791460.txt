@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- TABLAS DE CATÁLOGO (Lookups) ---
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  
+  users       User[]
+}
+
+model OrderStatus {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50) // Ej: 'RECIBIDO', 'EN_PROCESO'
+  description String?  @db.VarChar(255)
+  
+  orders      Order[]
+}
+
+model Brand {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  
+  cars        Car[]
+}
+
+model ServiceCatalog {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(100)
+  isActive    Boolean  @default(true)
+  
+  orderItems  OrderService[]
+}
+
+// --- TABLAS PRINCIPALES ---
+
+model User {
+  id            Int           @id @default(autoincrement())
+  name          String        @db.VarChar(100)
+  email         String        @unique @db.VarChar(150)
+  passwordHash  String        @db.VarChar(255)
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  
+  roleId        Int
+  role          Role          @relation(fields: [roleId], references: [id])
+  
+  ordersCreated Order[]       @relation("OrderCreator")
+  activities    ActivityLog[]
+
+  @@index([roleId])
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(150)
+  phone     String   @unique @db.VarChar(20)
+  email     String?  @db.VarChar(150)
+  createdAt DateTime @default(now())
+  
+  cars      Car[]
+  orders    Order[]
+}
+
+model Car {
+  id        Int      @id @default(autoincrement())
+  plate     String   @unique @db.VarChar(10)
+  model     String   @db.VarChar(100)
+  year      Int
+  color     String   @db.VarChar(50)
+  
+  clientId  Int
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  brandId   Int
+  brand     Brand    @relation(fields: [brandId], references: [id])
+  
+  orders    Order[]
+
+  @@index([clientId])
+  @@index([brandId])
+}
+
+// --- NÚCLEO OPERATIVO ---
+
+model Order {
+  id            Int         @id @default(autoincrement())
+  code          String      @unique @db.VarChar(20)
+  mileage       String?     @db.VarChar(50)
+  signatureUrl  String?     @db.VarChar(255)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  statusId      Int
+  status        OrderStatus @relation(fields: [statusId], references: [id])
+  clientId      Int
+  client        Client      @relation(fields: [clientId], references: [id])
+  carId         Int
+  car           Car         @relation(fields: [carId], references: [id])
+  creatorId     Int
+  creator       User        @relation("OrderCreator", fields: [creatorId], references: [id])
+  
+  services      OrderService[]
+  inspections   VisualInspection[]
+  photos        OrderPhoto[]
+  activities    ActivityLog[]
+  notifications OrderNotification[]
+
+  @@index([statusId])
+  @@index([createdAt])
+  @@index([carId])
+  @@index([clientId])
+}
+
+// --- TABLAS INTERMEDIAS Y DETALLES ---
+
+model OrderService {
+  orderId   Int
+  serviceId Int
+  
+  order     Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  service   ServiceCatalog @relation(fields: [serviceId], references: [id])
+
+  @@id([orderId, serviceId])
+  @@index([serviceId])
+}
+
+model VisualInspection {
+  id        Int    @id @default(autoincrement())
+  partName  String @db.VarChar(100)
+  
+  orderId   Int
+  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model OrderPhoto {
+  id         Int      @id @default(autoincrement())
+  r2Url      String   @db.VarChar(255)
+  uploadedAt DateTime @default(now())
+  
+  orderId    Int
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+// --- REGISTROS Y NOTIFICACIONES ---
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  description String   @db.Text
+  createdAt   DateTime @default(now())
+  
+  orderId     Int
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+}
+
+model OrderNotification {
+  id               Int      @id @default(autoincrement())
+  platform         String   @db.VarChar(50) // Ej: 'WHATSAPP', 'EMAIL'
+  notificationType String   @db.VarChar(50) // Ej: 'RECEPCION'
+  sentAt           DateTime @default(now())
+  
+  orderId          Int
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
