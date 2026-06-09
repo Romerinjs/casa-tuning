@@ -37,8 +37,8 @@ yarn-error.log*
 .vercel
 
 # dijo nico que esto no se subía
-package-lock.json
-package.json
+# package-lock.json
+# ackage.json
 
 # typescript
 *.tsbuildinfo
