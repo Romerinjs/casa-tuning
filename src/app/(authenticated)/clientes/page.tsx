@@ -6,10 +6,11 @@ export default async function ClientesPage() {
   // Session authorization check
   await verifyAdminSession();
 
-  // Fetch clients and brands in parallel
-  const [clients, brands] = await Promise.all([
+  // Fetch clients, brands, and document types in parallel
+  const [clients, brands, documentTypes] = await Promise.all([
     prisma.client.findMany({
       include: {
+        documentType: true,
         cars: {
           include: {
             brand: true,
@@ -38,7 +39,12 @@ export default async function ClientesPage() {
         name: "asc",
       },
     }),
+    prisma.documentType.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    }),
   ]);
 
-  return <ClientesClientView clients={clients} brands={brands} />;
+  return <ClientesClientView clients={clients} brands={brands} documentTypes={documentTypes} />;
 }

@@ -53,7 +53,11 @@ export default async function DashboardPage() {
         },
       },
       include: {
-        client: true,
+        client: {
+          include: {
+            documentType: true,
+          },
+        },
         car: {
           include: { brand: true },
         },

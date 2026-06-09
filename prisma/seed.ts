@@ -34,6 +34,23 @@ async function main() {
     },
   });
 
+  // 1b. Document Types
+  const docTypes = [
+    { code: "CC", name: "Cédula de Ciudadanía" },
+    { code: "CE", name: "Cédula de Extranjería" },
+    { code: "NIT", name: "Número de Identificación Tributaria" },
+    { code: "PP", name: "Pasaporte" },
+    { code: "TI", name: "Tarjeta de Identidad" },
+  ];
+
+  for (const doc of docTypes) {
+    await prisma.documentType.upsert({
+      where: { code: doc.code },
+      update: { name: doc.name },
+      create: doc,
+    });
+  }
+
   // 2. Order Statuses
   const statuses = [
     { name: "RECIBIDO", description: "Vehículo recibido en el taller" },
@@ -61,7 +78,23 @@ async function main() {
   }
 
   // 4. Service Catalog
-  const services = ["Polarizado", "PPF", "Alarma", "Sonido", "Cámara", "LED", "Aire acond.", "Accesorios"];
+  const services = [
+    "Polarizado",
+    "PPF (Paint Protection Film)",
+    "Vinilo",
+    "Película de seguridad",
+    "Luces LED",
+    "Exploradoras",
+    "Alarmas",
+    "Sensores",
+    "Radios",
+    "CarPlay",
+    "Parlantes",
+    "Plantas de sonido",
+    "Cámaras de reversa",
+    "Actualización de pantallas y sistemas multimedia",
+    "Plumillas",
+  ];
   for (const name of services) {
     await prisma.serviceCatalog.upsert({
       where: { name },

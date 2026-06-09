@@ -15,6 +15,9 @@ export async function createOrderAction(
     const clientName = formData.get("clientName") as string;
     const clientPhone = formData.get("clientPhone") as string;
     const clientEmail = (formData.get("clientEmail") as string) || null;
+    const clientDocumentTypeIdStr = formData.get("clientDocumentTypeId") as string;
+    const clientDocumentNumber = (formData.get("clientDocumentNumber") as string) || null;
+    const clientPhone2 = (formData.get("clientPhone2") as string) || null;
 
     if (!clientName || !clientPhone) {
       return { success: false, error: "El nombre y celular del cliente son requeridos." };
@@ -27,6 +30,7 @@ export async function createOrderAction(
     const model = formData.get("model") as string;
     const color = formData.get("color") as string;
     const mileage = formData.get("mileage") as string;
+    const vehicleType = (formData.get("vehicleType") as string) || "Automóvil";
 
     if (!plate || !yearStr || !brandIdStr || !model || !color) {
       return { success: false, error: "Todos los campos obligatorios del vehículo son requeridos." };
@@ -39,14 +43,26 @@ export async function createOrderAction(
       return { success: false, error: "El año o la marca del vehículo no son válidos." };
     }
 
-    // 3. Extract service IDs
+    // 3. Extract checklist and observations
+    const observations = (formData.get("observations") as string) || null;
+    const checklistStr = (formData.get("checklist") as string) || null;
+    let checklist = null;
+    if (checklistStr) {
+      try {
+        checklist = JSON.parse(checklistStr);
+      } catch (e) {
+        console.error("Error parsing checklist JSON:", e);
+      }
+    }
+
+    // 4. Extract service IDs
     const selectedServiceIds = formData.getAll("services").map((id) => parseInt(id as string, 10));
 
     if (selectedServiceIds.length === 0) {
       return { success: false, error: "Debe seleccionar al menos un servicio contratado." };
     }
 
-    // 4. Extract digital signature
+    // 5. Extract digital signature
     const signature = formData.get("signature") as string || null;
     if (signature) {
       console.log(`[createOrderAction] Firma digital recibida en el servidor. Tamaño base64: ${signature.length} caracteres.`);
@@ -73,6 +89,23 @@ export async function createOrderAction(
     // Clean mileage (digits only)
     const cleanMileage = mileage ? mileage.replace(/\D/g, "") : null;
 
+    const clientDocumentTypeId = clientDocumentTypeIdStr ? parseInt(clientDocumentTypeIdStr, 10) : null;
+    if (clientDocumentNumber) {
+      const cleanDocNumber = clientDocumentNumber.trim();
+      const existingDoc = await prisma.client.findFirst({
+        where: {
+          documentNumber: cleanDocNumber,
+          phone: { not: cleanPhone },
+        },
+      });
+      if (existingDoc) {
+        return {
+          success: false,
+          error: `El número de documento ${cleanDocNumber} ya está registrado con otro número de celular.`,
+        };
+      }
+    }
+
     // Use Prisma Transaction to ensure data consistency
     await prisma.$transaction(async (tx) => {
       // Find or create client by phone
@@ -81,11 +114,14 @@ export async function createOrderAction(
       });
 
       if (dbClient) {
-        // Optionally update email/name if changed
+        // Optionally update email/name/document fields/phone2 if changed
         dbClient = await tx.client.update({
           where: { id: dbClient.id },
           data: {
             name: clientName.trim(),
+            documentNumber: clientDocumentNumber ? clientDocumentNumber.trim() : dbClient.documentNumber,
+            documentTypeId: clientDocumentTypeId ? clientDocumentTypeId : dbClient.documentTypeId,
+            phone2: clientPhone2 ? clientPhone2.replace(/\D/g, "") : dbClient.phone2,
             email: cleanEmail ? cleanEmail : dbClient.email,
           },
         });
@@ -94,6 +130,9 @@ export async function createOrderAction(
           data: {
             name: clientName.trim(),
             phone: cleanPhone,
+            phone2: clientPhone2 ? clientPhone2.replace(/\D/g, "") : null,
+            documentNumber: clientDocumentNumber ? clientDocumentNumber.trim() : null,
+            documentTypeId: clientDocumentTypeId,
             email: cleanEmail ? cleanEmail : null,
           },
         });
@@ -109,6 +148,7 @@ export async function createOrderAction(
         dbCar = await tx.car.update({
           where: { id: dbCar.id },
           data: {
+            type: vehicleType,
             model: model.trim(),
             year: year,
             color: color.trim(),
@@ -120,6 +160,7 @@ export async function createOrderAction(
         dbCar = await tx.car.create({
           data: {
             plate: cleanPlate,
+            type: vehicleType,
             model: model.trim(),
             year: year,
             color: color.trim(),
@@ -149,6 +190,8 @@ export async function createOrderAction(
           code: orderCode,
           mileage: cleanMileage,
           signatureUrl: signature ? `/uploads/signatures/sig-${nextSequence}.png` : null,
+          observations: observations ? observations.trim() : null,
+          checklist: checklist ? checklist : undefined,
           statusId: status.id,
           clientId: dbClient.id,
           carId: dbCar.id,

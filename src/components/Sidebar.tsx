@@ -11,7 +11,6 @@ import {
   Users,
   ShieldAlert,
   LogOut,
-  Car,
   Menu,
   X,
 } from "lucide-react";
@@ -84,8 +83,8 @@ export default function Sidebar({ user }: SidebarProps) {
       {/* Brand Logo Section */}
       <div className="p-6 border-b border-white/[0.06] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#C9A84C] to-[#9A7A28] shadow-[0_4px_12px_rgb(201,168,76,0.15)] text-[#0A0A0C]">
-            <Car className="h-5 w-5" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#C9A84C] to-[#9A7A28] shadow-[0_4px_12px_rgb(201,168,76,0.15)]">
+            <img src="/logo-ct.svg" alt="Casa Tuning Logo" className="h-5 w-5" />
           </div>
           <div>
             <h1 className="text-sm font-bold tracking-tight text-white leading-none">
@@ -175,8 +174,8 @@ export default function Sidebar({ user }: SidebarProps) {
       {/* MOBILE HEADER BAR */}
       <div className="lg:hidden h-14 border-b border-white/[0.06] bg-[#111113] flex items-center justify-between px-6 text-white shrink-0 w-full z-30">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#C9A84C] to-[#9A7A28] text-[#0A0A0C]">
-            <Car className="h-4.5 w-4.5" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#C9A84C] to-[#9A7A28]">
+            <img src="/logo-ct.svg" alt="Casa Tuning Logo" className="h-4.5 w-4.5" />
           </div>
           <div>
             <h1 className="text-xs font-bold tracking-tight text-white leading-none">

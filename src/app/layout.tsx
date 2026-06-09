@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Portal Casa Tuning",
   description: "Portal operativo de Casa Tuning",
+  icons: {
+    icon: "/logo-ct.ico",
+  },
 };
 
 export default function RootLayout({

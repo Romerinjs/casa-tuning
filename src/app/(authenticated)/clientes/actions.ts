@@ -15,6 +15,8 @@ export async function createClientAction(
     const name = formData.get("name") as string;
     const phone = formData.get("phone") as string;
     const email = (formData.get("email") as string) || null;
+    const documentTypeIdStr = formData.get("documentTypeId") as string;
+    const documentNumber = (formData.get("documentNumber") as string) || null;
 
     if (!name || !phone) {
       return { success: false, error: "Nombre y Celular son requeridos." };
@@ -44,15 +46,29 @@ export async function createClientAction(
     }
 
     // Check if client with this phone already exists
-    const existing = await prisma.client.findUnique({
+    const existingPhone = await prisma.client.findUnique({
       where: { phone: cleanPhone },
     });
-
-    if (existing) {
+    if (existingPhone) {
       return {
         success: false,
         error: `Ya existe un cliente con el celular ${cleanPhone}.`,
       };
+    }
+
+    // Check if client with this document number already exists
+    const documentTypeId = documentTypeIdStr ? parseInt(documentTypeIdStr, 10) : null;
+    if (documentNumber) {
+      const cleanDoc = documentNumber.trim();
+      const existingDoc = await prisma.client.findUnique({
+        where: { documentNumber: cleanDoc },
+      });
+      if (existingDoc) {
+        return {
+          success: false,
+          error: `Ya existe un cliente con el número de documento ${cleanDoc}.`,
+        };
+      }
     }
 
     await prisma.client.create({
@@ -60,6 +76,8 @@ export async function createClientAction(
         name: cleanName,
         phone: cleanPhone,
         email: cleanEmail ? cleanEmail : null,
+        documentTypeId,
+        documentNumber: documentNumber ? documentNumber.trim() : null,
       },
     });
 
@@ -85,6 +103,8 @@ export async function updateClientAction(
     const name = formData.get("name") as string;
     const phone = formData.get("phone") as string;
     const email = (formData.get("email") as string) || null;
+    const documentTypeIdStr = formData.get("documentTypeId") as string;
+    const documentNumber = (formData.get("documentNumber") as string) || null;
 
     if (!idStr || !name || !phone) {
       return { success: false, error: "ID, Nombre y Celular son requeridos." };
@@ -122,12 +142,29 @@ export async function updateClientAction(
       return { success: false, error: `Ya existe otro cliente con el celular ${cleanPhone}.` };
     }
 
+    // Check unique document collision
+    const documentTypeId = documentTypeIdStr ? parseInt(documentTypeIdStr, 10) : null;
+    if (documentNumber) {
+      const cleanDoc = documentNumber.trim();
+      const existingDoc = await prisma.client.findFirst({
+        where: {
+          documentNumber: cleanDoc,
+          id: { not: id },
+        },
+      });
+      if (existingDoc) {
+        return { success: false, error: `Ya existe otro cliente con el número de documento ${cleanDoc}.` };
+      }
+    }
+
     await prisma.client.update({
       where: { id },
       data: {
         name: cleanName,
         phone: cleanPhone,
         email: cleanEmail,
+        documentTypeId,
+        documentNumber: documentNumber ? documentNumber.trim() : null,
       },
     });
 

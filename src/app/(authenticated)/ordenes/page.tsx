@@ -10,7 +10,11 @@ export default async function OrdenesPage() {
   const orders = await prisma.order.findMany({
     include: {
       status: true,
-      client: true,
+      client: {
+        include: {
+          documentType: true,
+        },
+      },
       car: {
         include: {
           brand: true,

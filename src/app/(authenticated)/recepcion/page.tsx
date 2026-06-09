@@ -6,8 +6,8 @@ export default async function RecepcionPage() {
   // Verify user session
   await verifySession();
 
-  // Fetch brands catalog, active services, existing clients, and cars in parallel
-  const [brands, services, clients, cars] = await Promise.all([
+  // Fetch brands catalog, active services, existing clients, cars, and document types in parallel
+  const [brands, services, clients, cars, documentTypes] = await Promise.all([
     prisma.brand.findMany({
       orderBy: { name: "asc" },
     }),
@@ -17,6 +17,7 @@ export default async function RecepcionPage() {
     }),
     prisma.client.findMany({
       include: {
+        documentType: true,
         cars: {
           include: {
             brand: true,
@@ -28,9 +29,16 @@ export default async function RecepcionPage() {
     prisma.car.findMany({
       include: {
         brand: true,
-        client: true,
+        client: {
+          include: {
+            documentType: true,
+          },
+        },
       },
       orderBy: { plate: "asc" },
+    }),
+    prisma.documentType.findMany({
+      orderBy: { id: "asc" },
     }),
   ]);
 
@@ -40,6 +48,7 @@ export default async function RecepcionPage() {
       services={services}
       existingClients={clients}
       existingCars={cars}
+      documentTypes={documentTypes}
     />
   );
 }

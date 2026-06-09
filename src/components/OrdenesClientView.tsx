@@ -23,6 +23,9 @@ interface OrderData {
   id: number;
   code: string;
   mileage: string | null;
+  signatureUrl: string | null;
+  observations: string | null;
+  checklist: any;
   createdAt: Date;
   status: {
     name: string;
@@ -30,9 +33,16 @@ interface OrderData {
   client: {
     name: string;
     phone: string;
+    phone2: string | null;
+    documentNumber: string | null;
+    documentType: {
+      code: string;
+      name: string;
+    } | null;
   };
   car: {
     plate: string;
+    type: string;
     model: string;
     year: number;
     brand: {
@@ -51,6 +61,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("TODOS");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [, startTransition] = useTransition();
 
   const handleStatusChange = async (orderId: number, nextStatus: string) => {
@@ -265,49 +276,60 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                   </div>
 
                   {/* Actions footer */}
-                  <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-end">
+                  <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedOrder(order)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 px-3.5 py-2 text-xs font-semibold text-zinc-600 transition-colors cursor-pointer shrink-0 select-none"
+                    >
+                      Ver Ficha
+                    </button>
+
                     {/* Empezar Trabajo (RECIBIDO -> EN_PROCESO) */}
                     {statusName === "RECIBIDO" && (
                       <button
+                        type="button"
                         onClick={() =>
                           handleStatusChange(order.id, "EN_PROCESO")
                         }
-                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-colors shadow-xs"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-colors shadow-xs cursor-pointer select-none"
                       >
                         <Clock className="h-4 w-4" />
-                        Iniciar Trabajo
+                        Iniciar
                       </button>
                     )}
 
                     {/* Listo para Entrega (EN_PROCESO -> LISTO) */}
                     {statusName === "EN_PROCESO" && (
                       <button
+                        type="button"
                         onClick={() => handleStatusChange(order.id, "LISTO")}
-                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-green-600 hover:bg-green-700 px-4 py-2.5 text-xs font-bold text-white transition-colors shadow-xs"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-green-600 hover:bg-green-700 px-4 py-2.5 text-xs font-bold text-white transition-colors shadow-xs cursor-pointer select-none"
                       >
                         <CheckCircle2 className="h-4 w-4" />
-                        Marcar como Listo
+                        Listo
                       </button>
                     )}
 
                     {/* Entregar Vehículo (LISTO -> ENTREGADO) */}
                     {statusName === "LISTO" && (
                       <button
+                        type="button"
                         onClick={() =>
                           handleStatusChange(order.id, "ENTREGADO")
                         }
-                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-4 py-2.5 text-xs font-bold text-[#0A0A0C] transition-colors shadow-xs"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-4 py-2.5 text-xs font-bold text-[#0A0A0C] transition-colors shadow-xs cursor-pointer select-none"
                       >
                         <ArrowDownLeft className="h-4 w-4" />
-                        Confirmar Entrega
+                        Entregar
                       </button>
                     )}
 
                     {/* Entregado (ENTREGADO) */}
                     {statusName === "ENTREGADO" && (
-                      <div className="w-full text-center py-2 text-xs font-semibold text-zinc-400 flex items-center justify-center gap-1.5 bg-zinc-50 rounded-lg border border-zinc-200">
+                      <div className="flex-1 text-center py-2 text-xs font-semibold text-zinc-400 flex items-center justify-center gap-1.5 bg-zinc-50 rounded-lg border border-zinc-200">
                         <CheckCircle2 className="h-4 w-4 text-zinc-400" />
-                        Orden Completada y Entregada
+                        Entregado
                       </div>
                     )}
                   </div>
@@ -317,6 +339,252 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
           </div>
         )}
       </div>
+
+      {/* DETAILS MODAL */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div 
+            className="bg-white border border-zinc-200 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl animate-[scaleIn_0.2s_ease-out]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-zinc-150 flex items-center justify-between bg-zinc-50 shrink-0">
+              <div>
+                <span className="font-mono font-bold text-xs text-[#9A7A28] uppercase tracking-wider block">
+                  Ficha Técnica de Recepción
+                </span>
+                <h3 className="text-base font-extrabold text-zinc-900 mt-0.5">
+                  Orden {selectedOrder.code}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedOrder(null)}
+                className="h-9 w-9 rounded-lg border border-zinc-200 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-100 flex items-center justify-center text-sm font-bold transition-colors cursor-pointer select-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              
+              {/* Client and Car information grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Client Box */}
+                <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-3">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-200 pb-1.5">
+                    Información del Cliente
+                  </h4>
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <span className="text-zinc-400 block">Nombre Completo</span>
+                      <span className="font-bold text-zinc-800">{selectedOrder.client.name}</span>
+                    </div>
+                    {selectedOrder.client.documentNumber && (
+                      <div>
+                        <span className="text-zinc-400 block">
+                          {selectedOrder.client.documentType ? selectedOrder.client.documentType.name : "Documento"}
+                        </span>
+                        <span className="font-semibold text-zinc-850">
+                          {selectedOrder.client.documentType ? `${selectedOrder.client.documentType.code} ` : ""}
+                          {selectedOrder.client.documentNumber}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-zinc-400 block">Celular / WhatsApp</span>
+                        <span className="font-semibold text-zinc-850">{selectedOrder.client.phone}</span>
+                      </div>
+                      <a
+                        href={`https://wa.me/57${selectedOrder.client.phone.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] bg-green-50 text-green-700 hover:bg-green-100 font-bold px-2 py-1 rounded border border-green-200 transition-colors inline-flex items-center gap-1 select-none"
+                      >
+                        WhatsApp
+                      </a>
+                    </div>
+                    {selectedOrder.client.phone2 && (
+                      <div>
+                        <span className="text-zinc-400 block">Teléfono Alternativo</span>
+                        <span className="font-semibold text-zinc-850">{selectedOrder.client.phone2}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Vehicle Box */}
+                <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-3">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-200 pb-1.5">
+                    Información del Vehículo
+                  </h4>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="text-zinc-400 block">Placa</span>
+                        <span className="font-mono font-bold text-xs bg-zinc-200 border border-zinc-350 rounded px-2 py-0.5 tracking-wider text-zinc-800 inline-block mt-0.5">
+                          {selectedOrder.car.plate}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-zinc-250 bg-white text-zinc-500 font-semibold select-none">
+                        {selectedOrder.car.type || "Automóvil"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400 block">Vehículo</span>
+                      <span className="font-bold text-zinc-800">
+                        {selectedOrder.car.brand.name} {selectedOrder.car.model} ({selectedOrder.car.year})
+                      </span>
+                    </div>
+                    {selectedOrder.mileage && (
+                      <div>
+                        <span className="text-zinc-400 block">Kilometraje de Ingreso</span>
+                        <span className="font-semibold text-zinc-855">{selectedOrder.mileage} KM</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Services row */}
+              <div className="space-y-2">
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                  Servicios Solicitados
+                </h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedOrder.services.map((s, idx) => (
+                    <span
+                      key={idx}
+                      className="text-xs bg-[#FBF5E6]/60 border border-[#C9A84C]/35 rounded px-2.5 py-1 text-[#9A7A28] font-bold select-none"
+                    >
+                      {s.service.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Checklist Section */}
+              {selectedOrder.checklist && (
+                <div className="space-y-3 pt-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block border-b border-zinc-150 pb-1">
+                    Checklist de Inspección de Recepción
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                    {Object.entries(
+                      selectedOrder.checklist as Record<string, string>
+                    ).map(([key, value]) => {
+                      let displayLabel = key
+                        .replace(/_/g, " ")
+                        .replace(/^\w/, (c) => c.toUpperCase());
+                      
+                      // Custom labels mapping
+                      if (key === "rayones") displayLabel = "Rayones";
+                      if (key === "golpes") displayLabel = "Golpes";
+                      if (key === "pintura") displayLabel = "Estado de pintura";
+                      if (key === "rines") displayLabel = "Estado de rines";
+                      if (key === "vidrios") displayLabel = "Estado de vidrios";
+                      if (key === "parabrisas") displayLabel = "Estado de parabrisas";
+                      if (key === "farolas") displayLabel = "Estado de farolas";
+                      if (key === "cojineria") displayLabel = "Estado de cojinería";
+                      if (key === "tablero") displayLabel = "Estado del tablero";
+                      if (key === "general_interior") displayLabel = "Estado general interior";
+                      if (key === "testigos") displayLabel = "Testigos encendidos";
+                      if (key === "vidrios_electricos") displayLabel = "Vidrios eléctricos";
+                      if (key === "luces") displayLabel = "Luces";
+                      if (key === "direccionales") displayLabel = "Direccionales";
+                      if (key === "reversa") displayLabel = "Reversa";
+                      if (key === "estacionarias") displayLabel = "Estacionarias";
+                      if (key === "pito") displayLabel = "Pito";
+                      if (key === "plumillas") displayLabel = "Plumillas";
+                      if (key === "espejos") displayLabel = "Espejos";
+                      if (key === "lineas_termicas") displayLabel = "Líneas térmicas";
+
+                      return (
+                        <div key={key} className="flex justify-between items-center text-xs py-1 border-b border-zinc-100">
+                          <span className="text-zinc-650 font-medium">{displayLabel}</span>
+                          <span
+                            className={`px-2 py-0.5 rounded font-bold text-[9px] uppercase tracking-wider select-none ${
+                              value === "bueno" || value === "no"
+                                ? "bg-green-50 text-green-700 border border-green-200"
+                                : value === "malo" || value === "si"
+                                ? "bg-red-50 text-red-700 border border-red-200"
+                                : "bg-zinc-100 text-zinc-500 border border-zinc-200"
+                            }`}
+                          >
+                            {value === "bueno"
+                              ? "Bueno"
+                              : value === "malo"
+                              ? "Malo"
+                              : value === "si"
+                              ? "Sí"
+                              : value === "no"
+                              ? "No"
+                              : "N/A"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Observations */}
+              {selectedOrder.observations && (
+                <div className="space-y-2 pt-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                    Observaciones registradas
+                  </h4>
+                  <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 text-xs text-zinc-700 whitespace-pre-wrap leading-relaxed font-medium">
+                    {selectedOrder.observations}
+                  </div>
+                </div>
+              )}
+
+              {/* Signature display */}
+              {selectedOrder.signatureUrl && (
+                <div className="pt-4 border-t border-zinc-150 space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                    Firma de Conformidad del Cliente
+                  </span>
+                  <div className="border border-zinc-200 rounded-xl bg-zinc-50 flex items-center justify-center p-4 max-w-xs overflow-hidden h-28">
+                    <img 
+                      src={selectedOrder.signatureUrl} 
+                      alt="Firma del Cliente" 
+                      className="max-h-full max-w-full object-contain mix-blend-multiply" 
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                        const parent = (e.target as HTMLElement).parentElement;
+                        if (parent && !parent.querySelector('.signature-fallback-msg')) {
+                          const errorLabel = document.createElement('span');
+                          errorLabel.className = 'text-xs text-zinc-400 italic font-semibold signature-fallback-msg';
+                          errorLabel.innerText = 'Firma digital registrada';
+                          parent.appendChild(errorLabel);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3.5 border-t border-zinc-150 flex justify-end bg-zinc-50 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedOrder(null)}
+                className="h-10 px-5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-white transition-colors cursor-pointer select-none"
+              >
+                Cerrar Ficha
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

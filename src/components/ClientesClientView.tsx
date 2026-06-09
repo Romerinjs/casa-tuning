@@ -37,6 +37,9 @@ interface ClientData {
   id: number;
   name: string;
   phone: string;
+  documentNumber: string | null;
+  documentTypeId: number | null;
+  documentType: { id: number; code: string; name: string } | null;
   email: string | null;
   createdAt: Date;
   cars: ClientCar[];
@@ -48,12 +51,19 @@ interface BrandItem {
   name: string;
 }
 
+interface DocumentTypeItem {
+  id: number;
+  code: string;
+  name: string;
+}
+
 interface ClientesClientViewProps {
   clients: ClientData[];
   brands: BrandItem[];
+  documentTypes: DocumentTypeItem[];
 }
 
-export default function ClientesClientView({ clients, brands }: ClientesClientViewProps) {
+export default function ClientesClientView({ clients, brands, documentTypes }: ClientesClientViewProps) {
   const { showToast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
@@ -67,6 +77,8 @@ export default function ClientesClientView({ clients, brands }: ClientesClientVi
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [clientEmail, setClientEmail] = useState("");
+  const [clientDocumentTypeId, setClientDocumentTypeId] = useState("");
+  const [clientDocumentNumber, setClientDocumentNumber] = useState("");
   const [clientError, setClientError] = useState<string | null>(null);
 
   // Edit Client Form State
@@ -74,6 +86,8 @@ export default function ClientesClientView({ clients, brands }: ClientesClientVi
   const [editClientName, setEditClientName] = useState("");
   const [editClientPhone, setEditClientPhone] = useState("");
   const [editClientEmail, setEditClientEmail] = useState("");
+  const [editClientDocumentTypeId, setEditClientDocumentTypeId] = useState("");
+  const [editClientDocumentNumber, setEditClientDocumentNumber] = useState("");
   const [editClientError, setEditClientError] = useState<string | null>(null);
 
   // Add Car Form State
@@ -113,6 +127,8 @@ export default function ClientesClientView({ clients, brands }: ClientesClientVi
     setClientName("");
     setClientPhone("");
     setClientEmail("");
+    setClientDocumentTypeId("");
+    setClientDocumentNumber("");
     setClientError(null);
     setIsCreateModalOpen(true);
   };
@@ -123,6 +139,8 @@ export default function ClientesClientView({ clients, brands }: ClientesClientVi
     setEditClientName(client.name);
     setEditClientPhone(client.phone);
     setEditClientEmail(client.email || "");
+    setEditClientDocumentTypeId(client.documentTypeId ? client.documentTypeId.toString() : "");
+    setEditClientDocumentNumber(client.documentNumber || "");
     setEditClientError(null);
     setIsEditModalOpen(true);
   };
@@ -333,6 +351,15 @@ export default function ClientesClientView({ clients, brands }: ClientesClientVi
                     </a>
                   </div>
                 )}
+                {selectedClient.documentNumber && (
+                  <div className="flex items-center gap-2.5 text-sm text-zinc-700 pt-2 border-t border-zinc-200/60">
+                    <User className="h-4 w-4 text-zinc-400 shrink-0" />
+                    <span className="font-semibold text-zinc-800">
+                      {selectedClient.documentType ? `${selectedClient.documentType.code}: ` : "Doc: "}
+                      {selectedClient.documentNumber}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2.5 text-xs text-zinc-400 pt-1 border-t border-zinc-200/60">
                   <Calendar className="h-3.5 w-3.5 shrink-0" />
                   <span>
@@ -478,6 +505,10 @@ export default function ClientesClientView({ clients, brands }: ClientesClientVi
                 setClientError("El correo electrónico ingresado no tiene un formato válido.");
                 return;
               }
+              if ((clientDocumentNumber.trim() && !clientDocumentTypeId) || (!clientDocumentNumber.trim() && clientDocumentTypeId)) {
+                setClientError("Si ingresa información de documento, debe seleccionar el tipo y el número de documento.");
+                return;
+              }
               setClientError(null);
               const formData = new FormData(e.currentTarget);
               startCreateTransition(async () => {
@@ -488,6 +519,8 @@ export default function ClientesClientView({ clients, brands }: ClientesClientVi
                   setClientName("");
                   setClientPhone("");
                   setClientEmail("");
+                  setClientDocumentTypeId("");
+                  setClientDocumentNumber("");
                   setClientError(null);
                 } else if (res.error) {
                   setClientError(res.error);
@@ -513,6 +546,47 @@ export default function ClientesClientView({ clients, brands }: ClientesClientVi
                 placeholder="Ej. Carlos Andrés Restrepo"
                 className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
               />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                  Tipo Doc.
+                </label>
+                <select
+                  name="documentTypeId"
+                  value={clientDocumentTypeId}
+                  onChange={(e) => {
+                    setClientDocumentTypeId(e.target.value);
+                    setClientError(null);
+                  }}
+                  className="w-full px-2 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all cursor-pointer"
+                >
+                  <option value="">Sel...</option>
+                  {documentTypes.map((dt) => (
+                    <option key={dt.id} value={dt.id}>
+                      {dt.code}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-span-2 space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                  Número de Documento
+                </label>
+                <input
+                  type="text"
+                  name="documentNumber"
+                  value={clientDocumentNumber}
+                  onChange={(e) => {
+                    setClientDocumentNumber(e.target.value.replace(/\D/g, "").slice(0, 10));
+                    setClientError(null);
+                  }}
+                  placeholder="Ej. 1045238910"
+                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                />
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -607,6 +681,10 @@ export default function ClientesClientView({ clients, brands }: ClientesClientVi
                 setEditClientError("El correo electrónico ingresado no tiene un formato válido.");
                 return;
               }
+              if ((editClientDocumentNumber.trim() && !editClientDocumentTypeId) || (!editClientDocumentNumber.trim() && editClientDocumentTypeId)) {
+                setEditClientError("Si ingresa información de documento, debe seleccionar el tipo y el número de documento.");
+                return;
+              }
               setEditClientError(null);
               const formData = new FormData(e.currentTarget);
               startEditTransition(async () => {
@@ -640,6 +718,47 @@ export default function ClientesClientView({ clients, brands }: ClientesClientVi
                 }}
                 className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
               />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                  Tipo Doc.
+                </label>
+                <select
+                  name="documentTypeId"
+                  value={editClientDocumentTypeId}
+                  onChange={(e) => {
+                    setEditClientDocumentTypeId(e.target.value);
+                    setEditClientError(null);
+                  }}
+                  className="w-full px-2 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all cursor-pointer"
+                >
+                  <option value="">Sel...</option>
+                  {documentTypes.map((dt) => (
+                    <option key={dt.id} value={dt.id}>
+                      {dt.code}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-span-2 space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                  Número de Documento
+                </label>
+                <input
+                  type="text"
+                  name="documentNumber"
+                  value={editClientDocumentNumber}
+                  onChange={(e) => {
+                    setEditClientDocumentNumber(e.target.value.replace(/\D/g, "").slice(0, 10));
+                    setEditClientError(null);
+                  }}
+                  placeholder="Ej. 1045238910"
+                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                />
+              </div>
             </div>
 
             <div className="space-y-1">

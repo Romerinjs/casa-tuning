@@ -22,6 +22,15 @@ import {
   Layers,
   HelpCircle,
   Search,
+  Palette,
+  ShieldAlert,
+  Compass,
+  Radar,
+  Radio,
+  Smartphone,
+  Speaker,
+  Sliders,
+  Tv,
 } from "lucide-react";
 
 interface BrandData {
@@ -46,6 +55,10 @@ interface ClientData {
   id: number;
   name: string;
   phone: string;
+  phone2?: string | null;
+  documentNumber?: string | null;
+  documentTypeId?: number | null;
+  documentType?: { id: number; code: string; name: string } | null;
   email: string | null;
   cars: ClientCarData[];
 }
@@ -53,11 +66,27 @@ interface ClientData {
 interface CarData {
   id: number;
   plate: string;
+  type?: string;
   model: string;
   year: number;
   color: string;
   brand: { id: number; name: string };
-  client: { id: number; name: string; phone: string; email: string | null };
+  client: { 
+    id: number; 
+    name: string; 
+    phone: string; 
+    phone2?: string | null; 
+    documentNumber?: string | null; 
+    documentTypeId?: number | null; 
+    documentType?: { id: number; code: string; name: string } | null; 
+    email: string | null; 
+  };
+}
+
+interface DocumentTypeData {
+  id: number;
+  code: string;
+  name: string;
 }
 
 interface RecepcionFormProps {
@@ -65,6 +94,7 @@ interface RecepcionFormProps {
   services: ServiceData[];
   existingClients?: ClientData[];
   existingCars?: CarData[];
+  documentTypes: DocumentTypeData[];
 }
 
 export default function RecepcionForm({
@@ -72,16 +102,21 @@ export default function RecepcionForm({
   services,
   existingClients = [],
   existingCars = [],
+  documentTypes = [],
 }: RecepcionFormProps) {
   const router = useRouter();
   const { showToast } = useToast();
 
   // 1. Accordion Step State
-  const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1);
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   // 2. Real-time form input states
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [clientPhone2, setClientPhone2] = useState("");
+  const [showPhone2, setShowPhone2] = useState(false);
+  const [clientDocumentTypeId, setClientDocumentTypeId] = useState("");
+  const [clientDocumentNumber, setClientDocumentNumber] = useState("");
   const [clientEmail, setClientEmail] = useState("");
 
   const [plate, setPlate] = useState("");
@@ -90,8 +125,34 @@ export default function RecepcionForm({
   const [model, setModel] = useState("");
   const [color, setColor] = useState("");
   const [mileage, setMileage] = useState("");
+  const [vehicleType, setVehicleType] = useState("Automóvil");
 
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
+
+  // 2b. Checklist & Observations state
+  const [observations, setObservations] = useState("");
+  const [checklist, setChecklist] = useState<Record<string, string>>({
+    rayones: "no",
+    golpes: "no",
+    pintura: "bueno",
+    rines: "bueno",
+    vidrios: "bueno",
+    parabrisas: "bueno",
+    farolas: "bueno",
+    cojineria: "bueno",
+    tablero: "bueno",
+    general_interior: "bueno",
+    testigos: "bueno",
+    vidrios_electricos: "bueno",
+    luces: "bueno",
+    direccionales: "bueno",
+    reversa: "bueno",
+    estacionarias: "bueno",
+    pito: "bueno",
+    plumillas: "bueno",
+    espejos: "bueno",
+    lineas_termicas: "bueno",
+  });
 
   // Toggles and Search states
   const [clientMode, setClientMode] = useState<"registered" | "new">("registered");
@@ -108,8 +169,10 @@ export default function RecepcionForm({
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureData, setSignatureData] = useState("");
 
-  // Custom Brand Dropdown state
+  // Custom Dropdown states
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
+  const [isDocTypeDropdownOpen, setIsDocTypeDropdownOpen] = useState(false);
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
 
   // 3. Local Step Errors
   const [stepError, setStepError] = useState<string | null>(null);
@@ -139,21 +202,67 @@ export default function RecepcionForm({
     }
   }, [state, router, showToast]);
 
-  // Configure canvas style on mount / step change
+  // Configure canvas style on mount / step change with delay for grid expansion transition
   useEffect(() => {
-    if (activeStep === 4 && canvasRef.current) {
-      const canvas = canvasRef.current;
-      canvas.width = canvas.offsetWidth * 2;
-      canvas.height = canvas.offsetHeight * 2;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.strokeStyle = "#18181b"; // zinc 900
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-      }
+    if (activeStep === 5) {
+      const timer = setTimeout(() => {
+        if (canvasRef.current) {
+          const canvas = canvasRef.current;
+          const targetWidth = canvas.offsetWidth * 2;
+          const targetHeight = canvas.offsetHeight * 2;
+          
+          const sizeChanged = canvas.width !== targetWidth || canvas.height !== targetHeight;
+          if (sizeChanged) {
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+          }
+          
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.strokeStyle = "#18181b"; // zinc 900
+            ctx.lineWidth = 3;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            
+            if (sizeChanged && signatureData) {
+              const img = new Image();
+              img.src = signatureData;
+              img.onload = () => {
+                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+              };
+            }
+          }
+        }
+      }, 350); // wait for 300ms CSS grid transition to complete
+      return () => clearTimeout(timer);
     }
-  }, [activeStep]);
+  }, [activeStep, signatureData]);
+  // Adjust checklist defaults based on vehicleType selection (Automóvil vs Motocicleta)
+  useEffect(() => {
+    if (vehicleType === "Motocicleta") {
+      setChecklist((prev) => ({
+        ...prev,
+        vidrios: "na",
+        general_interior: "na",
+        parabrisas: "na",
+        vidrios_electricos: "na",
+        plumillas: "na",
+        lineas_termicas: "na",
+        estacionarias: "na",
+      }));
+    } else {
+      setChecklist((prev) => ({
+        ...prev,
+        vidrios: "bueno",
+        general_interior: "bueno",
+        parabrisas: "bueno",
+        vidrios_electricos: "bueno",
+        plumillas: "bueno",
+        lineas_termicas: "bueno",
+        estacionarias: "bueno",
+      }));
+    }
+  }, [vehicleType]);
 
   // Input Sanitizations in real-time
   const handlePhoneChange = (val: string) => {
@@ -262,12 +371,19 @@ export default function RecepcionForm({
     const serviceName = name.toLowerCase();
     if (serviceName.includes("polarizado")) return Sun;
     if (serviceName.includes("ppf")) return Shield;
-    if (serviceName.includes("alarma")) return Bell;
-    if (serviceName.includes("sonido")) return Volume2;
-    if (serviceName.includes("cámara") || serviceName.includes("camara")) return VideoCamera;
+    if (serviceName.includes("vinilo")) return Palette;
+    if (serviceName.includes("película de seguridad") || serviceName.includes("pelicula de seguridad")) return ShieldAlert;
     if (serviceName.includes("led")) return Lightbulb;
-    if (serviceName.includes("aire") || serviceName.includes("acond")) return Wind;
-    if (serviceName.includes("accesorio")) return Layers;
+    if (serviceName.includes("exploradora")) return Lightbulb;
+    if (serviceName.includes("alarma")) return Bell;
+    if (serviceName.includes("sensor")) return Radar;
+    if (serviceName.includes("radio")) return Radio;
+    if (serviceName.includes("carplay")) return Smartphone;
+    if (serviceName.includes("parlante")) return Speaker;
+    if (serviceName.includes("planta")) return Sliders;
+    if (serviceName.includes("cámara") || serviceName.includes("camara")) return VideoCamera;
+    if (serviceName.includes("pantalla") || serviceName.includes("multimedia")) return Tv;
+    if (serviceName.includes("plumilla")) return Wind;
     return HelpCircle;
   };
 
@@ -281,8 +397,16 @@ export default function RecepcionForm({
       setStepError("El celular del cliente debe contener exactamente 10 números.");
       return false;
     }
+    if (showPhone2 && clientPhone2.trim() && clientPhone2.replace(/\D/g, "").length !== 10) {
+      setStepError("El celular alternativo debe contener exactamente 10 números.");
+      return false;
+    }
     if (clientEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim())) {
       setStepError("El correo electrónico ingresado no tiene un formato válido.");
+      return false;
+    }
+    if ((clientDocumentNumber.trim() && !clientDocumentTypeId) || (!clientDocumentNumber.trim() && clientDocumentTypeId)) {
+      setStepError("Si ingresa información de documento, debe seleccionar el tipo y el número de documento.");
       return false;
     }
     setStepError(null);
@@ -323,23 +447,30 @@ export default function RecepcionForm({
     return true;
   };
 
+  const validateStep4 = () => {
+    setStepError(null);
+    return true;
+  };
+
   // Navigation handlers
-  const handleNextStep = (current: 1 | 2 | 3) => {
+  const handleNextStep = (current: 1 | 2 | 3 | 4) => {
     if (current === 1 && validateStep1()) {
       setActiveStep(2);
     } else if (current === 2 && validateStep2()) {
       setActiveStep(3);
     } else if (current === 3 && validateStep3()) {
       setActiveStep(4);
+    } else if (current === 4 && validateStep4()) {
+      setActiveStep(5);
     }
   };
 
-  const handlePrevStep = (prev: 1 | 2 | 3) => {
+  const handlePrevStep = (prev: 1 | 2 | 3 | 4) => {
     setStepError(null);
     setActiveStep(prev);
   };
 
-  const handleHeaderClick = (step: 1 | 2 | 3 | 4) => {
+  const handleHeaderClick = (step: 1 | 2 | 3 | 4 | 5) => {
     if (step === 1) {
       setActiveStep(1);
     } else if (step === 2 && validateStep1()) {
@@ -348,14 +479,93 @@ export default function RecepcionForm({
       setActiveStep(3);
     } else if (step === 4 && validateStep1() && validateStep2() && validateStep3()) {
       setActiveStep(4);
+    } else if (step === 5 && validateStep1() && validateStep2() && validateStep3() && validateStep4()) {
+      setActiveStep(5);
     }
+  };
+
+  // Render helper for checklist items
+  const renderChecklistItem = (key: string, label: string) => {
+    const isBinary = key === "rayones" || key === "golpes";
+
+    if (isBinary) {
+      const val = checklist[key] || "no";
+      return (
+        <div key={key} className="flex items-center justify-between py-2 border-b border-zinc-100 last:border-0 gap-2">
+          <span className="text-xs font-semibold text-zinc-700">{label}</span>
+          <div className="flex bg-zinc-100 rounded-lg p-0.5 border border-zinc-200 select-none shrink-0 scale-90 sm:scale-100 origin-right">
+            <button
+              type="button"
+              onClick={() => setChecklist((prev) => ({ ...prev, [key]: "si" }))}
+              className={`px-3.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
+                val === "si"
+                  ? "bg-red-600 text-white shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-800"
+              }`}
+            >
+              Sí
+            </button>
+            <button
+              type="button"
+              onClick={() => setChecklist((prev) => ({ ...prev, [key]: "no" }))}
+              className={`px-3.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
+                val === "no"
+                  ? "bg-green-600 text-white shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-800"
+              }`}
+            >
+              No
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    const val = checklist[key] || "bueno";
+    return (
+      <div key={key} className="flex items-center justify-between py-2 border-b border-zinc-100 last:border-0 gap-2">
+        <span className="text-xs font-semibold text-zinc-700">{label}</span>
+        <div className="flex bg-zinc-100 rounded-lg p-0.5 border border-zinc-200 select-none shrink-0 scale-90 sm:scale-100 origin-right">
+          <button
+            type="button"
+            onClick={() => setChecklist((prev) => ({ ...prev, [key]: "bueno" }))}
+            className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "bueno"
+                ? "bg-green-600 text-white shadow-xs"
+                : "text-zinc-500 hover:text-zinc-800"
+              }`}
+          >
+            Bueno
+          </button>
+          <button
+            type="button"
+            onClick={() => setChecklist((prev) => ({ ...prev, [key]: "malo" }))}
+            className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "malo"
+                ? "bg-red-600 text-white shadow-xs"
+                : "text-zinc-500 hover:text-zinc-800"
+              }`}
+          >
+            Malo
+          </button>
+          <button
+            type="button"
+            onClick={() => setChecklist((prev) => ({ ...prev, [key]: "na" }))}
+            className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "na"
+                ? "bg-zinc-400 text-white shadow-xs"
+                : "text-zinc-500 hover:text-zinc-800"
+              }`}
+          >
+            N/A
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (!validateStep1() || !validateStep2() || !validateStep3()) return;
+        if (!validateStep1() || !validateStep2() || !validateStep3() || !validateStep4()) return;
         if (!signatureData) {
           setStepError("La firma digital del cliente es obligatoria.");
           showToast("La firma digital del cliente es obligatoria.", "warning");
@@ -365,6 +575,9 @@ export default function RecepcionForm({
         const formData = new FormData();
         formData.append("clientName", clientName);
         formData.append("clientPhone", clientPhone);
+        formData.append("clientPhone2", showPhone2 ? clientPhone2 : "");
+        formData.append("clientDocumentTypeId", clientDocumentTypeId);
+        formData.append("clientDocumentNumber", clientDocumentNumber);
         formData.append("clientEmail", clientEmail);
         formData.append("plate", plate);
         formData.append("year", year);
@@ -372,8 +585,11 @@ export default function RecepcionForm({
         formData.append("model", model);
         formData.append("color", color);
         formData.append("mileage", mileage);
+        formData.append("vehicleType", vehicleType);
+        formData.append("observations", observations);
+        formData.append("checklist", JSON.stringify(checklist));
         formData.append("signature", signatureData);
-        
+
         selectedServices.forEach((sId) => {
           formData.append("services", sId.toString());
         });
@@ -415,23 +631,24 @@ export default function RecepcionForm({
         )}
 
         {/* ==================== PASO 1: DATOS DEL CLIENTE ==================== */}
-        <div className="bg-white border border-zinc-200 rounded-xl shadow-xs overflow-hidden">
+        <div className="bg-white border border-zinc-200 rounded-xl shadow-xs">
           {/* Header */}
           <div
             onClick={() => handleHeaderClick(1)}
             className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${
-              activeStep === 1 ? "bg-zinc-50/70 border-b border-zinc-100" : "hover:bg-zinc-50/40"
+              activeStep === 1
+                ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
+                : "hover:bg-zinc-50/40 rounded-xl"
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div
-                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  clientName && clientPhone.length === 10
+                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${clientName && clientPhone.length === 10
                     ? "bg-green-100 text-green-700"
                     : activeStep === 1
-                    ? "bg-[#C9A84C]/25 text-[#9A7A28]"
-                    : "bg-zinc-100 text-zinc-400"
-                }`}
+                      ? "bg-[#C9A84C]/25 text-[#9A7A28]"
+                      : "bg-zinc-100 text-zinc-400"
+                  }`}
               >
                 {clientName && clientPhone.length === 10 ? "✓" : "1"}
               </div>
@@ -454,8 +671,15 @@ export default function RecepcionForm({
           </div>
 
           {/* Expanded panel */}
-          {activeStep === 1 && (
-            <div className="p-6 space-y-4 animate-[fadeIn_0.2s_ease-out]">
+          <div
+            className={`grid transition-all duration-300 ease-in-out ${
+              activeStep === 1
+                ? "grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className={activeStep === 1 ? "overflow-visible" : "overflow-hidden"}>
+              <div className="p-6 space-y-4">
               {/* Toggle Cliente Registrado vs Nuevo */}
               <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 w-full max-w-xs select-none">
                 <button
@@ -464,11 +688,10 @@ export default function RecepcionForm({
                     setClientMode("registered");
                     setStepError(null);
                   }}
-                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${
-                    clientMode === "registered"
+                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${clientMode === "registered"
                       ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
                       : "text-zinc-500 hover:text-zinc-900"
-                  }`}
+                    }`}
                 >
                   Buscar Registrado
                 </button>
@@ -482,11 +705,10 @@ export default function RecepcionForm({
                     setSelectedClientObj(null);
                     setStepError(null);
                   }}
-                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${
-                    clientMode === "new"
+                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${clientMode === "new"
                       ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
                       : "text-zinc-500 hover:text-zinc-900"
-                  }`}
+                    }`}
                 >
                   Nuevo Cliente
                 </button>
@@ -524,10 +746,14 @@ export default function RecepcionForm({
                                   setClientName(c.name);
                                   setClientPhone(c.phone);
                                   setClientEmail(c.email || "");
+                                  setClientDocumentTypeId(c.documentTypeId ? c.documentTypeId.toString() : "");
+                                  setClientDocumentNumber(c.documentNumber || "");
+                                  setClientPhone2(c.phone2 || "");
+                                  setShowPhone2(!!c.phone2);
                                   setClientSearchQuery("");
                                   setIsClientSearchOpen(false);
                                   setStepError(null);
-                                  
+
                                   // Auto-fill car toggle to registered if has cars
                                   if (c.cars && c.cars.length > 0) {
                                     setCarMode("registered");
@@ -556,7 +782,12 @@ export default function RecepcionForm({
                         </span>
                         <h4 className="text-sm font-bold text-zinc-800 mt-1">{clientName}</h4>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                          Celular: {clientPhone} {clientEmail && `· Correo: ${clientEmail}`}
+                          Celular: {clientPhone} {clientPhone2 && ` · Celular Alternativo: ${clientPhone2}`} {(() => {
+                            if (!clientDocumentNumber) return null;
+                            const docTypeObj = documentTypes.find(dt => dt.id.toString() === clientDocumentTypeId);
+                            const docLabel = docTypeObj ? docTypeObj.code : "Documento";
+                            return ` · ${docLabel}: ${clientDocumentNumber}`;
+                          })()} {clientEmail && ` · Correo: ${clientEmail}`}
                         </p>
                       </div>
                       <button
@@ -564,7 +795,11 @@ export default function RecepcionForm({
                         onClick={() => {
                           setClientName("");
                           setClientPhone("");
+                          setClientPhone2("");
+                          setClientDocumentTypeId("");
+                          setClientDocumentNumber("");
                           setClientEmail("");
+                          setShowPhone2(false);
                           setSelectedClientObj(null);
                         }}
                         className="h-8 px-3 rounded-lg border border-zinc-200 text-xs font-bold text-red-600 bg-white hover:bg-red-50 transition-colors"
@@ -579,9 +814,9 @@ export default function RecepcionForm({
               {/* MODO NUEVO CLIENTE */}
               {clientMode === "new" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-[fadeIn_0.2s_ease-out]">
-                  <div className="space-y-1 md:col-span-2">
+                  <div className="space-y-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Nombre completo *
+                      Nombre completo
                     </label>
                     <input
                       type="text"
@@ -594,9 +829,92 @@ export default function RecepcionForm({
                     />
                   </div>
 
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                        Tipo Doc.
+                      </label>
+                      <input type="hidden" name="clientDocumentTypeId" value={clientDocumentTypeId} />
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsDocTypeDropdownOpen(!isDocTypeDropdownOpen);
+                            setStepError(null);
+                          }}
+                          className={`w-full h-11 px-2.5 bg-zinc-50 border rounded-lg text-sm text-zinc-805 transition-all flex items-center justify-between cursor-pointer ${
+                            isDocTypeDropdownOpen
+                              ? "border-[#C9A84C] bg-white ring-1 ring-[#C9A84C]/50"
+                              : "border-zinc-200 hover:border-zinc-300"
+                          }`}
+                        >
+                          <span className="truncate">
+                            {clientDocumentTypeId
+                              ? documentTypes.find((dt) => dt.id.toString() === clientDocumentTypeId)?.code || "Sel..."
+                              : "Sel..."}
+                          </span>
+                          <ChevronDown className={`h-4 w-4 text-zinc-400 shrink-0 transition-transform duration-205 ${isDocTypeDropdownOpen ? "rotate-180" : ""}`} />
+                        </button>
+
+                        {isDocTypeDropdownOpen && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-30"
+                              onClick={() => setIsDocTypeDropdownOpen(false)}
+                            />
+                            <div className="absolute left-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-800 z-40 animate-[fadeIn_0.15s_ease-out] min-w-[140px] max-w-[200px]">
+                              <div
+                                onClick={() => {
+                                  setClientDocumentTypeId("");
+                                  setIsDocTypeDropdownOpen(false);
+                                }}
+                                className={`py-2 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none text-zinc-400`}
+                              >
+                                Sel...
+                              </div>
+                              {documentTypes.map((dt) => (
+                                <div
+                                  key={dt.id}
+                                  onClick={() => {
+                                    setClientDocumentTypeId(dt.id.toString());
+                                    setIsDocTypeDropdownOpen(false);
+                                  }}
+                                  className={`py-2 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${
+                                    clientDocumentTypeId === dt.id.toString()
+                                      ? "text-[#9A7A28] bg-[#FBF5E6]/40"
+                                      : "text-zinc-700"
+                                  }`}
+                                >
+                                  {dt.code} - {dt.name}
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="col-span-2 space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                        Número de Documento
+                      </label>
+                      <input
+                        type="text"
+                        name="clientDocumentNumber"
+                        value={clientDocumentNumber}
+                        onChange={(e) => {
+                          setClientDocumentNumber(e.target.value.replace(/\D/g, "").slice(0, 10));
+                          setStepError(null);
+                        }}
+                        placeholder="Ej. 1045238910"
+                        className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Celular (10 dígitos) *
+                      Celular
                     </label>
                     <input
                       type="text"
@@ -622,6 +940,45 @@ export default function RecepcionForm({
                       className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
                     />
                   </div>
+
+                  {/* Toggle Teléfono Alternativo */}
+                  <div className="md:col-span-2 pt-1">
+                    {!showPhone2 ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowPhone2(true)}
+                        className="text-xs font-semibold text-[#9A7A28] hover:text-[#C9A84C] transition-colors flex items-center gap-1"
+                      >
+                        + Añadir teléfono alternativo
+                      </button>
+                    ) : (
+                      <div className="space-y-1 animate-[fadeIn_0.15s_ease-out]">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                            Celular alternativo (10 dígitos)
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowPhone2(false);
+                              setClientPhone2("");
+                            }}
+                            className="text-[10px] font-semibold text-red-500 hover:text-red-700 transition-colors"
+                          >
+                            Remover celular alternativo
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          name="clientPhone2"
+                          value={clientPhone2}
+                          onChange={(e) => setClientPhone2(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                          placeholder="Ej. 3105554433"
+                          className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -637,27 +994,29 @@ export default function RecepcionForm({
                 </button>
               </div>
             </div>
-          )}
+          </div>
+        </div>
         </div>
 
         {/* ==================== PASO 2: DATOS DEL VEHÍCULO ==================== */}
-        <div className="bg-white border border-zinc-200 rounded-xl shadow-xs overflow-hidden">
+        <div className="bg-white border border-zinc-200 rounded-xl shadow-xs">
           {/* Header */}
           <div
             onClick={() => handleHeaderClick(2)}
             className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${
-              activeStep === 2 ? "bg-zinc-50/70 border-b border-zinc-100" : "hover:bg-zinc-50/40"
+              activeStep === 2
+                ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
+                : "hover:bg-zinc-50/40 rounded-xl"
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div
-                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  plate.length >= 5 && year && brandId && model && color
+                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${plate.length >= 5 && year && brandId && model && color
                     ? "bg-green-100 text-green-700"
                     : activeStep === 2
-                    ? "bg-[#C9A84C]/25 text-[#9A7A28]"
-                    : "bg-zinc-100 text-zinc-400"
-                }`}
+                      ? "bg-[#C9A84C]/25 text-[#9A7A28]"
+                      : "bg-zinc-100 text-zinc-400"
+                  }`}
               >
                 {plate.length >= 5 && year && brandId && model && color ? "✓" : "2"}
               </div>
@@ -680,8 +1039,15 @@ export default function RecepcionForm({
           </div>
 
           {/* Expanded panel */}
-          {activeStep === 2 && (
-            <div className="p-6 space-y-4 animate-[fadeIn_0.2s_ease-out]">
+          <div
+            className={`grid transition-all duration-300 ease-in-out ${
+              activeStep === 2
+                ? "grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className={activeStep === 2 ? "overflow-visible" : "overflow-hidden"}>
+              <div className="p-6 space-y-4">
               {/* Toggle Vehículo Registrado vs Nuevo */}
               <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 w-full max-w-xs select-none">
                 <button
@@ -690,11 +1056,10 @@ export default function RecepcionForm({
                     setCarMode("registered");
                     setStepError(null);
                   }}
-                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${
-                    carMode === "registered"
+                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${carMode === "registered"
                       ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
                       : "text-zinc-500 hover:text-zinc-900"
-                  }`}
+                    }`}
                 >
                   Vehículo Existente
                 </button>
@@ -709,11 +1074,10 @@ export default function RecepcionForm({
                     setColor("");
                     setStepError(null);
                   }}
-                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${
-                    carMode === "new"
+                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${carMode === "new"
                       ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
                       : "text-zinc-500 hover:text-zinc-900"
-                  }`}
+                    }`}
                 >
                   Nuevo Vehículo
                 </button>
@@ -724,8 +1088,8 @@ export default function RecepcionForm({
                 <div className="space-y-3 relative">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                      {selectedClientObj 
-                        ? `Buscar Vehículo de ${selectedClientObj.name} (Placa) *` 
+                      {selectedClientObj
+                        ? `Buscar Vehículo de ${selectedClientObj.name} (Placa) *`
                         : "Buscar Vehículo General (Placa) *"}
                     </label>
                     <div className="relative">
@@ -754,14 +1118,19 @@ export default function RecepcionForm({
                                   setBrandId(car.brand.id.toString());
                                   setModel(car.model);
                                   setColor(car.color);
+                                  setVehicleType(car.type || "Automóvil");
                                   setCarSearchQuery("");
                                   setIsCarSearchOpen(false);
                                   setStepError(null);
-                                  
+
                                   // Auto-fill client if new/empty
                                   if (!clientPhone) {
                                     setClientName(car.client.name);
                                     setClientPhone(car.client.phone);
+                                    setClientPhone2(car.client.phone2 || "");
+                                    setClientDocumentTypeId(car.client.documentTypeId ? car.client.documentTypeId.toString() : "");
+                                    setClientDocumentNumber(car.client.documentNumber || "");
+                                    setShowPhone2(!!car.client.phone2);
                                     setClientEmail(car.client.email || "");
                                     setClientMode("registered");
                                   }
@@ -798,7 +1167,7 @@ export default function RecepcionForm({
                             {brandId ? brands.find(b => b.id.toString() === brandId)?.name : ""} {model} ({year})
                           </h4>
                         </div>
-                        <p className="text-xs text-zinc-500 mt-1">Color: {color}</p>
+                        <p className="text-xs text-zinc-500 mt-1">Tipo: {vehicleType} · Color: {color}</p>
                       </div>
                       <button
                         type="button"
@@ -836,6 +1205,35 @@ export default function RecepcionForm({
               {/* MODO NUEVO VEHÍCULO */}
               {carMode === "new" && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-[fadeIn_0.2s_ease-out]">
+                  {/* Tipo de vehículo select buttons */}
+                  <div className="space-y-1 col-span-2 sm:col-span-3">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">
+                      Tipo de vehículo *
+                    </label>
+                    <div className="flex gap-4 max-w-md">
+                      <button
+                        type="button"
+                        onClick={() => setVehicleType("Automóvil")}
+                        className={`flex-1 py-2 px-3 rounded-lg border flex items-center justify-center gap-2 font-bold text-xs uppercase transition-all select-none cursor-pointer ${vehicleType === "Automóvil"
+                            ? "border-[#C9A84C] bg-[#FBF5E6]/60 text-[#9A7A28] shadow-xs animate-[scaleIn_0.15s_ease-out]"
+                            : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-zinc-105 hover:text-zinc-700"
+                          }`}
+                      >
+                        Automóvil
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVehicleType("Motocicleta")}
+                        className={`flex-1 py-2 px-3 rounded-lg border flex items-center justify-center gap-2 font-bold text-xs uppercase transition-all select-none cursor-pointer ${vehicleType === "Motocicleta"
+                            ? "border-[#C9A84C] bg-[#FBF5E6]/60 text-[#9A7A28] shadow-xs animate-[scaleIn_0.15s_ease-out]"
+                            : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-zinc-105 hover:text-zinc-700"
+                          }`}
+                      >
+                        Motocicleta
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                       Placa (Sin espacios, máx. 6) *
@@ -855,23 +1253,62 @@ export default function RecepcionForm({
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                       Año *
                     </label>
-                    <select
-                      name="year"
-                      required
-                      value={year}
-                      onChange={(e) => {
-                        setYear(e.target.value);
-                        setStepError(null);
-                      }}
-                      className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all cursor-pointer"
-                    >
-                      <option value="">Seleccionar año...</option>
-                      {yearsList.map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ))}
-                    </select>
+                    <input type="hidden" name="year" value={year} required />
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsYearDropdownOpen(!isYearDropdownOpen);
+                          setStepError(null);
+                        }}
+                        className={`w-full h-11 px-3 bg-zinc-50 border rounded-lg text-sm text-zinc-850 transition-all flex items-center justify-between cursor-pointer ${
+                          isYearDropdownOpen
+                            ? "border-[#C9A84C] bg-white ring-1 ring-[#C9A84C]/50"
+                            : "border-zinc-200 hover:border-zinc-300"
+                        }`}
+                      >
+                        <span className="truncate">
+                          {year || "Seleccionar..."}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 text-zinc-400 shrink-0 transition-transform duration-205 ${isYearDropdownOpen ? "rotate-180" : ""}`} />
+                      </button>
+
+                      {isYearDropdownOpen && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-30"
+                            onClick={() => setIsYearDropdownOpen(false)}
+                          />
+                          <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-800 z-40 animate-[fadeIn_0.15s_ease-out] min-w-[140px]">
+                            <div
+                              onClick={() => {
+                                setYear("");
+                                setIsYearDropdownOpen(false);
+                              }}
+                              className="py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none text-zinc-400"
+                            >
+                              Seleccionar...
+                            </div>
+                            {yearsList.map((y) => (
+                              <div
+                                key={y}
+                                onClick={() => {
+                                  setYear(y.toString());
+                                  setIsYearDropdownOpen(false);
+                                }}
+                                className={`py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${
+                                  year === y.toString()
+                                    ? "text-[#9A7A28] bg-[#FBF5E6]/40"
+                                    : "text-zinc-700"
+                                }`}
+                              >
+                                {y}
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   {/* Custom Styled Brand Selector Dropdown */}
@@ -886,14 +1323,18 @@ export default function RecepcionForm({
                         setIsBrandDropdownOpen(!isBrandDropdownOpen);
                         setStepError(null);
                       }}
-                      className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-850 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all flex items-center justify-between cursor-pointer"
+                      className={`w-full h-11 px-3 bg-zinc-50 border rounded-lg text-sm text-zinc-855 transition-all flex items-center justify-between cursor-pointer ${
+                        isBrandDropdownOpen
+                          ? "border-[#C9A84C] bg-white ring-1 ring-[#C9A84C]/50"
+                          : "border-zinc-200 hover:border-zinc-300"
+                      }`}
                     >
-                      <span>
+                      <span className="truncate">
                         {brandId
                           ? brands.find((b) => b.id.toString() === brandId)?.name || "Seleccionar..."
                           : "Seleccionar..."}
                       </span>
-                      <ChevronDown className="h-4 w-4 text-zinc-400" />
+                      <ChevronDown className={`h-4 w-4 text-zinc-400 shrink-0 transition-transform duration-205 ${isBrandDropdownOpen ? "rotate-180" : ""}`} />
                     </button>
 
                     {isBrandDropdownOpen && (
@@ -910,11 +1351,10 @@ export default function RecepcionForm({
                                 setBrandId(brand.id.toString());
                                 setIsBrandDropdownOpen(false);
                               }}
-                              className={`py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${
-                                brandId === brand.id.toString()
+                              className={`py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${brandId === brand.id.toString()
                                   ? "text-[#9A7A28] bg-[#FBF5E6]/40"
                                   : "text-zinc-700"
-                              }`}
+                                }`}
                             >
                               {brand.name}
                             </div>
@@ -989,27 +1429,29 @@ export default function RecepcionForm({
                 </button>
               </div>
             </div>
-          )}
+          </div>
+        </div>
         </div>
 
         {/* ==================== PASO 3: SERVICIOS CONTRATADOS ==================== */}
-        <div className="bg-white border border-zinc-200 rounded-xl shadow-xs overflow-hidden">
+        <div className="bg-white border border-zinc-200 rounded-xl shadow-xs">
           {/* Header */}
           <div
             onClick={() => handleHeaderClick(3)}
             className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${
-              activeStep === 3 ? "bg-zinc-50/70 border-b border-zinc-100" : "hover:bg-zinc-50/40"
+              activeStep === 3
+                ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
+                : "hover:bg-zinc-50/40 rounded-xl"
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div
-                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  selectedServices.length > 0
+                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${selectedServices.length > 0
                     ? "bg-green-100 text-green-700"
                     : activeStep === 3
-                    ? "bg-[#C9A84C]/25 text-[#9A7A28]"
-                    : "bg-zinc-100 text-zinc-400"
-                }`}
+                      ? "bg-[#C9A84C]/25 text-[#9A7A28]"
+                      : "bg-zinc-100 text-zinc-400"
+                  }`}
               >
                 {selectedServices.length > 0 ? "✓" : "3"}
               </div>
@@ -1033,8 +1475,15 @@ export default function RecepcionForm({
           </div>
 
           {/* Expanded panel */}
-          {activeStep === 3 && (
-            <div className="p-6 space-y-4 animate-[fadeIn_0.2s_ease-out]">
+          <div
+            className={`grid transition-all duration-300 ease-in-out ${
+              activeStep === 3
+                ? "grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className={activeStep === 3 ? "overflow-visible" : "overflow-hidden"}>
+              <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {services.map((service) => {
                   const isSelected = selectedServices.includes(service.id);
@@ -1044,20 +1493,18 @@ export default function RecepcionForm({
                     <div
                       key={service.id}
                       onClick={() => toggleService(service.id)}
-                      className={`border rounded-xl p-3 cursor-pointer select-none transition-all duration-150 flex flex-col justify-between h-20 min-h-[50px] relative ${
-                        isSelected
+                      className={`border rounded-xl p-3 cursor-pointer select-none transition-all duration-150 flex flex-col justify-between h-20 min-h-[50px] relative ${isSelected
                           ? "border-[#C9A84C] bg-[#FBF5E6]/60 shadow-[0_0_0_3px_rgba(201,168,76,0.12)] text-[#9A7A28]"
                           : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-[#C9A84C]/60 hover:bg-[#FBF5E6]/10"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <Icon
                           className={`h-5 w-5 ${isSelected ? "text-[#C9A84C]" : "text-zinc-400"}`}
                         />
                         <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all shrink-0 ${
-                            isSelected ? "bg-[#C9A84C] border-[#C9A84C]" : "border-zinc-300 bg-white"
-                          }`}
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all shrink-0 ${isSelected ? "bg-[#C9A84C] border-[#C9A84C]" : "border-zinc-300 bg-white"
+                            }`}
                         >
                           {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                         </div>
@@ -1084,34 +1531,38 @@ export default function RecepcionForm({
                   onClick={() => handleNextStep(3)}
                   className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
                 >
-                  Continuar a Inspección
+                  Continuar a Checklist
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </div>
-          )}
+          </div>
+        </div>
         </div>
 
-        {/* ==================== PASO 4: FOTOS Y FIRMA DE RECEPCIÓN ==================== */}
-        <div className="bg-white border border-zinc-200 rounded-xl shadow-xs overflow-hidden">
+        {/* ==================== PASO 4: CHECKLIST DE RECEPCIÓN ==================== */}
+        <div className="bg-white border border-zinc-200 rounded-xl shadow-xs">
           {/* Header */}
           <div
             onClick={() => handleHeaderClick(4)}
             className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${
-              activeStep === 4 ? "bg-zinc-50/70 border-b border-zinc-100" : "hover:bg-zinc-50/40"
+              activeStep === 4
+                ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
+                : "hover:bg-zinc-50/40 rounded-xl"
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div
-                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  activeStep === 4 ? "bg-[#C9A84C]/25 text-[#9A7A28]" : "bg-zinc-100 text-zinc-400"
-                }`}
+                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${activeStep === 4
+                    ? "bg-[#C9A84C]/25 text-[#9A7A28]"
+                    : "bg-zinc-100 text-zinc-400"
+                  }`}
               >
-                {signatureData ? "✓" : "4"}
+                4
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm font-bold text-zinc-800 leading-tight">
-                  Inspección y Firma de Recepción
+                  Checklist de Recepción y Observaciones
                 </h3>
               </div>
             </div>
@@ -1123,8 +1574,143 @@ export default function RecepcionForm({
           </div>
 
           {/* Expanded panel */}
-          {activeStep === 4 && (
-            <div className="p-6 space-y-6 animate-[fadeIn_0.2s_ease-out]">
+          <div
+            className={`grid transition-all duration-300 ease-in-out ${
+              activeStep === 4
+                ? "grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className={activeStep === 4 ? "overflow-visible" : "overflow-hidden"}>
+              <div className="p-6 space-y-6">
+
+              <div className="space-y-6">
+                {/* Exterior Group */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-1">
+                    Exterior
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
+                    {renderChecklistItem("rayones", "Rayones")}
+                    {renderChecklistItem("golpes", "Golpes")}
+                    {renderChecklistItem("pintura", "Estado de pintura")}
+                    {renderChecklistItem("rines", "Estado de rines")}
+                    {renderChecklistItem("vidrios", "Estado de vidrios")}
+                    {renderChecklistItem("parabrisas", "Estado de parabrisas")}
+                    {renderChecklistItem("farolas", "Estado de farolas")}
+                  </div>
+                </div>
+
+                {/* Interior Group */}
+                <div className="space-y-2 pt-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-1">
+                    Interior
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
+                    {renderChecklistItem("cojineria", "Estado de cojinería")}
+                    {renderChecklistItem("tablero", "Estado del tablero")}
+                    {renderChecklistItem("general_interior", "Estado general interior")}
+                  </div>
+                </div>
+
+                {/* Funcionamiento Group */}
+                <div className="space-y-2 pt-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-1">
+                    Funcionamiento
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
+                    {renderChecklistItem("testigos", "Testigos encendidos")}
+                    {renderChecklistItem("vidrios_electricos", "Vidrios eléctricos")}
+                    {renderChecklistItem("luces", "Luces")}
+                    {renderChecklistItem("direccionales", "Direccionales")}
+                    {renderChecklistItem("reversa", "Reversa")}
+                    {renderChecklistItem("estacionarias", "Estacionarias")}
+                    {renderChecklistItem("pito", "Pito")}
+                    {renderChecklistItem("plumillas", "Plumillas")}
+                    {renderChecklistItem("espejos", "Espejos")}
+                    {renderChecklistItem("lineas_termicas", "Líneas térmicas")}
+                  </div>
+                </div>
+              </div>
+
+              {/* Observaciones text area */}
+              <div className="pt-4 border-t border-zinc-150 space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-zinc-400 block">
+                  Observaciones generales
+                </label>
+                <textarea
+                  value={observations}
+                  onChange={(e) => setObservations(e.target.value)}
+                  placeholder="Campo libre para registrar novedades encontradas (rayones específicos, abolladuras, etc.)..."
+                  rows={4}
+                  className="w-full p-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all resize-none font-medium leading-relaxed"
+                />
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => handlePrevStep(3)}
+                  className="h-11 px-4 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
+                >
+                  Regresar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleNextStep(4)}
+                  className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  Continuar a Fotos y Firma
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        {/* ==================== PASO 5: FOTOS Y FIRMA DE RECEPCIÓN ==================== */}
+        <div className="bg-white border border-zinc-200 rounded-xl shadow-xs">
+          {/* Header */}
+          <div
+            onClick={() => handleHeaderClick(5)}
+            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${
+              activeStep === 5
+                ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
+                : "hover:bg-zinc-50/40 rounded-xl"
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${activeStep === 5 ? "bg-[#C9A84C]/25 text-[#9A7A28]" : "bg-zinc-100 text-zinc-400"
+                  }`}
+              >
+                {signatureData ? "✓" : "5"}
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-zinc-800 leading-tight">
+                  Inspección y Firma de Recepción
+                </h3>
+              </div>
+            </div>
+            {activeStep === 5 ? (
+              <ChevronDown className="h-4.5 w-4.5 text-zinc-400" />
+            ) : (
+              <ChevronRight className="h-4.5 w-4.5 text-zinc-400" />
+            )}
+          </div>
+
+          {/* Expanded panel */}
+          <div
+            className={`grid transition-all duration-300 ease-in-out ${
+              activeStep === 5
+                ? "grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className={activeStep === 5 ? "overflow-visible" : "overflow-hidden"}>
+              <div className="p-6 space-y-6">
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                   Fotos de Recepción (Demo)
@@ -1154,8 +1740,8 @@ export default function RecepcionForm({
                 <p className="text-xs text-zinc-500">
                   El cliente confirma que el estado del vehículo y los servicios contratados fueron revisados y aceptados.
                 </p>
-                
-                <div 
+
+                <div
                   className="border border-zinc-250 rounded-xl bg-white overflow-hidden relative h-32 w-full max-w-lg shadow-[inset_0_1px_3px_rgba(0,0,0,0.06)]"
                 >
                   <canvas
@@ -1193,7 +1779,7 @@ export default function RecepcionForm({
               <div className="flex justify-between pt-4 border-t border-zinc-100">
                 <button
                   type="button"
-                  onClick={() => handlePrevStep(3)}
+                  onClick={() => handlePrevStep(4)}
                   className="h-11 px-4 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
                 >
                   Regresar
@@ -1214,7 +1800,8 @@ export default function RecepcionForm({
                 </button>
               </div>
             </div>
-          )}
+          </div>
+        </div>
         </div>
       </div>
     </form>

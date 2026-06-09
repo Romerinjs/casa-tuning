@@ -62,6 +62,11 @@ export type Brand = Prisma.BrandModel
  */
 export type ServiceCatalog = Prisma.ServiceCatalogModel
 /**
+ * Model DocumentType
+ * 
+ */
+export type DocumentType = Prisma.DocumentTypeModel
+/**
  * Model User
  * 
  */

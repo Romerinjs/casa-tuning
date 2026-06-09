@@ -388,6 +388,7 @@ export const ModelName = {
   OrderStatus: 'OrderStatus',
   Brand: 'Brand',
   ServiceCatalog: 'ServiceCatalog',
+  DocumentType: 'DocumentType',
   User: 'User',
   Client: 'Client',
   Car: 'Car',
@@ -412,7 +413,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "role" | "orderStatus" | "brand" | "serviceCatalog" | "user" | "client" | "car" | "order" | "orderService" | "visualInspection" | "orderPhoto" | "activityLog" | "orderNotification"
+    modelProps: "role" | "orderStatus" | "brand" | "serviceCatalog" | "documentType" | "user" | "client" | "car" | "order" | "orderService" | "visualInspection" | "orderPhoto" | "activityLog" | "orderNotification"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -709,6 +710,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ServiceCatalogCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ServiceCatalogCountAggregateOutputType> | number
+        }
+      }
+    }
+    DocumentType: {
+      payload: Prisma.$DocumentTypePayload<ExtArgs>
+      fields: Prisma.DocumentTypeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DocumentTypeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DocumentTypeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload>
+        }
+        findFirst: {
+          args: Prisma.DocumentTypeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DocumentTypeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload>
+        }
+        findMany: {
+          args: Prisma.DocumentTypeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload>[]
+        }
+        create: {
+          args: Prisma.DocumentTypeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload>
+        }
+        createMany: {
+          args: Prisma.DocumentTypeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DocumentTypeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload>[]
+        }
+        delete: {
+          args: Prisma.DocumentTypeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload>
+        }
+        update: {
+          args: Prisma.DocumentTypeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload>
+        }
+        deleteMany: {
+          args: Prisma.DocumentTypeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DocumentTypeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DocumentTypeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload>[]
+        }
+        upsert: {
+          args: Prisma.DocumentTypeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentTypePayload>
+        }
+        aggregate: {
+          args: Prisma.DocumentTypeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDocumentType>
+        }
+        groupBy: {
+          args: Prisma.DocumentTypeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentTypeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DocumentTypeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentTypeCountAggregateOutputType> | number
         }
       }
     }
@@ -1452,6 +1527,15 @@ export const ServiceCatalogScalarFieldEnum = {
 export type ServiceCatalogScalarFieldEnum = (typeof ServiceCatalogScalarFieldEnum)[keyof typeof ServiceCatalogScalarFieldEnum]
 
 
+export const DocumentTypeScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name'
+} as const
+
+export type DocumentTypeScalarFieldEnum = (typeof DocumentTypeScalarFieldEnum)[keyof typeof DocumentTypeScalarFieldEnum]
+
+
 export const UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1469,6 +1553,9 @@ export const ClientScalarFieldEnum = {
   id: 'id',
   name: 'name',
   phone: 'phone',
+  phone2: 'phone2',
+  documentNumber: 'documentNumber',
+  documentTypeId: 'documentTypeId',
   email: 'email',
   createdAt: 'createdAt'
 } as const
@@ -1479,6 +1566,7 @@ export type ClientScalarFieldEnum = (typeof ClientScalarFieldEnum)[keyof typeof 
 export const CarScalarFieldEnum = {
   id: 'id',
   plate: 'plate',
+  type: 'type',
   model: 'model',
   year: 'year',
   color: 'color',
@@ -1494,6 +1582,8 @@ export const OrderScalarFieldEnum = {
   code: 'code',
   mileage: 'mileage',
   signatureUrl: 'signatureUrl',
+  observations: 'observations',
+  checklist: 'checklist',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   statusId: 'statusId',
@@ -1562,6 +1652,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -1576,6 +1674,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -1630,6 +1737,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -1760,6 +1881,7 @@ export type GlobalOmitConfig = {
   orderStatus?: Prisma.OrderStatusOmit
   brand?: Prisma.BrandOmit
   serviceCatalog?: Prisma.ServiceCatalogOmit
+  documentType?: Prisma.DocumentTypeOmit
   user?: Prisma.UserOmit
   client?: Prisma.ClientOmit
   car?: Prisma.CarOmit
