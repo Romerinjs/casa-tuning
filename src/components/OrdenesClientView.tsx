@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { updateOrderStatusAction } from "@/app/(authenticated)/ordenes/actions";
+import { useState, useTransition, useEffect } from "react";
+import {
+  updateOrderStatusAction,
+  uploadDeliveryPdfAction,
+  deleteDeliveryPdfAction,
+  addOrderCommentAction,
+} from "@/app/(authenticated)/ordenes/actions";
 import { useToast } from "@/components/ui/Toast";
 import {
   Search,
@@ -11,7 +16,21 @@ import {
   Calendar,
   Phone,
   User,
+  FileText,
+  Trash2,
+  UploadCloud,
+  Send,
+  MessageSquare,
 } from "lucide-react";
+
+const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+};
 
 interface OrderService {
   service: {
@@ -50,6 +69,18 @@ interface OrderData {
     };
   };
   services: OrderService[];
+  deliveryPdfUrl: string | null;
+  comments: {
+    id: number;
+    content: string;
+    createdAt: Date;
+    user: {
+      name: string;
+      role: {
+        name: string;
+      };
+    };
+  }[];
 }
 
 interface OrdenesClientViewProps {
@@ -62,7 +93,91 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
   const [statusFilter, setStatusFilter] = useState("TODOS");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+  const [zoomImage, setZoomImage] = useState<string | null>(null);
+  const [activeGalleryKey, setActiveGalleryKey] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+
+  const [isUploadingPdf, setIsUploadingPdf] = useState<number | null>(null);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+  // Sync selectedOrder with updated orders prop (e.g. after comments or status update)
+  useEffect(() => {
+    if (selectedOrder) {
+      const updated = orders.find((o) => o.id === selectedOrder.id);
+      if (updated) {
+        setSelectedOrder(updated);
+      }
+    }
+  }, [orders, selectedOrder?.id]);
+
+  const handlePdfUpload = (orderId: number, file: File) => {
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      showToast("El archivo seleccionado debe ser un documento PDF.", "warning");
+      return;
+    }
+    // Limit to 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("El archivo PDF no debe superar los 5MB de tamaño.", "warning");
+      return;
+    }
+
+    setIsUploadingPdf(orderId);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64Data = e.target?.result as string;
+      if (!base64Data) {
+        showToast("Error al leer el archivo PDF.", "error");
+        setIsUploadingPdf(null);
+        return;
+      }
+
+      startTransition(async () => {
+        const res = await uploadDeliveryPdfAction(orderId, base64Data, file.name);
+        if (res.success) {
+          showToast("Documento de entrega PDF cargado con éxito.", "success");
+        } else {
+          showToast(res.error || "Error al cargar el documento", "error");
+        }
+        setIsUploadingPdf(null);
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handlePdfDelete = (orderId: number) => {
+    setIsUploadingPdf(orderId);
+    startTransition(async () => {
+      const res = await deleteDeliveryPdfAction(orderId);
+      if (res.success) {
+        showToast("Documento de entrega PDF eliminado.", "success");
+      } else {
+        showToast(res.error || "Error al eliminar el documento", "error");
+      }
+      setIsUploadingPdf(null);
+    });
+  };
+
+  const handleAddComment = async (e: React.FormEvent<HTMLFormElement>, orderId: number) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const textarea = form.elements.namedItem("commentContent") as HTMLTextAreaElement;
+    const content = textarea.value;
+
+    if (!content.trim()) return;
+
+    setIsSubmittingComment(true);
+    startTransition(async () => {
+      const res = await addOrderCommentAction(orderId, content);
+      if (res.success) {
+        showToast("Comentario agregado con éxito.", "success");
+        textarea.value = "";
+      } else {
+        showToast(res.error || "Error al agregar el comentario", "error");
+      }
+      setIsSubmittingComment(false);
+    });
+  };
 
   const handleStatusChange = async (orderId: number, nextStatus: string) => {
     setUpdatingId(orderId);
@@ -152,11 +267,10 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${
-                    statusFilter === status
-                      ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
-                      : "text-zinc-500 hover:text-zinc-900"
-                  }`}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${statusFilter === status
+                    ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
+                    : "text-zinc-500 hover:text-zinc-900"
+                    }`}
                 >
                   {status === "TODOS" ? "Todos" : getStatusLabel(status)}
                 </button>
@@ -333,6 +447,68 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                       </div>
                     )}
                   </div>
+
+                  {/* Carga y visualización de PDF de entrega (Para LISTO y ENTREGADO con PDF cargado) */}
+                  {(statusName === "LISTO" || (statusName === "ENTREGADO" && order.deliveryPdfUrl)) && (
+                    <div className="mt-4 pt-3 border-t border-zinc-150 flex flex-col gap-2">
+                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        <span>Factura Electrónica</span>
+                        {order.deliveryPdfUrl && (
+                          <span className="text-green-600 font-bold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Cargado
+                          </span>
+                        )}
+                      </div>
+
+                      {isUploadingPdf === order.id ? (
+                        <div className="border border-zinc-200 rounded-xl p-3.5 bg-zinc-50/50 flex items-center justify-center gap-2 text-xs text-zinc-500 font-bold select-none">
+                          <div className="h-4.5 w-4.5 animate-spin rounded-full border-2 border-[#C9A84C] border-t-transparent" />
+                          <span>Procesando archivo...</span>
+                        </div>
+                      ) : order.deliveryPdfUrl ? (
+                        <div className="bg-zinc-50 border border-zinc-200 hover:border-[#C9A84C]/35 rounded-xl p-2.5 flex items-center justify-between gap-3 group transition-colors animate-[scaleIn_0.15s_ease-out]">
+                          <a
+                            href={order.deliveryPdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2.5 min-w-0 flex-1 hover:text-[#9A7A28] transition-colors"
+                          >
+                            <div className="h-8 w-8 rounded-lg bg-red-50 text-red-650 border border-red-100 flex items-center justify-center shrink-0">
+                              <FileText className="h-4.5 w-4.5" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-zinc-850 truncate">Factura_Elec_{order.code}.pdf</p>
+                              <p className="text-[9px] text-zinc-400 font-semibold mt-0.5">Ver / Descargar archivo</p>
+                            </div>
+                          </a>
+                          {statusName === "LISTO" && (
+                            <button
+                              type="button"
+                              onClick={() => handlePdfDelete(order.id)}
+                              className="h-8 w-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-650 hover:bg-red-50 hover:border-red-100 border border-transparent transition-all cursor-pointer"
+                              title="Eliminar documento"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <label className="border-2 border-dashed border-zinc-200 hover:border-[#C9A84C]/50 hover:bg-[#FBF5E6]/10 rounded-xl p-4 text-center cursor-pointer transition-all flex items-center justify-center gap-2 select-none group animate-[scaleIn_0.15s_ease-out]">
+                          <UploadCloud className="h-4.5 w-4.5 text-zinc-400 group-hover:text-[#9A7A28] transition-colors" />
+                          <span className="text-xs font-bold text-zinc-700 group-hover:text-[#9A7A28] transition-colors">Cargar PDF de Entrega</span>
+                          <input
+                            type="file"
+                            accept="application/pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handlePdfUpload(order.id, file);
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -343,7 +519,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
       {/* DETAILS MODAL */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]">
-          <div 
+          <div
             className="bg-white border border-zinc-200 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl animate-[scaleIn_0.2s_ease-out]"
             onClick={(e) => e.stopPropagation()}
           >
@@ -368,10 +544,10 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
 
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              
+
               {/* Client and Car information grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* Client Box */}
                 <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-3">
                   <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-200 pb-1.5">
@@ -475,59 +651,117 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
                     {Object.entries(
-                      selectedOrder.checklist as Record<string, string>
-                    ).map(([key, value]) => {
-                      let displayLabel = key
-                        .replace(/_/g, " ")
-                        .replace(/^\w/, (c) => c.toUpperCase());
-                      
-                      // Custom labels mapping
-                      if (key === "rayones") displayLabel = "Rayones";
-                      if (key === "golpes") displayLabel = "Golpes";
-                      if (key === "pintura") displayLabel = "Estado de pintura";
-                      if (key === "rines") displayLabel = "Estado de rines";
-                      if (key === "vidrios") displayLabel = "Estado de vidrios";
-                      if (key === "parabrisas") displayLabel = "Estado de parabrisas";
-                      if (key === "farolas") displayLabel = "Estado de farolas";
-                      if (key === "cojineria") displayLabel = "Estado de cojinería";
-                      if (key === "tablero") displayLabel = "Estado del tablero";
-                      if (key === "general_interior") displayLabel = "Estado general interior";
-                      if (key === "testigos") displayLabel = "Testigos encendidos";
-                      if (key === "vidrios_electricos") displayLabel = "Vidrios eléctricos";
-                      if (key === "luces") displayLabel = "Luces";
-                      if (key === "direccionales") displayLabel = "Direccionales";
-                      if (key === "reversa") displayLabel = "Reversa";
-                      if (key === "estacionarias") displayLabel = "Estacionarias";
-                      if (key === "pito") displayLabel = "Pito";
-                      if (key === "plumillas") displayLabel = "Plumillas";
-                      if (key === "espejos") displayLabel = "Espejos";
-                      if (key === "lineas_termicas") displayLabel = "Líneas térmicas";
+                      selectedOrder.checklist as Record<string, any>
+                    )
+                      .filter(([key]) => !key.startsWith("_images_"))
+                      .map(([key, value]) => {
+                        let displayLabel = key
+                          .replace(/_/g, " ")
+                          .replace(/^\w/, (c) => c.toUpperCase());
 
-                      return (
-                        <div key={key} className="flex justify-between items-center text-xs py-1 border-b border-zinc-100">
-                          <span className="text-zinc-650 font-medium">{displayLabel}</span>
-                          <span
-                            className={`px-2 py-0.5 rounded font-bold text-[9px] uppercase tracking-wider select-none ${
-                              value === "bueno" || value === "no"
-                                ? "bg-green-50 text-green-700 border border-green-200"
-                                : value === "malo" || value === "si"
-                                ? "bg-red-50 text-red-700 border border-red-200"
-                                : "bg-zinc-100 text-zinc-500 border border-zinc-200"
-                            }`}
-                          >
-                            {value === "bueno"
-                              ? "Bueno"
-                              : value === "malo"
-                              ? "Malo"
-                              : value === "si"
-                              ? "Sí"
-                              : value === "no"
-                              ? "No"
-                              : "N/A"}
-                          </span>
-                        </div>
-                      );
-                    })}
+                        // Custom labels mapping
+                        if (key === "rayones") displayLabel = "Rayones";
+                        if (key === "golpes") displayLabel = "Golpes";
+                        if (key === "pintura") displayLabel = "Estado de pintura";
+                        if (key === "rines") displayLabel = "Estado de rines";
+                        if (key === "vidrios") displayLabel = "Estado de vidrios";
+                        if (key === "parabrisas") displayLabel = "Estado de parabrisas";
+                        if (key === "farolas") displayLabel = "Estado de farolas";
+                        if (key === "cojineria") displayLabel = "Estado de cojinería";
+                        if (key === "tablero") displayLabel = "Estado del tablero";
+                        if (key === "general_interior") displayLabel = "Estado general interior";
+                        if (key === "testigos") displayLabel = "Testigos encendidos";
+                        if (key === "vidrios_electricos") displayLabel = "Vidrios eléctricos";
+                        if (key === "luces") displayLabel = "Luces";
+                        if (key === "direccionales") displayLabel = "Direccionales";
+                        if (key === "reversa") displayLabel = "Reversa";
+                        if (key === "estacionarias") displayLabel = "Estacionarias";
+                        if (key === "pito") displayLabel = "Pito";
+                        if (key === "plumillas") displayLabel = "Plumillas";
+                        if (key === "espejos") displayLabel = "Espejos";
+                        if (key === "lineas_termicas") displayLabel = "Líneas térmicas";
+
+                        const images = selectedOrder.checklist["_images_" + key] as string[] | undefined;
+
+                        return (
+                          <div key={key} className="flex flex-col py-1.5 border-b border-zinc-100 gap-1.5">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-zinc-650 font-medium">{displayLabel}</span>
+                              <span
+                                className={`px-2 py-0.5 rounded font-bold text-[9px] uppercase tracking-wider select-none ${value === "bueno" || value === "no"
+                                  ? "bg-green-50 text-green-700 border border-green-200"
+                                  : value === "malo" || value === "si"
+                                    ? "bg-red-50 text-red-700 border border-red-200"
+                                    : "bg-zinc-100 text-zinc-500 border border-zinc-200"
+                                  }`}
+                              >
+                                {value === "bueno"
+                                  ? "Bueno"
+                                  : value === "malo"
+                                    ? "Malo"
+                                    : value === "si"
+                                      ? "Sí"
+                                      : value === "no"
+                                        ? "No"
+                                        : "N/A"}
+                              </span>
+                            </div>
+                            {images && images.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {images.length <= 3 ? (
+                                  images.map((imgSrc, imgIdx) => (
+                                    <button
+                                      key={imgIdx}
+                                      type="button"
+                                      onClick={() => setZoomImage(imgSrc)}
+                                      className="relative h-10 w-10 rounded border border-zinc-200 overflow-hidden hover:opacity-80 transition-opacity focus:outline-none cursor-pointer animate-[scaleIn_0.15s_ease-out]"
+                                    >
+                                      <img
+                                        src={imgSrc}
+                                        alt={`${displayLabel} evidence ${imgIdx + 1}`}
+                                        className="h-full w-full object-cover"
+                                      />
+                                    </button>
+                                  ))
+                                ) : (
+                                  <>
+                                    {images.slice(0, 2).map((imgSrc, imgIdx) => (
+                                      <button
+                                        key={imgIdx}
+                                        type="button"
+                                        onClick={() => setZoomImage(imgSrc)}
+                                        className="relative h-10 w-10 rounded border border-zinc-200 overflow-hidden hover:opacity-80 transition-opacity focus:outline-none cursor-pointer animate-[scaleIn_0.15s_ease-out]"
+                                      >
+                                        <img
+                                          src={imgSrc}
+                                          alt={`${displayLabel} evidence ${imgIdx + 1}`}
+                                          className="h-full w-full object-cover"
+                                        />
+                                      </button>
+                                    ))}
+                                    <button
+                                      type="button"
+                                      onClick={() => setActiveGalleryKey(key)}
+                                      className="relative h-10 w-10 rounded border border-zinc-200 overflow-hidden hover:opacity-80 transition-opacity focus:outline-none cursor-pointer animate-[scaleIn_0.15s_ease-out]"
+                                      title="Ver todas las imágenes"
+                                    >
+                                      <img
+                                        src={images[2]}
+                                        className="h-full w-full object-cover blur-[1px]"
+                                      />
+                                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                        <span className="text-white text-[10px] font-extrabold">
+                                          +{images.length - 2}
+                                        </span>
+                                      </div>
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               )}
@@ -551,10 +785,10 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                     Firma de Conformidad del Cliente
                   </span>
                   <div className="border border-zinc-200 rounded-xl bg-zinc-50 flex items-center justify-center p-4 max-w-xs overflow-hidden h-28">
-                    <img 
-                      src={selectedOrder.signatureUrl} 
-                      alt="Firma del Cliente" 
-                      className="max-h-full max-w-full object-contain mix-blend-multiply" 
+                    <img
+                      src={selectedOrder.signatureUrl}
+                      alt="Firma del Cliente"
+                      className="max-h-full max-w-full object-contain mix-blend-multiply"
                       onError={(e) => {
                         (e.target as HTMLElement).style.display = 'none';
                         const parent = (e.target as HTMLElement).parentElement;
@@ -570,6 +804,126 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                 </div>
               )}
 
+              {/* Delivery PDF URL display inside the technical sheet */}
+              {selectedOrder.deliveryPdfUrl && (
+                <div className="pt-4 border-t border-zinc-150 space-y-2 animate-[scaleIn_0.15s_ease-out]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                    Factura Electrónica
+                  </span>
+                  <div className="bg-zinc-50 border border-zinc-200 hover:border-[#C9A84C]/35 rounded-xl p-2.5 flex items-center justify-between gap-3 group transition-colors max-w-sm">
+                    <a
+                      href={selectedOrder.deliveryPdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2.5 min-w-0 flex-1 hover:text-[#9A7A28] transition-colors"
+                    >
+                      <div className="h-8 w-8 rounded-lg bg-red-50 text-red-650 border border-red-100 flex items-center justify-center shrink-0">
+                        <FileText className="h-4.5 w-4.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-zinc-850 truncate">Factura_Elec_{selectedOrder.code}.pdf</p>
+                        <p className="text-[9px] text-zinc-400 font-semibold mt-0.5">Ver / Descargar</p>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Notes / Comments Section */}
+              <div className="pt-6 border-t border-zinc-150 space-y-4">
+                <div className="flex items-center gap-2 pb-1 border-b border-zinc-150">
+                  <MessageSquare className="h-4 w-4 text-[#C9A84C]" />
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#9A7A28]">
+                    Notas de Progreso y Comentarios
+                  </h4>
+                  <span className="ml-auto text-[10px] font-bold bg-zinc-100 text-zinc-650 px-2 py-0.5 rounded-full border border-zinc-200">
+                    {selectedOrder.comments?.length || 0}
+                  </span>
+                </div>
+
+                {/* Comment Timeline */}
+                {(!selectedOrder.comments || selectedOrder.comments.length === 0) ? (
+                  <p className="text-xs text-zinc-400 italic py-2">
+                    No hay comentarios registrados para esta orden.
+                  </p>
+                ) : (
+                  <div className="space-y-4 max-h-64 overflow-y-auto pr-1">
+                    {selectedOrder.comments.map((comment) => {
+                      const userInitials = comment.user?.name ? getInitials(comment.user.name) : "U";
+                      const roleName = comment.user?.role?.name || "Operador";
+
+                      return (
+                        <div
+                          key={comment.id}
+                          className="flex gap-3 text-xs bg-zinc-50/50 border border-zinc-100 rounded-xl p-3 animate-[scaleIn_0.15s_ease-out]"
+                        >
+                          {/* Squircle Gold Gradient Avatar */}
+                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#F5E5C9] to-[#C9A84C] text-[#5A4518] flex items-center justify-center font-extrabold text-[10px] shrink-0 border border-[#C9A84C]/20 shadow-xs select-none">
+                            {userInitials}
+                          </div>
+
+                          {/* Comment Bubble Content */}
+                          <div className="flex-1 space-y-1.5 min-w-0">
+                            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="font-bold text-zinc-800 truncate">
+                                  {comment.user?.name || "Usuario"}
+                                </span>
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FBF5E6]/80 text-[#9A7A28] border border-[#C9A84C]/25 select-none shrink-0">
+                                  {roleName}
+                                </span>
+                              </div>
+                              <span className="text-[9px] text-zinc-400 font-semibold shrink-0">
+                                {new Date(comment.createdAt).toLocaleDateString("es-ES")} {new Date(comment.createdAt).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            </div>
+                            <p className="text-zinc-750 font-medium whitespace-pre-wrap leading-relaxed break-words">
+                              {comment.content}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Comment Form (Only for active states: EN_PROCESO or LISTO) */}
+                {(selectedOrder.status.name === "EN_PROCESO" || selectedOrder.status.name === "LISTO") ? (
+                  <form
+                    onSubmit={(e) => handleAddComment(e, selectedOrder.id)}
+                    className="space-y-3 pt-2"
+                  >
+                    <div className="relative">
+                      <textarea
+                        name="commentContent"
+                        rows={2}
+                        placeholder="Escribe una nota interna sobre el progreso..."
+                        className="w-full text-xs p-3 pr-12 bg-white border border-zinc-200 rounded-xl placeholder-zinc-400 focus:border-[#C9A84C] focus:outline-none transition-colors resize-none font-medium leading-relaxed"
+                        required
+                        disabled={isSubmittingComment}
+                      />
+                      <button
+                        type="submit"
+                        disabled={isSubmittingComment}
+                        className="absolute right-2.5 bottom-2.5 h-8.5 w-8.5 rounded-lg bg-[#C9A84C] text-[#0A0A0C] hover:bg-[#9A7A28] disabled:bg-zinc-100 disabled:text-zinc-400 flex items-center justify-center transition-all cursor-pointer select-none active:scale-95 animate-colors"
+                        title="Enviar nota"
+                      >
+                        {isSubmittingComment ? (
+                          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="bg-zinc-50 border border-zinc-150 rounded-xl p-3 text-[10px] text-zinc-400 font-semibold flex items-center gap-1.5 select-none">
+                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
+                    <span>El registro de comentarios está deshabilitado porque el servicio está {selectedOrder.status.name === "RECIBIDO" ? "en estado Recibido" : "Entregado"}.</span>
+                  </div>
+                )}
+              </div>
+
             </div>
 
             {/* Modal Footer */}
@@ -582,6 +936,66 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                 Cerrar Ficha
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {activeGalleryKey && selectedOrder && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]" onClick={() => setActiveGalleryKey(null)}>
+          <div className="bg-white border border-zinc-200 rounded-2xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl relative p-6 space-y-4 animate-[scaleIn_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+            {/* Close Button with hover transition effect */}
+            <button
+              type="button"
+              onClick={() => setActiveGalleryKey(null)}
+              className="absolute top-4 right-4 h-8 w-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-colors shadow-sm select-none cursor-pointer font-bold"
+              title="Cerrar"
+            >
+              ✕
+            </button>
+
+            {/* Modal Header */}
+            <div>
+              <span className="font-mono font-bold text-xs text-[#9A7A28] uppercase tracking-wider block">
+                Galería de evidencias
+              </span>
+              <h3 className="text-base font-extrabold text-zinc-900 mt-0.5 capitalize">
+                {activeGalleryKey.replace(/_/g, " ")}
+              </h3>
+            </div>
+
+            {/* Modal Body: Images Grid */}
+            <div className="grid grid-cols-4 gap-3 overflow-y-auto max-h-60 p-1">
+              {(selectedOrder.checklist["_images_" + activeGalleryKey] as string[] || []).map((imgUrl, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setZoomImage(imgUrl)}
+                  className="aspect-square rounded-xl overflow-hidden bg-zinc-100 border border-zinc-200 relative hover:opacity-80 transition-all cursor-pointer focus:outline-none"
+                >
+                  <img src={imgUrl} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {zoomImage && (
+        <div
+          className="fixed inset-0 bg-black/85 backdrop-blur-xs z-[70] flex items-center justify-center p-4 cursor-zoom-out animate-[fadeIn_0.15s_ease-out]"
+          onClick={() => setZoomImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="absolute -top-12 right-0 h-9 w-9 rounded-full bg-zinc-900/60 hover:bg-zinc-900 text-white flex items-center justify-center font-bold text-sm transition-colors cursor-pointer border border-zinc-750"
+              onClick={() => setZoomImage(null)}
+            >
+              ✕
+            </button>
+            <img
+              src={zoomImage}
+              alt="Visualización de Evidencia"
+              className="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl animate-[scaleIn_0.15s_ease-out]"
+            />
           </div>
         </div>
       )}

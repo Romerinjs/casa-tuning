@@ -36,3 +36,65 @@ body {
   }
 }
 
+@keyframes tooltipBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-tooltip-bounce {
+  animation: tooltipBounce 2s infinite ease-in-out;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes pageEntry {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.995) translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-page-entry {
+  animation: pageEntry 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes loadingLine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-loading-line {
+  animation: loadingLine 1.5s infinite ease-in-out;
+}
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

@@ -3,6 +3,8 @@
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
+import fs from "fs";
+import path from "path";
 
 export async function createOrderAction(
   prevState: { success: boolean; error?: string } | null,
@@ -107,7 +109,7 @@ export async function createOrderAction(
     }
 
     // Use Prisma Transaction to ensure data consistency
-    await prisma.$transaction(async (tx) => {
+    const newOrder = await prisma.$transaction(async (tx) => {
       // Find or create client by phone
       let dbClient = await tx.client.findUnique({
         where: { phone: cleanPhone },
@@ -221,6 +223,25 @@ export async function createOrderAction(
 
       return newOrder;
     });
+
+    if (signature && newOrder) {
+      try {
+        const match = newOrder.code.match(/(\d+)$/);
+        if (match) {
+          const sequence = match[1];
+          const base64Data = signature.replace(/^data:image\/\w+;base64,/, "");
+          const buffer = Buffer.from(base64Data, 'base64');
+          const dirPath = path.join(process.cwd(), 'public', 'uploads', 'signatures');
+          if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true });
+          }
+          const filePath = path.join(dirPath, `sig-${sequence}.png`);
+          fs.writeFileSync(filePath, buffer);
+        }
+      } catch (fsError) {
+        console.error("Error writing signature file:", fsError);
+      }
+    }
 
     revalidatePath("/dashboard");
     revalidatePath("/ordenes");

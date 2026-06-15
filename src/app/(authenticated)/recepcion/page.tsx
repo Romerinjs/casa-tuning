@@ -13,7 +13,10 @@ export default async function RecepcionPage() {
     }),
     prisma.serviceCatalog.findMany({
       where: { isActive: true },
-      orderBy: { name: "asc" },
+      orderBy: [
+        { isTopSelling: "desc" },
+        { name: "asc" },
+      ],
     }),
     prisma.client.findMany({
       include: {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { logoutAction } from "@/modules/auth/actions";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   PlusCircle,
@@ -62,17 +62,17 @@ export default function Sidebar({ user }: SidebarProps) {
       items: [
         ...(user.roleName === "Administrador"
           ? [
-              {
-                href: "/clientes",
-                label: "Clientes",
-                icon: Users,
-              },
-              {
-                href: "/administracion",
-                label: "Administración",
-                icon: ShieldAlert,
-              },
-            ]
+            {
+              href: "/clientes",
+              label: "Clientes",
+              icon: Users,
+            },
+            {
+              href: "/administracion",
+              label: "Administración",
+              icon: ShieldAlert,
+            },
+          ]
           : []),
       ],
     },
@@ -83,8 +83,8 @@ export default function Sidebar({ user }: SidebarProps) {
       {/* Brand Logo Section */}
       <div className="p-6 border-b border-white/[0.06] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#C9A84C] to-[#9A7A28] shadow-[0_4px_12px_rgb(201,168,76,0.15)]">
-            <img src="/logo-ct.svg" alt="Casa Tuning Logo" className="h-5 w-5" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFFFFF] to-[#FFFFFF] shadow-[0_4px_12px_rgb(201,168,76,0.15)]">
+            <img src="/logo-ct.svg" alt="Casa Tuning Logo" className="h-10 w-10" />
           </div>
           <div>
             <h1 className="text-sm font-bold tracking-tight text-white leading-none">
@@ -125,11 +125,10 @@ export default function Sidebar({ user }: SidebarProps) {
                       onClick={() => {
                         if (onLinkClick) onLinkClick();
                       }}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-                        isActive
-                          ? "bg-gradient-to-r from-white/[0.08] to-white/[0.02] text-white border-l-2 border-[#C9A84C] pl-2.5"
-                          : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
-                      }`}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${isActive
+                        ? "bg-gradient-to-r from-white/[0.08] to-white/[0.02] text-white border-l-2 border-[#C9A84C] pl-2.5"
+                        : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
+                        }`}
                     >
                       <Icon className={`h-4.5 w-4.5 ${isActive ? "text-[#C9A84C]" : ""}`} />
                       <span>{item.label}</span>
@@ -158,7 +157,7 @@ export default function Sidebar({ user }: SidebarProps) {
             </div>
           </div>
           <button
-            onClick={() => logoutAction()}
+            onClick={() => signOut({ callbackUrl: "/login" })}
             className="h-8 w-8 rounded-lg flex items-center justify-center text-white/40 hover:text-red-400 hover:bg-white/[0.04] transition-colors shrink-0"
             title="Cerrar sesión"
           >
@@ -204,9 +203,8 @@ export default function Sidebar({ user }: SidebarProps) {
 
       {/* MOBILE SIDEBAR DRAWER PANEL */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#111113] flex flex-col h-screen shrink-0 text-white select-none transform transition-transform duration-300 ease-out lg:hidden ${
-          isMobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#111113] flex flex-col h-screen shrink-0 text-white select-none transform transition-transform duration-300 ease-out lg:hidden ${isMobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {renderSidebarContent(() => setIsMobileOpen(false))}
       </aside>

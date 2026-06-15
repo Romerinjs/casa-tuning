@@ -25,6 +25,18 @@ export default async function OrdenesPage() {
           service: true,
         },
       },
+      comments: {
+        include: {
+          user: {
+            include: {
+              role: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",

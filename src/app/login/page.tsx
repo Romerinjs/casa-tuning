@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { authenticate } from "@/modules/auth/actions";
-import { ArrowRight, Lock, Mail } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, formAction, isPending] = useActionState(
     authenticate,
     undefined
@@ -16,17 +17,13 @@ export default function LoginPage() {
       <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-[#C9A84C]/5 blur-[120px]" />
       <div className="absolute -bottom-45 -right-45 h-[650px] w-[650px] rounded-full bg-[#9A7A28]/5 blur-[130px]" />
 
-      <div className="w-full max-w-[440px] px-6">
+      <div className="w-full max-w-[600px] px-6">
         {/* Logo and title */}
         <div className="mb-8 text-center animate-[fadeIn_0.5s_ease-out_both]">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#C9A84C] to-[#9A7A28] shadow-[0_8px_30px_rgb(201,168,76,0.2)]">
-            <svg
-              className="h-8 w-8 text-[#0A0A0C]"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
-            </svg>
+          <div className="mx-auto mb-4 flex h-30 w-30 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FFFFFF] to-[#FFFFFF]">
+            <div className="flex h-30 w-30 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFFFFF] to-[#FFFFFF] shadow-[0_4px_12px_rgb(201,168,76,0.15)]">
+              <img src="/logo-ct.svg" alt="Casa Tuning Logo" className="h-25 w-25" />
+            </div>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-white">
             Casa Tuning
@@ -68,12 +65,23 @@ export default function LoginPage() {
                   <Lock className="h-5 w-5" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   required
                   placeholder="••••••••"
-                  className="block w-full rounded-xl border border-white/[0.06] bg-[#1A1A1E] py-3 pl-10 pr-4 text-sm text-white placeholder-white/20 outline-none ring-[#C9A84C]/20 transition-all focus:border-[#C9A84C] focus:ring-4"
+                  className="block w-full rounded-xl border border-white/[0.06] bg-[#1A1A1E] py-3 pl-10 pr-12 text-sm text-white placeholder-white/20 outline-none ring-[#C9A84C]/20 transition-all focus:border-[#C9A84C] focus:ring-4"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#5A5A65] hover:text-[#C9A84C] transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </div>
 

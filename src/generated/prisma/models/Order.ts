@@ -54,6 +54,7 @@ export type OrderMinAggregateOutputType = {
   clientId: number | null
   carId: number | null
   creatorId: number | null
+  deliveryPdfUrl: string | null
 }
 
 export type OrderMaxAggregateOutputType = {
@@ -68,6 +69,7 @@ export type OrderMaxAggregateOutputType = {
   clientId: number | null
   carId: number | null
   creatorId: number | null
+  deliveryPdfUrl: string | null
 }
 
 export type OrderCountAggregateOutputType = {
@@ -83,6 +85,7 @@ export type OrderCountAggregateOutputType = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl: number
   _all: number
 }
 
@@ -115,6 +118,7 @@ export type OrderMinAggregateInputType = {
   clientId?: true
   carId?: true
   creatorId?: true
+  deliveryPdfUrl?: true
 }
 
 export type OrderMaxAggregateInputType = {
@@ -129,6 +133,7 @@ export type OrderMaxAggregateInputType = {
   clientId?: true
   carId?: true
   creatorId?: true
+  deliveryPdfUrl?: true
 }
 
 export type OrderCountAggregateInputType = {
@@ -144,6 +149,7 @@ export type OrderCountAggregateInputType = {
   clientId?: true
   carId?: true
   creatorId?: true
+  deliveryPdfUrl?: true
   _all?: true
 }
 
@@ -246,6 +252,7 @@ export type OrderGroupByOutputType = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl: string | null
   _count: OrderCountAggregateOutputType | null
   _avg: OrderAvgAggregateOutputType | null
   _sum: OrderSumAggregateOutputType | null
@@ -284,6 +291,7 @@ export type OrderWhereInput = {
   clientId?: Prisma.IntFilter<"Order"> | number
   carId?: Prisma.IntFilter<"Order"> | number
   creatorId?: Prisma.IntFilter<"Order"> | number
+  deliveryPdfUrl?: Prisma.StringNullableFilter<"Order"> | string | null
   status?: Prisma.XOR<Prisma.OrderStatusScalarRelationFilter, Prisma.OrderStatusWhereInput>
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
   car?: Prisma.XOR<Prisma.CarScalarRelationFilter, Prisma.CarWhereInput>
@@ -293,6 +301,7 @@ export type OrderWhereInput = {
   photos?: Prisma.OrderPhotoListRelationFilter
   activities?: Prisma.ActivityLogListRelationFilter
   notifications?: Prisma.OrderNotificationListRelationFilter
+  comments?: Prisma.OrderCommentListRelationFilter
 }
 
 export type OrderOrderByWithRelationInput = {
@@ -308,6 +317,7 @@ export type OrderOrderByWithRelationInput = {
   clientId?: Prisma.SortOrder
   carId?: Prisma.SortOrder
   creatorId?: Prisma.SortOrder
+  deliveryPdfUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.OrderStatusOrderByWithRelationInput
   client?: Prisma.ClientOrderByWithRelationInput
   car?: Prisma.CarOrderByWithRelationInput
@@ -317,6 +327,7 @@ export type OrderOrderByWithRelationInput = {
   photos?: Prisma.OrderPhotoOrderByRelationAggregateInput
   activities?: Prisma.ActivityLogOrderByRelationAggregateInput
   notifications?: Prisma.OrderNotificationOrderByRelationAggregateInput
+  comments?: Prisma.OrderCommentOrderByRelationAggregateInput
 }
 
 export type OrderWhereUniqueInput = Prisma.AtLeast<{
@@ -335,6 +346,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   clientId?: Prisma.IntFilter<"Order"> | number
   carId?: Prisma.IntFilter<"Order"> | number
   creatorId?: Prisma.IntFilter<"Order"> | number
+  deliveryPdfUrl?: Prisma.StringNullableFilter<"Order"> | string | null
   status?: Prisma.XOR<Prisma.OrderStatusScalarRelationFilter, Prisma.OrderStatusWhereInput>
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
   car?: Prisma.XOR<Prisma.CarScalarRelationFilter, Prisma.CarWhereInput>
@@ -344,6 +356,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   photos?: Prisma.OrderPhotoListRelationFilter
   activities?: Prisma.ActivityLogListRelationFilter
   notifications?: Prisma.OrderNotificationListRelationFilter
+  comments?: Prisma.OrderCommentListRelationFilter
 }, "id" | "code">
 
 export type OrderOrderByWithAggregationInput = {
@@ -359,6 +372,7 @@ export type OrderOrderByWithAggregationInput = {
   clientId?: Prisma.SortOrder
   carId?: Prisma.SortOrder
   creatorId?: Prisma.SortOrder
+  deliveryPdfUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.OrderCountOrderByAggregateInput
   _avg?: Prisma.OrderAvgOrderByAggregateInput
   _max?: Prisma.OrderMaxOrderByAggregateInput
@@ -382,6 +396,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   clientId?: Prisma.IntWithAggregatesFilter<"Order"> | number
   carId?: Prisma.IntWithAggregatesFilter<"Order"> | number
   creatorId?: Prisma.IntWithAggregatesFilter<"Order"> | number
+  deliveryPdfUrl?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
 }
 
 export type OrderCreateInput = {
@@ -392,6 +407,7 @@ export type OrderCreateInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
   status: Prisma.OrderStatusCreateNestedOneWithoutOrdersInput
   client: Prisma.ClientCreateNestedOneWithoutOrdersInput
   car: Prisma.CarCreateNestedOneWithoutOrdersInput
@@ -401,6 +417,7 @@ export type OrderCreateInput = {
   photos?: Prisma.OrderPhotoCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateInput = {
@@ -416,11 +433,13 @@ export type OrderUncheckedCreateInput = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
   services?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutOrderInput
   inspections?: Prisma.VisualInspectionUncheckedCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoUncheckedCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationUncheckedCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUpdateInput = {
@@ -431,6 +450,7 @@ export type OrderUpdateInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.OrderStatusUpdateOneRequiredWithoutOrdersNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutOrdersNestedInput
   car?: Prisma.CarUpdateOneRequiredWithoutOrdersNestedInput
@@ -440,6 +460,7 @@ export type OrderUpdateInput = {
   photos?: Prisma.OrderPhotoUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateInput = {
@@ -455,11 +476,13 @@ export type OrderUncheckedUpdateInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   services?: Prisma.OrderServiceUncheckedUpdateManyWithoutOrderNestedInput
   inspections?: Prisma.VisualInspectionUncheckedUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUncheckedUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUncheckedUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateManyInput = {
@@ -475,6 +498,7 @@ export type OrderCreateManyInput = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
 }
 
 export type OrderUpdateManyMutationInput = {
@@ -485,6 +509,7 @@ export type OrderUpdateManyMutationInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrderUncheckedUpdateManyInput = {
@@ -500,6 +525,7 @@ export type OrderUncheckedUpdateManyInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrderListRelationFilter = {
@@ -525,6 +551,7 @@ export type OrderCountOrderByAggregateInput = {
   clientId?: Prisma.SortOrder
   carId?: Prisma.SortOrder
   creatorId?: Prisma.SortOrder
+  deliveryPdfUrl?: Prisma.SortOrder
 }
 
 export type OrderAvgOrderByAggregateInput = {
@@ -547,6 +574,7 @@ export type OrderMaxOrderByAggregateInput = {
   clientId?: Prisma.SortOrder
   carId?: Prisma.SortOrder
   creatorId?: Prisma.SortOrder
+  deliveryPdfUrl?: Prisma.SortOrder
 }
 
 export type OrderMinOrderByAggregateInput = {
@@ -561,6 +589,7 @@ export type OrderMinOrderByAggregateInput = {
   clientId?: Prisma.SortOrder
   carId?: Prisma.SortOrder
   creatorId?: Prisma.SortOrder
+  deliveryPdfUrl?: Prisma.SortOrder
 }
 
 export type OrderSumOrderByAggregateInput = {
@@ -814,6 +843,20 @@ export type OrderUpdateOneRequiredWithoutNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutNotificationsInput, Prisma.OrderUpdateWithoutNotificationsInput>, Prisma.OrderUncheckedUpdateWithoutNotificationsInput>
 }
 
+export type OrderCreateNestedOneWithoutCommentsInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutCommentsInput, Prisma.OrderUncheckedCreateWithoutCommentsInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutCommentsInput
+  connect?: Prisma.OrderWhereUniqueInput
+}
+
+export type OrderUpdateOneRequiredWithoutCommentsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutCommentsInput, Prisma.OrderUncheckedCreateWithoutCommentsInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutCommentsInput
+  upsert?: Prisma.OrderUpsertWithoutCommentsInput
+  connect?: Prisma.OrderWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutCommentsInput, Prisma.OrderUpdateWithoutCommentsInput>, Prisma.OrderUncheckedUpdateWithoutCommentsInput>
+}
+
 export type OrderCreateWithoutStatusInput = {
   code: string
   mileage?: string | null
@@ -822,6 +865,7 @@ export type OrderCreateWithoutStatusInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
   client: Prisma.ClientCreateNestedOneWithoutOrdersInput
   car: Prisma.CarCreateNestedOneWithoutOrdersInput
   creator: Prisma.UserCreateNestedOneWithoutOrdersCreatedInput
@@ -830,6 +874,7 @@ export type OrderCreateWithoutStatusInput = {
   photos?: Prisma.OrderPhotoCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutStatusInput = {
@@ -844,11 +889,13 @@ export type OrderUncheckedCreateWithoutStatusInput = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
   services?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutOrderInput
   inspections?: Prisma.VisualInspectionUncheckedCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoUncheckedCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationUncheckedCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutStatusInput = {
@@ -893,6 +940,7 @@ export type OrderScalarWhereInput = {
   clientId?: Prisma.IntFilter<"Order"> | number
   carId?: Prisma.IntFilter<"Order"> | number
   creatorId?: Prisma.IntFilter<"Order"> | number
+  deliveryPdfUrl?: Prisma.StringNullableFilter<"Order"> | string | null
 }
 
 export type OrderCreateWithoutCreatorInput = {
@@ -903,6 +951,7 @@ export type OrderCreateWithoutCreatorInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
   status: Prisma.OrderStatusCreateNestedOneWithoutOrdersInput
   client: Prisma.ClientCreateNestedOneWithoutOrdersInput
   car: Prisma.CarCreateNestedOneWithoutOrdersInput
@@ -911,6 +960,7 @@ export type OrderCreateWithoutCreatorInput = {
   photos?: Prisma.OrderPhotoCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutCreatorInput = {
@@ -925,11 +975,13 @@ export type OrderUncheckedCreateWithoutCreatorInput = {
   statusId: number
   clientId: number
   carId: number
+  deliveryPdfUrl?: string | null
   services?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutOrderInput
   inspections?: Prisma.VisualInspectionUncheckedCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoUncheckedCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationUncheckedCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutCreatorInput = {
@@ -966,6 +1018,7 @@ export type OrderCreateWithoutClientInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
   status: Prisma.OrderStatusCreateNestedOneWithoutOrdersInput
   car: Prisma.CarCreateNestedOneWithoutOrdersInput
   creator: Prisma.UserCreateNestedOneWithoutOrdersCreatedInput
@@ -974,6 +1027,7 @@ export type OrderCreateWithoutClientInput = {
   photos?: Prisma.OrderPhotoCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutClientInput = {
@@ -988,11 +1042,13 @@ export type OrderUncheckedCreateWithoutClientInput = {
   statusId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
   services?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutOrderInput
   inspections?: Prisma.VisualInspectionUncheckedCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoUncheckedCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationUncheckedCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutClientInput = {
@@ -1029,6 +1085,7 @@ export type OrderCreateWithoutCarInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
   status: Prisma.OrderStatusCreateNestedOneWithoutOrdersInput
   client: Prisma.ClientCreateNestedOneWithoutOrdersInput
   creator: Prisma.UserCreateNestedOneWithoutOrdersCreatedInput
@@ -1037,6 +1094,7 @@ export type OrderCreateWithoutCarInput = {
   photos?: Prisma.OrderPhotoCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutCarInput = {
@@ -1051,11 +1109,13 @@ export type OrderUncheckedCreateWithoutCarInput = {
   statusId: number
   clientId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
   services?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutOrderInput
   inspections?: Prisma.VisualInspectionUncheckedCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoUncheckedCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationUncheckedCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutCarInput = {
@@ -1092,6 +1152,7 @@ export type OrderCreateWithoutServicesInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
   status: Prisma.OrderStatusCreateNestedOneWithoutOrdersInput
   client: Prisma.ClientCreateNestedOneWithoutOrdersInput
   car: Prisma.CarCreateNestedOneWithoutOrdersInput
@@ -1100,6 +1161,7 @@ export type OrderCreateWithoutServicesInput = {
   photos?: Prisma.OrderPhotoCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutServicesInput = {
@@ -1115,10 +1177,12 @@ export type OrderUncheckedCreateWithoutServicesInput = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
   inspections?: Prisma.VisualInspectionUncheckedCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoUncheckedCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationUncheckedCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutServicesInput = {
@@ -1145,6 +1209,7 @@ export type OrderUpdateWithoutServicesInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.OrderStatusUpdateOneRequiredWithoutOrdersNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutOrdersNestedInput
   car?: Prisma.CarUpdateOneRequiredWithoutOrdersNestedInput
@@ -1153,6 +1218,7 @@ export type OrderUpdateWithoutServicesInput = {
   photos?: Prisma.OrderPhotoUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutServicesInput = {
@@ -1168,10 +1234,12 @@ export type OrderUncheckedUpdateWithoutServicesInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inspections?: Prisma.VisualInspectionUncheckedUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUncheckedUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUncheckedUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutInspectionsInput = {
@@ -1182,6 +1250,7 @@ export type OrderCreateWithoutInspectionsInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
   status: Prisma.OrderStatusCreateNestedOneWithoutOrdersInput
   client: Prisma.ClientCreateNestedOneWithoutOrdersInput
   car: Prisma.CarCreateNestedOneWithoutOrdersInput
@@ -1190,6 +1259,7 @@ export type OrderCreateWithoutInspectionsInput = {
   photos?: Prisma.OrderPhotoCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutInspectionsInput = {
@@ -1205,10 +1275,12 @@ export type OrderUncheckedCreateWithoutInspectionsInput = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
   services?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoUncheckedCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationUncheckedCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutInspectionsInput = {
@@ -1235,6 +1307,7 @@ export type OrderUpdateWithoutInspectionsInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.OrderStatusUpdateOneRequiredWithoutOrdersNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutOrdersNestedInput
   car?: Prisma.CarUpdateOneRequiredWithoutOrdersNestedInput
@@ -1243,6 +1316,7 @@ export type OrderUpdateWithoutInspectionsInput = {
   photos?: Prisma.OrderPhotoUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutInspectionsInput = {
@@ -1258,10 +1332,12 @@ export type OrderUncheckedUpdateWithoutInspectionsInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   services?: Prisma.OrderServiceUncheckedUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUncheckedUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUncheckedUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutPhotosInput = {
@@ -1272,6 +1348,7 @@ export type OrderCreateWithoutPhotosInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
   status: Prisma.OrderStatusCreateNestedOneWithoutOrdersInput
   client: Prisma.ClientCreateNestedOneWithoutOrdersInput
   car: Prisma.CarCreateNestedOneWithoutOrdersInput
@@ -1280,6 +1357,7 @@ export type OrderCreateWithoutPhotosInput = {
   inspections?: Prisma.VisualInspectionCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutPhotosInput = {
@@ -1295,10 +1373,12 @@ export type OrderUncheckedCreateWithoutPhotosInput = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
   services?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutOrderInput
   inspections?: Prisma.VisualInspectionUncheckedCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationUncheckedCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutPhotosInput = {
@@ -1325,6 +1405,7 @@ export type OrderUpdateWithoutPhotosInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.OrderStatusUpdateOneRequiredWithoutOrdersNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutOrdersNestedInput
   car?: Prisma.CarUpdateOneRequiredWithoutOrdersNestedInput
@@ -1333,6 +1414,7 @@ export type OrderUpdateWithoutPhotosInput = {
   inspections?: Prisma.VisualInspectionUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutPhotosInput = {
@@ -1348,10 +1430,12 @@ export type OrderUncheckedUpdateWithoutPhotosInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   services?: Prisma.OrderServiceUncheckedUpdateManyWithoutOrderNestedInput
   inspections?: Prisma.VisualInspectionUncheckedUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUncheckedUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutActivitiesInput = {
@@ -1362,6 +1446,7 @@ export type OrderCreateWithoutActivitiesInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
   status: Prisma.OrderStatusCreateNestedOneWithoutOrdersInput
   client: Prisma.ClientCreateNestedOneWithoutOrdersInput
   car: Prisma.CarCreateNestedOneWithoutOrdersInput
@@ -1370,6 +1455,7 @@ export type OrderCreateWithoutActivitiesInput = {
   inspections?: Prisma.VisualInspectionCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutActivitiesInput = {
@@ -1385,10 +1471,12 @@ export type OrderUncheckedCreateWithoutActivitiesInput = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
   services?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutOrderInput
   inspections?: Prisma.VisualInspectionUncheckedCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.OrderNotificationUncheckedCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutActivitiesInput = {
@@ -1415,6 +1503,7 @@ export type OrderUpdateWithoutActivitiesInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.OrderStatusUpdateOneRequiredWithoutOrdersNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutOrdersNestedInput
   car?: Prisma.CarUpdateOneRequiredWithoutOrdersNestedInput
@@ -1423,6 +1512,7 @@ export type OrderUpdateWithoutActivitiesInput = {
   inspections?: Prisma.VisualInspectionUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutActivitiesInput = {
@@ -1438,10 +1528,12 @@ export type OrderUncheckedUpdateWithoutActivitiesInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   services?: Prisma.OrderServiceUncheckedUpdateManyWithoutOrderNestedInput
   inspections?: Prisma.VisualInspectionUncheckedUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUncheckedUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutNotificationsInput = {
@@ -1452,6 +1544,7 @@ export type OrderCreateWithoutNotificationsInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
   status: Prisma.OrderStatusCreateNestedOneWithoutOrdersInput
   client: Prisma.ClientCreateNestedOneWithoutOrdersInput
   car: Prisma.CarCreateNestedOneWithoutOrdersInput
@@ -1460,6 +1553,7 @@ export type OrderCreateWithoutNotificationsInput = {
   inspections?: Prisma.VisualInspectionCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutNotificationsInput = {
@@ -1475,10 +1569,12 @@ export type OrderUncheckedCreateWithoutNotificationsInput = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
   services?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutOrderInput
   inspections?: Prisma.VisualInspectionUncheckedCreateNestedManyWithoutOrderInput
   photos?: Prisma.OrderPhotoUncheckedCreateNestedManyWithoutOrderInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrderInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutNotificationsInput = {
@@ -1505,6 +1601,7 @@ export type OrderUpdateWithoutNotificationsInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.OrderStatusUpdateOneRequiredWithoutOrdersNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutOrdersNestedInput
   car?: Prisma.CarUpdateOneRequiredWithoutOrdersNestedInput
@@ -1513,6 +1610,7 @@ export type OrderUpdateWithoutNotificationsInput = {
   inspections?: Prisma.VisualInspectionUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutNotificationsInput = {
@@ -1528,10 +1626,110 @@ export type OrderUncheckedUpdateWithoutNotificationsInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   services?: Prisma.OrderServiceUncheckedUpdateManyWithoutOrderNestedInput
   inspections?: Prisma.VisualInspectionUncheckedUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUncheckedUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderCreateWithoutCommentsInput = {
+  code: string
+  mileage?: string | null
+  signatureUrl?: string | null
+  observations?: string | null
+  checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deliveryPdfUrl?: string | null
+  status: Prisma.OrderStatusCreateNestedOneWithoutOrdersInput
+  client: Prisma.ClientCreateNestedOneWithoutOrdersInput
+  car: Prisma.CarCreateNestedOneWithoutOrdersInput
+  creator: Prisma.UserCreateNestedOneWithoutOrdersCreatedInput
+  services?: Prisma.OrderServiceCreateNestedManyWithoutOrderInput
+  inspections?: Prisma.VisualInspectionCreateNestedManyWithoutOrderInput
+  photos?: Prisma.OrderPhotoCreateNestedManyWithoutOrderInput
+  activities?: Prisma.ActivityLogCreateNestedManyWithoutOrderInput
+  notifications?: Prisma.OrderNotificationCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutCommentsInput = {
+  id?: number
+  code: string
+  mileage?: string | null
+  signatureUrl?: string | null
+  observations?: string | null
+  checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  statusId: number
+  clientId: number
+  carId: number
+  creatorId: number
+  deliveryPdfUrl?: string | null
+  services?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutOrderInput
+  inspections?: Prisma.VisualInspectionUncheckedCreateNestedManyWithoutOrderInput
+  photos?: Prisma.OrderPhotoUncheckedCreateNestedManyWithoutOrderInput
+  activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrderInput
+  notifications?: Prisma.OrderNotificationUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutCommentsInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutCommentsInput, Prisma.OrderUncheckedCreateWithoutCommentsInput>
+}
+
+export type OrderUpsertWithoutCommentsInput = {
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutCommentsInput, Prisma.OrderUncheckedUpdateWithoutCommentsInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutCommentsInput, Prisma.OrderUncheckedCreateWithoutCommentsInput>
+  where?: Prisma.OrderWhereInput
+}
+
+export type OrderUpdateToOneWithWhereWithoutCommentsInput = {
+  where?: Prisma.OrderWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutCommentsInput, Prisma.OrderUncheckedUpdateWithoutCommentsInput>
+}
+
+export type OrderUpdateWithoutCommentsInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.OrderStatusUpdateOneRequiredWithoutOrdersNestedInput
+  client?: Prisma.ClientUpdateOneRequiredWithoutOrdersNestedInput
+  car?: Prisma.CarUpdateOneRequiredWithoutOrdersNestedInput
+  creator?: Prisma.UserUpdateOneRequiredWithoutOrdersCreatedNestedInput
+  services?: Prisma.OrderServiceUpdateManyWithoutOrderNestedInput
+  inspections?: Prisma.VisualInspectionUpdateManyWithoutOrderNestedInput
+  photos?: Prisma.OrderPhotoUpdateManyWithoutOrderNestedInput
+  activities?: Prisma.ActivityLogUpdateManyWithoutOrderNestedInput
+  notifications?: Prisma.OrderNotificationUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutCommentsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusId?: Prisma.IntFieldUpdateOperationsInput | number
+  clientId?: Prisma.IntFieldUpdateOperationsInput | number
+  carId?: Prisma.IntFieldUpdateOperationsInput | number
+  creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  services?: Prisma.OrderServiceUncheckedUpdateManyWithoutOrderNestedInput
+  inspections?: Prisma.VisualInspectionUncheckedUpdateManyWithoutOrderNestedInput
+  photos?: Prisma.OrderPhotoUncheckedUpdateManyWithoutOrderNestedInput
+  activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrderNestedInput
+  notifications?: Prisma.OrderNotificationUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateManyStatusInput = {
@@ -1546,6 +1744,7 @@ export type OrderCreateManyStatusInput = {
   clientId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
 }
 
 export type OrderUpdateWithoutStatusInput = {
@@ -1556,6 +1755,7 @@ export type OrderUpdateWithoutStatusInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   client?: Prisma.ClientUpdateOneRequiredWithoutOrdersNestedInput
   car?: Prisma.CarUpdateOneRequiredWithoutOrdersNestedInput
   creator?: Prisma.UserUpdateOneRequiredWithoutOrdersCreatedNestedInput
@@ -1564,6 +1764,7 @@ export type OrderUpdateWithoutStatusInput = {
   photos?: Prisma.OrderPhotoUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutStatusInput = {
@@ -1578,11 +1779,13 @@ export type OrderUncheckedUpdateWithoutStatusInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   services?: Prisma.OrderServiceUncheckedUpdateManyWithoutOrderNestedInput
   inspections?: Prisma.VisualInspectionUncheckedUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUncheckedUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUncheckedUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutStatusInput = {
@@ -1597,6 +1800,7 @@ export type OrderUncheckedUpdateManyWithoutStatusInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrderCreateManyCreatorInput = {
@@ -1611,6 +1815,7 @@ export type OrderCreateManyCreatorInput = {
   statusId: number
   clientId: number
   carId: number
+  deliveryPdfUrl?: string | null
 }
 
 export type OrderUpdateWithoutCreatorInput = {
@@ -1621,6 +1826,7 @@ export type OrderUpdateWithoutCreatorInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.OrderStatusUpdateOneRequiredWithoutOrdersNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutOrdersNestedInput
   car?: Prisma.CarUpdateOneRequiredWithoutOrdersNestedInput
@@ -1629,6 +1835,7 @@ export type OrderUpdateWithoutCreatorInput = {
   photos?: Prisma.OrderPhotoUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutCreatorInput = {
@@ -1643,11 +1850,13 @@ export type OrderUncheckedUpdateWithoutCreatorInput = {
   statusId?: Prisma.IntFieldUpdateOperationsInput | number
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   services?: Prisma.OrderServiceUncheckedUpdateManyWithoutOrderNestedInput
   inspections?: Prisma.VisualInspectionUncheckedUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUncheckedUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUncheckedUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutCreatorInput = {
@@ -1662,6 +1871,7 @@ export type OrderUncheckedUpdateManyWithoutCreatorInput = {
   statusId?: Prisma.IntFieldUpdateOperationsInput | number
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrderCreateManyClientInput = {
@@ -1676,6 +1886,7 @@ export type OrderCreateManyClientInput = {
   statusId: number
   carId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
 }
 
 export type OrderUpdateWithoutClientInput = {
@@ -1686,6 +1897,7 @@ export type OrderUpdateWithoutClientInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.OrderStatusUpdateOneRequiredWithoutOrdersNestedInput
   car?: Prisma.CarUpdateOneRequiredWithoutOrdersNestedInput
   creator?: Prisma.UserUpdateOneRequiredWithoutOrdersCreatedNestedInput
@@ -1694,6 +1906,7 @@ export type OrderUpdateWithoutClientInput = {
   photos?: Prisma.OrderPhotoUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutClientInput = {
@@ -1708,11 +1921,13 @@ export type OrderUncheckedUpdateWithoutClientInput = {
   statusId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   services?: Prisma.OrderServiceUncheckedUpdateManyWithoutOrderNestedInput
   inspections?: Prisma.VisualInspectionUncheckedUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUncheckedUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUncheckedUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutClientInput = {
@@ -1727,6 +1942,7 @@ export type OrderUncheckedUpdateManyWithoutClientInput = {
   statusId?: Prisma.IntFieldUpdateOperationsInput | number
   carId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrderCreateManyCarInput = {
@@ -1741,6 +1957,7 @@ export type OrderCreateManyCarInput = {
   statusId: number
   clientId: number
   creatorId: number
+  deliveryPdfUrl?: string | null
 }
 
 export type OrderUpdateWithoutCarInput = {
@@ -1751,6 +1968,7 @@ export type OrderUpdateWithoutCarInput = {
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.OrderStatusUpdateOneRequiredWithoutOrdersNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutOrdersNestedInput
   creator?: Prisma.UserUpdateOneRequiredWithoutOrdersCreatedNestedInput
@@ -1759,6 +1977,7 @@ export type OrderUpdateWithoutCarInput = {
   photos?: Prisma.OrderPhotoUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutCarInput = {
@@ -1773,11 +1992,13 @@ export type OrderUncheckedUpdateWithoutCarInput = {
   statusId?: Prisma.IntFieldUpdateOperationsInput | number
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   services?: Prisma.OrderServiceUncheckedUpdateManyWithoutOrderNestedInput
   inspections?: Prisma.VisualInspectionUncheckedUpdateManyWithoutOrderNestedInput
   photos?: Prisma.OrderPhotoUncheckedUpdateManyWithoutOrderNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.OrderNotificationUncheckedUpdateManyWithoutOrderNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutCarInput = {
@@ -1792,6 +2013,7 @@ export type OrderUncheckedUpdateManyWithoutCarInput = {
   statusId?: Prisma.IntFieldUpdateOperationsInput | number
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryPdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1805,6 +2027,7 @@ export type OrderCountOutputType = {
   photos: number
   activities: number
   notifications: number
+  comments: number
 }
 
 export type OrderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1813,6 +2036,7 @@ export type OrderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   photos?: boolean | OrderCountOutputTypeCountPhotosArgs
   activities?: boolean | OrderCountOutputTypeCountActivitiesArgs
   notifications?: boolean | OrderCountOutputTypeCountNotificationsArgs
+  comments?: boolean | OrderCountOutputTypeCountCommentsArgs
 }
 
 /**
@@ -1860,6 +2084,13 @@ export type OrderCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.T
   where?: Prisma.OrderNotificationWhereInput
 }
 
+/**
+ * OrderCountOutputType without action
+ */
+export type OrderCountOutputTypeCountCommentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrderCommentWhereInput
+}
+
 
 export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1874,6 +2105,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   clientId?: boolean
   carId?: boolean
   creatorId?: boolean
+  deliveryPdfUrl?: boolean
   status?: boolean | Prisma.OrderStatusDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   car?: boolean | Prisma.CarDefaultArgs<ExtArgs>
@@ -1883,6 +2115,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   photos?: boolean | Prisma.Order$photosArgs<ExtArgs>
   activities?: boolean | Prisma.Order$activitiesArgs<ExtArgs>
   notifications?: boolean | Prisma.Order$notificationsArgs<ExtArgs>
+  comments?: boolean | Prisma.Order$commentsArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
 
@@ -1899,6 +2132,7 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   clientId?: boolean
   carId?: boolean
   creatorId?: boolean
+  deliveryPdfUrl?: boolean
   status?: boolean | Prisma.OrderStatusDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   car?: boolean | Prisma.CarDefaultArgs<ExtArgs>
@@ -1918,6 +2152,7 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   clientId?: boolean
   carId?: boolean
   creatorId?: boolean
+  deliveryPdfUrl?: boolean
   status?: boolean | Prisma.OrderStatusDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   car?: boolean | Prisma.CarDefaultArgs<ExtArgs>
@@ -1937,9 +2172,10 @@ export type OrderSelectScalar = {
   clientId?: boolean
   carId?: boolean
   creatorId?: boolean
+  deliveryPdfUrl?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "mileage" | "signatureUrl" | "observations" | "checklist" | "createdAt" | "updatedAt" | "statusId" | "clientId" | "carId" | "creatorId", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "mileage" | "signatureUrl" | "observations" | "checklist" | "createdAt" | "updatedAt" | "statusId" | "clientId" | "carId" | "creatorId" | "deliveryPdfUrl", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   status?: boolean | Prisma.OrderStatusDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -1950,6 +2186,7 @@ export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   photos?: boolean | Prisma.Order$photosArgs<ExtArgs>
   activities?: boolean | Prisma.Order$activitiesArgs<ExtArgs>
   notifications?: boolean | Prisma.Order$notificationsArgs<ExtArgs>
+  comments?: boolean | Prisma.Order$commentsArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1977,6 +2214,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     photos: Prisma.$OrderPhotoPayload<ExtArgs>[]
     activities: Prisma.$ActivityLogPayload<ExtArgs>[]
     notifications: Prisma.$OrderNotificationPayload<ExtArgs>[]
+    comments: Prisma.$OrderCommentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1991,6 +2229,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     clientId: number
     carId: number
     creatorId: number
+    deliveryPdfUrl: string | null
   }, ExtArgs["result"]["order"]>
   composites: {}
 }
@@ -2394,6 +2633,7 @@ export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Ty
   photos<T extends Prisma.Order$photosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$photosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPhotoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   activities<T extends Prisma.Order$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.Order$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  comments<T extends Prisma.Order$commentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$commentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderCommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2435,6 +2675,7 @@ export interface OrderFieldRefs {
   readonly clientId: Prisma.FieldRef<"Order", 'Int'>
   readonly carId: Prisma.FieldRef<"Order", 'Int'>
   readonly creatorId: Prisma.FieldRef<"Order", 'Int'>
+  readonly deliveryPdfUrl: Prisma.FieldRef<"Order", 'String'>
 }
     
 
@@ -2953,6 +3194,30 @@ export type Order$notificationsArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.OrderNotificationScalarFieldEnum | Prisma.OrderNotificationScalarFieldEnum[]
+}
+
+/**
+ * Order.comments
+ */
+export type Order$commentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrderComment
+   */
+  select?: Prisma.OrderCommentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrderComment
+   */
+  omit?: Prisma.OrderCommentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderCommentInclude<ExtArgs> | null
+  where?: Prisma.OrderCommentWhereInput
+  orderBy?: Prisma.OrderCommentOrderByWithRelationInput | Prisma.OrderCommentOrderByWithRelationInput[]
+  cursor?: Prisma.OrderCommentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrderCommentScalarFieldEnum | Prisma.OrderCommentScalarFieldEnum[]
 }
 
 /**

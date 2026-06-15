@@ -31,6 +31,10 @@ import {
   Speaker,
   Sliders,
   Tv,
+  Sparkles,
+  Trash2,
+  UploadCloud,
+  Plus,
 } from "lucide-react";
 
 interface BrandData {
@@ -41,6 +45,9 @@ interface BrandData {
 interface ServiceData {
   id: number;
   name: string;
+  isActive: boolean;
+  icon?: string | null;
+  isTopSelling: boolean;
 }
 
 interface ClientCarData {
@@ -129,8 +136,29 @@ export default function RecepcionForm({
 
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
 
-  // 2b. Checklist & Observations state
   const [observations, setObservations] = useState("");
+  const [checklistImages, setChecklistImages] = useState<Record<string, string[]>>({});
+  const [activeGalleryKey, setActiveGalleryKey] = useState<string | null>(null);
+  const [imageToDelete, setImageToDelete] = useState<{ key: string; index: number } | null>(null);
+  const [armedImage, setArmedImage] = useState<{ key: string; index: number } | null>(null);
+
+  const handleImageUpload = (key: string, files: FileList | null) => {
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          const base64Str = reader.result;
+          setChecklistImages((prev) => ({
+            ...prev,
+            [key]: [...(prev[key] || []), base64Str],
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const [checklist, setChecklist] = useState<Record<string, string>>({
     rayones: "no",
     golpes: "no",
@@ -367,7 +395,29 @@ export default function RecepcionForm({
   };
 
   // Map service names to Lucide icons dynamically
-  const getServiceIcon = (name: string) => {
+  const getServiceIcon = (name: string, iconName?: string | null) => {
+    if (iconName) {
+      switch (iconName) {
+        case "Sun": return Sun;
+        case "Shield": return Shield;
+        case "Palette": return Palette;
+        case "ShieldAlert": return ShieldAlert;
+        case "Lightbulb": return Lightbulb;
+        case "Bell": return Bell;
+        case "Radar": return Radar;
+        case "Radio": return Radio;
+        case "Smartphone": return Smartphone;
+        case "Speaker": return Speaker;
+        case "Sliders": return Sliders;
+        case "Camera": return VideoCamera;
+        case "Tv": return Tv;
+        case "Wind": return Wind;
+        case "Compass": return Compass;
+        case "HelpCircle": return HelpCircle;
+        default: break;
+      }
+    }
+
     const serviceName = name.toLowerCase();
     if (serviceName.includes("polarizado")) return Sun;
     if (serviceName.includes("ppf")) return Shield;
@@ -487,76 +537,176 @@ export default function RecepcionForm({
   // Render helper for checklist items
   const renderChecklistItem = (key: string, label: string) => {
     const isBinary = key === "rayones" || key === "golpes";
+    const val = checklist[key] || (isBinary ? "no" : "bueno");
+    const isFailure = isBinary ? val === "si" : val === "malo";
+    const images = checklistImages[key] || [];
 
-    if (isBinary) {
-      const val = checklist[key] || "no";
-      return (
-        <div key={key} className="flex items-center justify-between py-2 border-b border-zinc-100 last:border-0 gap-2">
+    return (
+      <div key={key} className="py-2 border-b border-zinc-105 last:border-0">
+        <div className="flex items-center justify-between gap-2">
           <span className="text-xs font-semibold text-zinc-700">{label}</span>
           <div className="flex bg-zinc-100 rounded-lg p-0.5 border border-zinc-200 select-none shrink-0 scale-90 sm:scale-100 origin-right">
-            <button
-              type="button"
-              onClick={() => setChecklist((prev) => ({ ...prev, [key]: "si" }))}
-              className={`px-3.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
-                val === "si"
-                  ? "bg-red-600 text-white shadow-xs"
-                  : "text-zinc-500 hover:text-zinc-800"
-              }`}
-            >
-              Sí
-            </button>
-            <button
-              type="button"
-              onClick={() => setChecklist((prev) => ({ ...prev, [key]: "no" }))}
-              className={`px-3.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
-                val === "no"
-                  ? "bg-green-600 text-white shadow-xs"
-                  : "text-zinc-500 hover:text-zinc-800"
-              }`}
-            >
-              No
-            </button>
+            {isBinary ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setChecklist((prev) => ({ ...prev, [key]: "si" }))}
+                  className={`px-3.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
+                    val === "si"
+                      ? "bg-red-600 text-white shadow-xs"
+                      : "text-zinc-500 hover:text-zinc-800"
+                  }`}
+                >
+                  Sí
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChecklist((prev) => ({ ...prev, [key]: "no" }))}
+                  className={`px-3.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
+                    val === "no"
+                      ? "bg-green-600 text-white shadow-xs"
+                      : "text-zinc-500 hover:text-zinc-800"
+                  }`}
+                >
+                  No
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setChecklist((prev) => ({ ...prev, [key]: "bueno" }))}
+                  className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
+                    val === "bueno"
+                      ? "bg-green-600 text-white shadow-xs"
+                      : "text-zinc-500 hover:text-zinc-800"
+                  }`}
+                >
+                  Bueno
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChecklist((prev) => ({ ...prev, [key]: "malo" }))}
+                  className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
+                    val === "malo"
+                      ? "bg-red-600 text-white shadow-xs"
+                      : "text-zinc-500 hover:text-zinc-800"
+                  }`}
+                >
+                  Malo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChecklist((prev) => ({ ...prev, [key]: "na" }))}
+                  className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
+                    val === "na"
+                      ? "bg-zinc-400 text-white shadow-xs"
+                      : "text-zinc-500 hover:text-zinc-800"
+                  }`}
+                >
+                  N/A
+                </button>
+              </>
+            )}
           </div>
         </div>
-      );
-    }
 
-    const val = checklist[key] || "bueno";
-    return (
-      <div key={key} className="flex items-center justify-between py-2 border-b border-zinc-100 last:border-0 gap-2">
-        <span className="text-xs font-semibold text-zinc-700">{label}</span>
-        <div className="flex bg-zinc-100 rounded-lg p-0.5 border border-zinc-200 select-none shrink-0 scale-90 sm:scale-100 origin-right">
-          <button
-            type="button"
-            onClick={() => setChecklist((prev) => ({ ...prev, [key]: "bueno" }))}
-            className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "bueno"
-                ? "bg-green-600 text-white shadow-xs"
-                : "text-zinc-500 hover:text-zinc-800"
-              }`}
-          >
-            Bueno
-          </button>
-          <button
-            type="button"
-            onClick={() => setChecklist((prev) => ({ ...prev, [key]: "malo" }))}
-            className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "malo"
-                ? "bg-red-600 text-white shadow-xs"
-                : "text-zinc-500 hover:text-zinc-800"
-              }`}
-          >
-            Malo
-          </button>
-          <button
-            type="button"
-            onClick={() => setChecklist((prev) => ({ ...prev, [key]: "na" }))}
-            className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "na"
-                ? "bg-zinc-400 text-white shadow-xs"
-                : "text-zinc-500 hover:text-zinc-800"
-              }`}
-          >
-            N/A
-          </button>
-        </div>
+        {isFailure && (
+          <div className="mt-3 p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-2 animate-[fadeIn_0.2s_ease-out]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+              Añadir evidencias
+            </span>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Image thumbnails */}
+              {images.length <= 3 ? (
+                images.map((imgUrl, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      const isTouch = typeof window !== 'undefined' && window.matchMedia("(pointer: coarse)").matches;
+                      if (!isTouch) {
+                        setImageToDelete({ key, index: idx });
+                      } else {
+                        if (armedImage?.key === key && armedImage?.index === idx) {
+                          setImageToDelete({ key, index: idx });
+                        } else {
+                          setArmedImage({ key, index: idx });
+                        }
+                      }
+                    }}
+                    className="h-14 w-14 rounded-xl overflow-hidden bg-zinc-150 border border-zinc-200 relative group cursor-pointer shrink-0"
+                    title="Clic en PC, dos toques en móvil para eliminar"
+                  >
+                    <img src={imgUrl} className="w-full h-full object-cover" />
+                    <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${
+                      (armedImage?.key === key && armedImage?.index === idx)
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100"
+                    }`}>
+                      <Trash2 className="h-4.5 w-4.5 text-white" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <>
+                  {/* First 2 thumbnails normally */}
+                  {images.slice(0, 2).map((imgUrl, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        const isTouch = typeof window !== 'undefined' && window.matchMedia("(pointer: coarse)").matches;
+                        if (!isTouch) {
+                          setImageToDelete({ key, index: idx });
+                        } else {
+                          if (armedImage?.key === key && armedImage?.index === idx) {
+                            setImageToDelete({ key, index: idx });
+                          } else {
+                            setArmedImage({ key, index: idx });
+                          }
+                        }
+                      }}
+                      className="h-14 w-14 rounded-xl overflow-hidden bg-zinc-150 border border-zinc-200 relative group cursor-pointer shrink-0"
+                      title="Clic en PC, dos toques en móvil para eliminar"
+                    >
+                      <img src={imgUrl} className="w-full h-full object-cover" />
+                      <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${
+                        (armedImage?.key === key && armedImage?.index === idx)
+                          ? "opacity-100"
+                          : "opacity-0 group-hover:opacity-100"
+                      }`}>
+                        <Trash2 className="h-4.5 w-4.5 text-white" />
+                      </div>
+                    </div>
+                  ))}
+                  {/* 3rd thumbnail with count overlay */}
+                  <div
+                    onClick={() => setActiveGalleryKey(key)}
+                    className="h-14 w-14 rounded-xl overflow-hidden bg-zinc-150 border border-zinc-200 relative cursor-pointer shrink-0"
+                  >
+                    <img src={images[2]} className="w-full h-full object-cover blur-[1px]" />
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <span className="text-white text-xs font-extrabold font-sans">
+                        +{images.length - 2}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Upload button */}
+              <label className="h-14 w-14 rounded-xl border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-white hover:bg-zinc-50 flex items-center justify-center cursor-pointer shrink-0 transition-colors">
+                <Plus className="h-5 w-5 text-zinc-400" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => handleImageUpload(key, e.target.files)}
+                />
+              </label>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -587,7 +737,18 @@ export default function RecepcionForm({
         formData.append("mileage", mileage);
         formData.append("vehicleType", vehicleType);
         formData.append("observations", observations);
-        formData.append("checklist", JSON.stringify(checklist));
+        
+        // Serializar el checklist con las imágenes asociadas a los fallos
+        const checklistWithImages: Record<string, any> = { ...checklist };
+        Object.entries(checklistImages).forEach(([key, imgs]) => {
+          const val = checklist[key];
+          const isBinary = key === "rayones" || key === "golpes";
+          const isFailure = isBinary ? val === "si" : val === "malo";
+          if (isFailure && imgs && imgs.length > 0) {
+            checklistWithImages[`_images_${key}`] = imgs;
+          }
+        });
+        formData.append("checklist", JSON.stringify(checklistWithImages));
         formData.append("signature", signatureData);
 
         selectedServices.forEach((sId) => {
@@ -1483,39 +1644,115 @@ export default function RecepcionForm({
             }`}
           >
             <div className={activeStep === 3 ? "overflow-visible" : "overflow-hidden"}>
-              <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {services.map((service) => {
-                  const isSelected = selectedServices.includes(service.id);
-                  const Icon = getServiceIcon(service.name);
-
+              <div className="p-6 space-y-6">
+                {/* RECOMENDADOS / MÁS VENDIDOS */}
+                {(() => {
+                  const recommendedServices = services.filter((s) => s.isTopSelling);
+                  const otherServices = services.filter((s) => !s.isTopSelling);
                   return (
-                    <div
-                      key={service.id}
-                      onClick={() => toggleService(service.id)}
-                      className={`border rounded-xl p-3 cursor-pointer select-none transition-all duration-150 flex flex-col justify-between h-20 min-h-[50px] relative ${isSelected
-                          ? "border-[#C9A84C] bg-[#FBF5E6]/60 shadow-[0_0_0_3px_rgba(201,168,76,0.12)] text-[#9A7A28]"
-                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-[#C9A84C]/60 hover:bg-[#FBF5E6]/10"
-                        }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <Icon
-                          className={`h-5 w-5 ${isSelected ? "text-[#C9A84C]" : "text-zinc-400"}`}
-                        />
-                        <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all shrink-0 ${isSelected ? "bg-[#C9A84C] border-[#C9A84C]" : "border-zinc-300 bg-white"
-                            }`}
-                        >
-                          {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    <>
+                      {recommendedServices.length > 0 && (
+                        <div className="space-y-2.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#9A7A28] flex items-center gap-1.5">
+                            <Sparkles className="h-3.5 w-3.5 text-[#C9A84C] animate-pulse" />
+                            Servicios Destacados / Más Vendidos
+                          </span>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {recommendedServices.map((service) => {
+                              const isSelected = selectedServices.includes(service.id);
+                              const Icon = getServiceIcon(service.name, service.icon);
+
+                              return (
+                                <div
+                                  key={service.id}
+                                  onClick={() => toggleService(service.id)}
+                                  className={`border rounded-xl p-3 cursor-pointer select-none transition-all duration-200 flex flex-col justify-between h-20 min-h-[50px] relative hover:shadow-xs ${
+                                    isSelected
+                                      ? "border-[#C9A84C] bg-[#FBF5E6]/60 shadow-[0_0_0_3px_rgba(201,168,76,0.12)] text-[#9A7A28]"
+                                      : "border-[#C9A84C]/35 bg-[#FBF5E6]/25 text-zinc-600 hover:border-[#C9A84C]/60 hover:bg-[#FBF5E6]/40"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <Icon
+                                      className={`h-5 w-5 ${isSelected ? "text-[#C9A84C]" : "text-[#9A7A28]/70"}`}
+                                    />
+                                    <div
+                                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all shrink-0 ${
+                                        isSelected ? "bg-[#C9A84C] border-[#C9A84C]" : "border-[#C9A84C]/30 bg-white"
+                                      }`}
+                                    >
+                                      {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                    </div>
+                                  </div>
+                                  <span className={`text-xs font-bold truncate ${isSelected ? "text-[#9A7A28]" : "text-zinc-800"}`}>
+                                    {service.name}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                      <span className={`text-xs font-bold truncate ${isSelected ? "text-[#9A7A28]" : "text-zinc-700"}`}>
-                        {service.name}
-                      </span>
-                    </div>
+                      )}
+
+                      {/* LINEA DIVISORA */}
+                      {recommendedServices.length > 0 && otherServices.length > 0 && (
+                        <div className="relative py-2 select-none">
+                          <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                            <div className="w-full border-t border-zinc-200/80" />
+                          </div>
+                          <div className="relative flex justify-center text-[9px] uppercase font-bold tracking-widest">
+                            <span className="bg-white px-4 text-zinc-400">Otros Servicios Disponibles</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* OTROS SERVICIOS */}
+                      {otherServices.length > 0 && (
+                        <div className="space-y-2.5">
+                          {recommendedServices.length === 0 && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                              Catálogo de Servicios
+                            </span>
+                          )}
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {otherServices.map((service) => {
+                              const isSelected = selectedServices.includes(service.id);
+                              const Icon = getServiceIcon(service.name, service.icon);
+
+                              return (
+                                <div
+                                  key={service.id}
+                                  onClick={() => toggleService(service.id)}
+                                  className={`border rounded-xl p-3 cursor-pointer select-none transition-all duration-200 flex flex-col justify-between h-20 min-h-[50px] relative hover:shadow-2xs ${
+                                    isSelected
+                                      ? "border-[#C9A84C] bg-[#FBF5E6]/60 shadow-[0_0_0_3px_rgba(201,168,76,0.12)] text-[#9A7A28]"
+                                      : "border-zinc-200 bg-zinc-50/70 text-zinc-600 hover:border-zinc-350 hover:bg-zinc-100/50"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <Icon
+                                      className={`h-5 w-5 ${isSelected ? "text-[#C9A84C]" : "text-zinc-450"}`}
+                                    />
+                                    <div
+                                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all shrink-0 ${
+                                        isSelected ? "bg-[#C9A84C] border-[#C9A84C]" : "border-zinc-300 bg-white"
+                                      }`}
+                                    >
+                                      {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                    </div>
+                                  </div>
+                                  <span className={`text-xs font-bold truncate ${isSelected ? "text-[#9A7A28]" : "text-zinc-700"}`}>
+                                    {service.name}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   );
-                })}
-              </div>
+                })()}
 
               {/* Navigation buttons */}
               <div className="flex justify-between pt-2">
@@ -1661,7 +1898,7 @@ export default function RecepcionForm({
                   onClick={() => handleNextStep(4)}
                   className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
                 >
-                  Continuar a Fotos y Firma
+                  Continuar a Firma
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
@@ -1670,7 +1907,7 @@ export default function RecepcionForm({
         </div>
         </div>
 
-        {/* ==================== PASO 5: FOTOS Y FIRMA DE RECEPCIÓN ==================== */}
+        {/* ==================== PASO 5: FIRMA DE RECEPCIÓN ==================== */}
         <div className="bg-white border border-zinc-200 rounded-xl shadow-xs">
           {/* Header */}
           <div
@@ -1690,7 +1927,7 @@ export default function RecepcionForm({
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm font-bold text-zinc-800 leading-tight">
-                  Inspección y Firma de Recepción
+                  Firma de Recepción
                 </h3>
               </div>
             </div>
@@ -1711,25 +1948,6 @@ export default function RecepcionForm({
           >
             <div className={activeStep === 5 ? "overflow-visible" : "overflow-hidden"}>
               <div className="p-6 space-y-6">
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  Fotos de Recepción (Demo)
-                </h4>
-                <p className="text-xs text-zinc-400">
-                  Carga de maquetas fotográficas del estado del vehículo.
-                </p>
-                <div className="grid grid-cols-3 gap-3">
-                  {[1, 2, 3, 4, 5, 6].map((num) => (
-                    <div
-                      key={num}
-                      className="aspect-square rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 hover:bg-zinc-100 flex flex-col items-center justify-center gap-1 cursor-not-allowed select-none transition-colors group"
-                    >
-                      <ImageIcon className="h-5 w-5 text-zinc-400 group-hover:text-zinc-500" />
-                      <span className="text-[9px] text-zinc-400 font-medium">Foto {num}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
               {/* Firma del Cliente Canvas */}
               <div className="pt-5 border-t border-zinc-150 space-y-3">
@@ -1804,6 +2022,124 @@ export default function RecepcionForm({
         </div>
         </div>
       </div>
+      {/* DELETE CONFIRMATION MODAL */}
+      {imageToDelete && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-white border border-zinc-200 rounded-2xl w-full max-w-sm overflow-hidden flex flex-col shadow-2xl p-6 space-y-4 animate-[scaleIn_0.2s_ease-out]">
+            <h3 className="text-sm font-extrabold text-zinc-900">
+              ¿Eliminar imagen?
+            </h3>
+            <p className="text-xs text-zinc-550 font-medium">
+              ¿Estás seguro de que deseas eliminar esta fotografía de evidencia? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setImageToDelete(null);
+                  setArmedImage(null);
+                }}
+                className="h-10 px-4 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-xs font-bold text-zinc-650 transition-colors select-none cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const { key, index } = imageToDelete;
+                  setChecklistImages((prev) => {
+                    const currentImgs = prev[key] || [];
+                    const updatedImgs = currentImgs.filter((_, i) => i !== index);
+                    return {
+                      ...prev,
+                      [key]: updatedImgs,
+                    };
+                  });
+                  setImageToDelete(null);
+                  setArmedImage(null);
+                }}
+                className="h-10 px-5 rounded-lg bg-red-600 hover:bg-red-700 text-xs font-bold text-white transition-all duration-150 shadow-sm select-none cursor-pointer"
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GALLERY MODAL FOR MORE THAN 4 IMAGES */}
+      {activeGalleryKey && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-white border border-zinc-200 rounded-2xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl relative p-6 space-y-4 animate-[scaleIn_0.2s_ease-out]">
+            {/* Close Button with red background and hover effect */}
+            <button
+              type="button"
+              onClick={() => setActiveGalleryKey(null)}
+              className="absolute top-4 right-4 h-8 w-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-colors shadow-sm select-none"
+              title="Cerrar"
+            >
+              ✕
+            </button>
+
+            {/* Modal Header */}
+            <div>
+              <span className="font-mono font-bold text-xs text-[#9A7A28] uppercase tracking-wider block">
+                Galería de evidencias
+              </span>
+              <h3 className="text-base font-extrabold text-zinc-900 mt-0.5 capitalize">
+                {activeGalleryKey.replace(/_/g, " ")}
+              </h3>
+            </div>
+
+            {/* Modal Body: Images Grid */}
+            <div className="grid grid-cols-4 gap-3 overflow-y-auto max-h-60 p-1">
+              {(checklistImages[activeGalleryKey] || []).map((imgUrl, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => {
+                    const isTouch = typeof window !== 'undefined' && window.matchMedia("(pointer: coarse)").matches;
+                    if (!isTouch) {
+                      setImageToDelete({ key: activeGalleryKey, index: idx });
+                    } else {
+                      if (armedImage?.key === activeGalleryKey && armedImage?.index === idx) {
+                        setImageToDelete({ key: activeGalleryKey, index: idx });
+                      } else {
+                        setArmedImage({ key: activeGalleryKey, index: idx });
+                      }
+                    }
+                  }}
+                  className="aspect-square rounded-xl overflow-hidden bg-zinc-100 border border-zinc-200 relative group cursor-pointer shrink-0"
+                  title="Clic en PC, dos toques en móvil para eliminar"
+                >
+                  <img src={imgUrl} className="w-full h-full object-cover" />
+                  <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${
+                    (armedImage?.key === activeGalleryKey && armedImage?.index === idx)
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
+                  }`}>
+                    <Trash2 className="h-5 w-5 text-white" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Modal Footer: Subir imágenes button */}
+            <div className="pt-2 border-t border-zinc-100">
+              <label className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-zinc-100 hover:bg-emerald-500 hover:text-white border border-zinc-200 hover:border-emerald-500 text-zinc-700 text-xs font-bold transition-all duration-200 cursor-pointer select-none">
+                <UploadCloud className="h-4.5 w-4.5" />
+                Subir imágenes
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => handleImageUpload(activeGalleryKey, e.target.files)}
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

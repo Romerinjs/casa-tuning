@@ -14,6 +14,10 @@ export async function createServiceAction(
     await verifyAdminSession();
 
     const name = formData.get("name") as string;
+    const icon = formData.get("icon") as string || null;
+    const isTopSelling = formData.get("isTopSelling") === "true";
+    const isActive = formData.get("isActive") !== "false";
+
     if (!name || name.trim() === "") {
       return { success: false, error: "El nombre del servicio es requerido." };
     }
@@ -35,7 +39,9 @@ export async function createServiceAction(
     await prisma.serviceCatalog.create({
       data: {
         name: cleanName,
-        isActive: true,
+        icon,
+        isTopSelling,
+        isActive,
       },
     });
 
@@ -51,6 +57,114 @@ export async function createServiceAction(
   }
 }
 
+// Action for updating an existing service
+export async function updateServiceAction(
+  prevState: { success: boolean; error?: string } | null,
+  formData: FormData
+) {
+  try {
+    await verifyAdminSession();
+
+    const idStr = formData.get("id") as string;
+    const name = formData.get("name") as string;
+    const icon = formData.get("icon") as string || null;
+    const isTopSelling = formData.get("isTopSelling") === "true";
+    const isActive = formData.get("isActive") === "true";
+
+    if (!idStr || !name || name.trim() === "") {
+      return { success: false, error: "El ID y el nombre del servicio son requeridos." };
+    }
+
+    const id = parseInt(idStr, 10);
+    const cleanName = name.trim();
+
+    // Check duplicate name for another service
+    const existing = await prisma.serviceCatalog.findFirst({
+      where: {
+        name: cleanName,
+        NOT: { id },
+      },
+    });
+
+    if (existing) {
+      return {
+        success: false,
+        error: `El servicio '${cleanName}' ya existe en otro registro.`,
+      };
+    }
+
+    await prisma.serviceCatalog.update({
+      where: { id },
+      data: {
+        name: cleanName,
+        icon,
+        isTopSelling,
+        isActive,
+      },
+    });
+
+    revalidatePath("/administracion");
+    revalidatePath("/recepcion");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating service:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error al actualizar servicio.",
+    };
+  }
+}
+
+// Action for deleting an existing service
+export async function deleteServiceAction(
+  prevState: { success: boolean; error?: string } | null,
+  formData: FormData
+) {
+  try {
+    await verifyAdminSession();
+
+    const idStr = formData.get("id") as string;
+    if (!idStr) {
+      return { success: false, error: "El ID del servicio es requerido." };
+    }
+
+    const id = parseInt(idStr, 10);
+
+    // Check if the service is associated with any order service items
+    const inUse = await prisma.orderService.findFirst({
+      where: { serviceId: id },
+    });
+
+    if (inUse) {
+      return {
+        success: false,
+        error: "Este servicio ya está asociado a órdenes existentes y no se puede eliminar. Puede desactivarlo en su lugar.",
+      };
+    }
+
+    await prisma.serviceCatalog.delete({
+      where: { id },
+    });
+
+    revalidatePath("/administracion");
+    revalidatePath("/recepcion");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting service:", error);
+    const err = error as any;
+    if (err.code === "P2003") {
+      return {
+        success: false,
+        error: "Este servicio está asociado a órdenes y no se puede eliminar. Intente desactivarlo.",
+      };
+    }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error al eliminar servicio.",
+    };
+  }
+}
+
 // Action for creating a new vehicle brand
 export async function createBrandAction(
   prevState: { success: boolean; error?: string } | null,
@@ -60,6 +174,7 @@ export async function createBrandAction(
     await verifyAdminSession();
 
     const name = formData.get("name") as string;
+    const logo = formData.get("logo") as string || null;
     if (!name || name.trim() === "") {
       return { success: false, error: "El nombre de la marca es requerido." };
     }
@@ -81,6 +196,7 @@ export async function createBrandAction(
     await prisma.brand.create({
       data: {
         name: cleanName,
+        logo: logo,
       },
     });
 

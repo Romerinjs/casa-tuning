@@ -37,16 +37,19 @@ export type BrandSumAggregateOutputType = {
 export type BrandMinAggregateOutputType = {
   id: number | null
   name: string | null
+  logo: string | null
 }
 
 export type BrandMaxAggregateOutputType = {
   id: number | null
   name: string | null
+  logo: string | null
 }
 
 export type BrandCountAggregateOutputType = {
   id: number
   name: number
+  logo: number
   _all: number
 }
 
@@ -62,16 +65,19 @@ export type BrandSumAggregateInputType = {
 export type BrandMinAggregateInputType = {
   id?: true
   name?: true
+  logo?: true
 }
 
 export type BrandMaxAggregateInputType = {
   id?: true
   name?: true
+  logo?: true
 }
 
 export type BrandCountAggregateInputType = {
   id?: true
   name?: true
+  logo?: true
   _all?: true
 }
 
@@ -164,6 +170,7 @@ export type BrandGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type BrandGroupByOutputType = {
   id: number
   name: string
+  logo: string | null
   _count: BrandCountAggregateOutputType | null
   _avg: BrandAvgAggregateOutputType | null
   _sum: BrandSumAggregateOutputType | null
@@ -192,12 +199,14 @@ export type BrandWhereInput = {
   NOT?: Prisma.BrandWhereInput | Prisma.BrandWhereInput[]
   id?: Prisma.IntFilter<"Brand"> | number
   name?: Prisma.StringFilter<"Brand"> | string
+  logo?: Prisma.StringNullableFilter<"Brand"> | string | null
   cars?: Prisma.CarListRelationFilter
 }
 
 export type BrandOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  logo?: Prisma.SortOrderInput | Prisma.SortOrder
   cars?: Prisma.CarOrderByRelationAggregateInput
 }
 
@@ -207,12 +216,14 @@ export type BrandWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.BrandWhereInput | Prisma.BrandWhereInput[]
   OR?: Prisma.BrandWhereInput[]
   NOT?: Prisma.BrandWhereInput | Prisma.BrandWhereInput[]
+  logo?: Prisma.StringNullableFilter<"Brand"> | string | null
   cars?: Prisma.CarListRelationFilter
 }, "id" | "name">
 
 export type BrandOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  logo?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.BrandCountOrderByAggregateInput
   _avg?: Prisma.BrandAvgOrderByAggregateInput
   _max?: Prisma.BrandMaxOrderByAggregateInput
@@ -226,47 +237,56 @@ export type BrandScalarWhereWithAggregatesInput = {
   NOT?: Prisma.BrandScalarWhereWithAggregatesInput | Prisma.BrandScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Brand"> | number
   name?: Prisma.StringWithAggregatesFilter<"Brand"> | string
+  logo?: Prisma.StringNullableWithAggregatesFilter<"Brand"> | string | null
 }
 
 export type BrandCreateInput = {
   name: string
+  logo?: string | null
   cars?: Prisma.CarCreateNestedManyWithoutBrandInput
 }
 
 export type BrandUncheckedCreateInput = {
   id?: number
   name: string
+  logo?: string | null
   cars?: Prisma.CarUncheckedCreateNestedManyWithoutBrandInput
 }
 
 export type BrandUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cars?: Prisma.CarUpdateManyWithoutBrandNestedInput
 }
 
 export type BrandUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cars?: Prisma.CarUncheckedUpdateManyWithoutBrandNestedInput
 }
 
 export type BrandCreateManyInput = {
   id?: number
   name: string
+  logo?: string | null
 }
 
 export type BrandUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type BrandUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type BrandCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  logo?: Prisma.SortOrder
 }
 
 export type BrandAvgOrderByAggregateInput = {
@@ -276,11 +296,13 @@ export type BrandAvgOrderByAggregateInput = {
 export type BrandMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  logo?: Prisma.SortOrder
 }
 
 export type BrandMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  logo?: Prisma.SortOrder
 }
 
 export type BrandSumOrderByAggregateInput = {
@@ -308,11 +330,13 @@ export type BrandUpdateOneRequiredWithoutCarsNestedInput = {
 
 export type BrandCreateWithoutCarsInput = {
   name: string
+  logo?: string | null
 }
 
 export type BrandUncheckedCreateWithoutCarsInput = {
   id?: number
   name: string
+  logo?: string | null
 }
 
 export type BrandCreateOrConnectWithoutCarsInput = {
@@ -333,11 +357,13 @@ export type BrandUpdateToOneWithWhereWithoutCarsInput = {
 
 export type BrandUpdateWithoutCarsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type BrandUncheckedUpdateWithoutCarsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -374,6 +400,7 @@ export type BrandCountOutputTypeCountCarsArgs<ExtArgs extends runtime.Types.Exte
 export type BrandSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  logo?: boolean
   cars?: boolean | Prisma.Brand$carsArgs<ExtArgs>
   _count?: boolean | Prisma.BrandCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["brand"]>
@@ -381,19 +408,22 @@ export type BrandSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type BrandSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  logo?: boolean
 }, ExtArgs["result"]["brand"]>
 
 export type BrandSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  logo?: boolean
 }, ExtArgs["result"]["brand"]>
 
 export type BrandSelectScalar = {
   id?: boolean
   name?: boolean
+  logo?: boolean
 }
 
-export type BrandOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name", ExtArgs["result"]["brand"]>
+export type BrandOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "logo", ExtArgs["result"]["brand"]>
 export type BrandInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   cars?: boolean | Prisma.Brand$carsArgs<ExtArgs>
   _count?: boolean | Prisma.BrandCountOutputTypeDefaultArgs<ExtArgs>
@@ -409,6 +439,7 @@ export type $BrandPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     name: string
+    logo: string | null
   }, ExtArgs["result"]["brand"]>
   composites: {}
 }
@@ -835,6 +866,7 @@ export interface Prisma__BrandClient<T, Null = never, ExtArgs extends runtime.Ty
 export interface BrandFieldRefs {
   readonly id: Prisma.FieldRef<"Brand", 'Int'>
   readonly name: Prisma.FieldRef<"Brand", 'String'>
+  readonly logo: Prisma.FieldRef<"Brand", 'String'>
 }
     
 

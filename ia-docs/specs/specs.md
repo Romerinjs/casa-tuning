@@ -39,7 +39,16 @@ El Dashboard ([page.tsx](file:///d:/OneDrive/Escritorio/Romito/ren/proyectos/cas
   - *Recibidos hoy*: Órdenes creadas a partir del inicio del día de hoy con estado `"RECIBIDO"`.
   - *Total del día*: Volumen general de check-ins creados hoy.
 - **Tabla de Órdenes Activas**: Muestra las órdenes cuyo estado no es `"ENTREGADO"`. Muestra la placa formateada como badge mono, los datos de contacto del cliente, el vehículo, chips con los servicios contratados, el estado actual (colorizado) y la hora de recepción.
-- **Feed de Actividad**: Muestra lo## 4. Módulo Clientes (Solo Administrador)
+- **Feed de Actividad**: Muestra los últimos 5 eventos de actividad registrados en el sistema (como el ingreso de vehículos o mutaciones de estado de órdenes), detallando la placa del auto implicado y la hora del registro.
+- **Acción Rápida - Registrar Vehículo**: 
+  - Se eliminó el botón de la cabecera superior y se convirtió en un **Botón de Acción Flotante (FAB)** posicionado en la esquina inferior derecha de la pantalla (`fixed bottom-8 right-8 z-50`).
+  - **Diseño**: Botón de tipo cuadrado con bordes redondeados (`rounded-2xl`), color de fondo amarillo cálido (`#FFD54F`) con transición hover a dorado, y un símbolo más (`+`) centrado con trazo oscuro grueso (`stroke-[3]`).
+  - **Tooltip / Comentario**: Justo sobre el botón flota una cápsula de diálogo oscura (`bg-zinc-700`) con texto en blanco "Registrar vehículo" y una flecha indicadora inferior.
+  - **Animación**: El bloque de diálogo cuenta con una animación continua de rebote (arriba y abajo) mediante la clase `animate-tooltip-bounce` definida en `globals.css`.
+
+---
+
+## 4. Módulo Clientes (Solo Administrador)
 
 El panel de clientes está restringido exclusivamente a usuarios con el rol de `"Administrador"`. Los operarios son redirigidos de manera automática al dashboard si intentan ingresar directamente a `/clientes`.
 
@@ -101,4 +110,26 @@ Se ha desarrollado un sistema de notificaciones premium mobile-first:
   - `warning` (Amarillo: `AlertTriangle`)
   - `info` (Dorado/Gris: `Info`)
 - **Funcionamiento**: Opera bajo un `ToastProvider` global de React encapsulado en `src/components/ui/Toast.tsx` y expuesto mediante el hook `useToast()`. Incluye un temporizador que descarta automáticamente cada toast después de 3.5 segundos.
+
+---
+
+## 9. Transiciones de Navegación y Pantallas de Carga
+
+Para evitar cortes directos o cambios abruptos de contenido durante la navegación, se implementó una infraestructura de transiciones y estados de carga progresivos:
+
+- **Transición de Entrada de Página (Page Entry Transition)**:
+  - Implementada mediante el componente de cliente [PageTransition.tsx](file:///d:/romer/REN/proyectos/casa-tuning/src/components/PageTransition.tsx).
+  - Utiliza el pathname actual como `key` en React. Al detectar un cambio de ruta, React desmonta la vista anterior y monta la nueva, disparando la animación de entrada `.animate-page-entry` en el panel principal.
+  - La animación (`pageEntry` en `globals.css`) dura 350ms y combina un desvanecimiento progresivo (`opacity: 0 -> 1`), un desenfoque sutil (`filter: blur(4px) -> blur(0)`), y una ligera escala y traslación vertical (`scale(0.995) translateY(4px) -> scale(1) translateY(0)`), logrando una transición extremadamente suave y fluida.
+
+- **Pantalla de Carga de Inicio (Root Loader)**:
+  - Definida en [loading.tsx (root)](file:///d:/romer/REN/proyectos/casa-tuning/src/app/loading.tsx).
+  - Actúa durante el procesamiento inicial de la app y del login.
+  - Presenta un fondo oscuro con el logotipo oficial de Casa Tuning en un contenedor blanco brillante pulsante y una barra de progreso de gradiente dorado (`#C9A84C` a `#9A7A28`) deslizante (`animate-loading-line`).
+
+- **Pantalla de Carga Segmentada (Authenticated Skeleton Loader)**:
+  - Definida en [loading.tsx (authenticated)](file:///d:/romer/REN/proyectos/casa-tuning/src/app/(authenticated)/loading.tsx).
+  - Se activa al navegar entre sub-rutas autenticadas mientras los Server Components resuelven consultas a la base de datos PostgreSQL.
+  - En lugar de ocultar la interfaz por completo, mantiene estático el Sidebar de navegación e inyecta un Skeleton Loader en el panel principal que replica la estructura del Dashboard (cabecera, fila de 4 estadísticas clave, y 2 columnas con tablas y feeds de actividad) con un efecto de pulso gris, ofreciendo una sensación de aplicación instantánea y nativa (SPA).
+
 

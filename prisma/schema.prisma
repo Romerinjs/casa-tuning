@@ -32,6 +32,7 @@ model OrderStatus {
 model Brand {
   id   Int    @id @default(autoincrement())
   name String @unique @db.VarChar(50)
+  logo String? @db.Text // Base64 logo of the brand
 
   cars Car[]
 
@@ -39,11 +40,13 @@ model Brand {
 }
 
 model ServiceCatalog {
-  id       Int     @id @default(autoincrement())
-  name     String  @unique @db.VarChar(100)
-  isActive Boolean @default(true) @map("is_active")
+  id           Int            @id @default(autoincrement())
+  name         String         @unique @db.VarChar(100)
+  isActive     Boolean        @default(true) @map("is_active")
+  icon         String?        @db.VarChar(50)
+  isTopSelling Boolean        @default(false) @map("is_top_selling")
 
-  orderItems OrderService[]
+  orderItems   OrderService[]
 
   @@map("service_catalog")
 }
@@ -73,6 +76,7 @@ model User {
 
   ordersCreated Order[]       @relation("OrderCreator")
   activities    ActivityLog[]
+  comments      OrderComment[]
 
   @@index([roleId])
   @@map("users")
@@ -141,6 +145,8 @@ model Order {
   photos        OrderPhoto[]
   activities    ActivityLog[]
   notifications OrderNotification[]
+  deliveryPdfUrl String?            @map("delivery_pdf_url") @db.VarChar(255)
+  comments       OrderComment[]
 
   @@index([statusId])
   @@index([createdAt])
@@ -213,4 +219,18 @@ model OrderNotification {
 
   @@index([orderId])
   @@map("order_notifications")
+}
+
+model OrderComment {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  orderId   Int      @map("order_id")
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_comments")
 }
