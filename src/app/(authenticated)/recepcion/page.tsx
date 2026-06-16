@@ -1,13 +1,14 @@
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth-helpers";
 import RecepcionForm from "@/components/RecepcionForm";
+import { decryptDocument } from "@/lib/security";
 
 export default async function RecepcionPage() {
   // Verify user session
   await verifySession();
 
   // Fetch brands catalog, active services, existing clients, cars, and document types in parallel
-  const [brands, services, clients, cars, documentTypes] = await Promise.all([
+  const [brands, services, clientsData, carsData, documentTypes] = await Promise.all([
     prisma.brand.findMany({
       orderBy: { name: "asc" },
     }),
@@ -44,6 +45,19 @@ export default async function RecepcionPage() {
       orderBy: { id: "asc" },
     }),
   ]);
+
+  const clients = clientsData.map((c) => ({
+    ...c,
+    documentNumber: c.documentNumber ? decryptDocument(c.documentNumber) : null,
+  }));
+
+  const cars = carsData.map((car) => ({
+    ...car,
+    client: {
+      ...car.client,
+      documentNumber: car.client.documentNumber ? decryptDocument(car.client.documentNumber) : null,
+    },
+  }));
 
   return (
     <RecepcionForm

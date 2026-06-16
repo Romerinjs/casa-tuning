@@ -1633,8 +1633,10 @@ export const ClientScalarFieldEnum = {
   phone: 'phone',
   phone2: 'phone2',
   documentNumber: 'documentNumber',
+  documentNumberHash: 'documentNumberHash',
   documentTypeId: 'documentTypeId',
   email: 'email',
+  photoUrl: 'photoUrl',
   createdAt: 'createdAt'
 } as const
 

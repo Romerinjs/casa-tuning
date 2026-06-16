@@ -83,15 +83,17 @@ model User {
 }
 
 model Client {
-  id             Int           @id @default(autoincrement())
-  name           String        @db.VarChar(150)
-  phone          String        @unique @db.VarChar(20)
-  phone2         String?       @db.VarChar(20)
-  documentNumber String?       @unique @db.VarChar(50) @map("document_number")
-  documentTypeId Int?          @map("document_type_id")
-  documentType   DocumentType? @relation(fields: [documentTypeId], references: [id])
-  email          String?       @db.VarChar(150)
-  createdAt      DateTime      @default(now()) @map("created_at")
+  id                 Int           @id @default(autoincrement())
+  name               String        @db.VarChar(150)
+  phone              String        @unique @db.VarChar(20)
+  phone2             String?       @db.VarChar(20)
+  documentNumber     String?       @db.Text @map("document_number")
+  documentNumberHash String?       @unique @db.VarChar(64) @map("document_number_hash")
+  documentTypeId     Int?          @map("document_type_id")
+  documentType       DocumentType? @relation(fields: [documentTypeId], references: [id])
+  email              String?       @db.VarChar(150)
+  photoUrl           String?       @db.Text @map("photo_url")
+  createdAt          DateTime      @default(now()) @map("created_at")
 
   cars   Car[]
   orders Order[]

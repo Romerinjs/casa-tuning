@@ -35,11 +35,13 @@ import {
   Trash2,
   UploadCloud,
   Plus,
+  User,
 } from "lucide-react";
 
 interface BrandData {
   id: number;
   name: string;
+  logo?: string | null;
 }
 
 interface ServiceData {
@@ -55,7 +57,7 @@ interface ClientCarData {
   plate: string;
   model: string;
   year: number;
-  brand: { id: number; name: string };
+  brand: { id: number; name: string; logo?: string | null };
 }
 
 interface ClientData {
@@ -67,6 +69,7 @@ interface ClientData {
   documentTypeId?: number | null;
   documentType?: { id: number; code: string; name: string } | null;
   email: string | null;
+  photoUrl?: string | null;
   cars: ClientCarData[];
 }
 
@@ -77,16 +80,17 @@ interface CarData {
   model: string;
   year: number;
   color: string;
-  brand: { id: number; name: string };
-  client: { 
-    id: number; 
-    name: string; 
-    phone: string; 
-    phone2?: string | null; 
-    documentNumber?: string | null; 
-    documentTypeId?: number | null; 
-    documentType?: { id: number; code: string; name: string } | null; 
-    email: string | null; 
+  brand: { id: number; name: string; logo?: string | null };
+  client: {
+    id: number;
+    name: string;
+    phone: string;
+    phone2?: string | null;
+    documentNumber?: string | null;
+    documentTypeId?: number | null;
+    documentType?: { id: number; code: string; name: string } | null;
+    email: string | null;
+    photoUrl?: string | null;
   };
 }
 
@@ -102,6 +106,58 @@ interface RecepcionFormProps {
   existingClients?: ClientData[];
   existingCars?: CarData[];
   documentTypes: DocumentTypeData[];
+}
+
+interface ObservationsTextareaProps {
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  rows?: number;
+  className?: string;
+}
+
+function ObservationsTextarea({
+  value,
+  onChange,
+  placeholder,
+  rows,
+  className,
+}: ObservationsTextareaProps) {
+  const [localValue, setLocalValue] = useState(value);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const localValueRef = useRef(localValue);
+  localValueRef.current = localValue;
+
+  // Keep local state in sync if parent value changes
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  // Update parent state when input loses focus
+  const handleBlur = () => {
+    onChangeRef.current(localValueRef.current);
+  };
+
+  // Update parent state on unmount (e.g., user navigates steps or clicks button without blurring)
+  useEffect(() => {
+    return () => {
+      onChangeRef.current(localValueRef.current);
+    };
+  }, []);
+
+  return (
+    <textarea
+      value={localValue}
+      onChange={(e) => {
+        setLocalValue(e.target.value);
+      }}
+      onBlur={handleBlur}
+      placeholder={placeholder}
+      rows={rows}
+      className={className}
+    />
+  );
 }
 
 export default function RecepcionForm({
@@ -238,20 +294,20 @@ export default function RecepcionForm({
           const canvas = canvasRef.current;
           const targetWidth = canvas.offsetWidth * 2;
           const targetHeight = canvas.offsetHeight * 2;
-          
+
           const sizeChanged = canvas.width !== targetWidth || canvas.height !== targetHeight;
           if (sizeChanged) {
             canvas.width = targetWidth;
             canvas.height = targetHeight;
           }
-          
+
           const ctx = canvas.getContext("2d");
           if (ctx) {
             ctx.strokeStyle = "#18181b"; // zinc 900
             ctx.lineWidth = 3;
             ctx.lineCap = "round";
             ctx.lineJoin = "round";
-            
+
             if (sizeChanged && signatureData) {
               const img = new Image();
               img.src = signatureData;
@@ -551,22 +607,20 @@ export default function RecepcionForm({
                 <button
                   type="button"
                   onClick={() => setChecklist((prev) => ({ ...prev, [key]: "si" }))}
-                  className={`px-3.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
-                    val === "si"
-                      ? "bg-red-600 text-white shadow-xs"
-                      : "text-zinc-500 hover:text-zinc-800"
-                  }`}
+                  className={`px-3.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "si"
+                    ? "bg-red-600 text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-800"
+                    }`}
                 >
                   Sí
                 </button>
                 <button
                   type="button"
                   onClick={() => setChecklist((prev) => ({ ...prev, [key]: "no" }))}
-                  className={`px-3.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
-                    val === "no"
-                      ? "bg-green-600 text-white shadow-xs"
-                      : "text-zinc-500 hover:text-zinc-800"
-                  }`}
+                  className={`px-3.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "no"
+                    ? "bg-green-600 text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-800"
+                    }`}
                 >
                   No
                 </button>
@@ -576,33 +630,30 @@ export default function RecepcionForm({
                 <button
                   type="button"
                   onClick={() => setChecklist((prev) => ({ ...prev, [key]: "bueno" }))}
-                  className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
-                    val === "bueno"
-                      ? "bg-green-600 text-white shadow-xs"
-                      : "text-zinc-500 hover:text-zinc-800"
-                  }`}
+                  className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "bueno"
+                    ? "bg-green-600 text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-800"
+                    }`}
                 >
                   Bueno
                 </button>
                 <button
                   type="button"
                   onClick={() => setChecklist((prev) => ({ ...prev, [key]: "malo" }))}
-                  className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
-                    val === "malo"
-                      ? "bg-red-600 text-white shadow-xs"
-                      : "text-zinc-500 hover:text-zinc-800"
-                  }`}
+                  className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "malo"
+                    ? "bg-red-600 text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-800"
+                    }`}
                 >
                   Malo
                 </button>
                 <button
                   type="button"
                   onClick={() => setChecklist((prev) => ({ ...prev, [key]: "na" }))}
-                  className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${
-                    val === "na"
-                      ? "bg-zinc-400 text-white shadow-xs"
-                      : "text-zinc-500 hover:text-zinc-800"
-                  }`}
+                  className={`px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wider transition-all uppercase select-none cursor-pointer ${val === "na"
+                    ? "bg-zinc-400 text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-800"
+                    }`}
                 >
                   N/A
                 </button>
@@ -638,11 +689,10 @@ export default function RecepcionForm({
                     title="Clic en PC, dos toques en móvil para eliminar"
                   >
                     <img src={imgUrl} className="w-full h-full object-cover" />
-                    <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${
-                      (armedImage?.key === key && armedImage?.index === idx)
-                        ? "opacity-100"
-                        : "opacity-0 group-hover:opacity-100"
-                    }`}>
+                    <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${(armedImage?.key === key && armedImage?.index === idx)
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
+                      }`}>
                       <Trash2 className="h-4.5 w-4.5 text-white" />
                     </div>
                   </div>
@@ -669,11 +719,10 @@ export default function RecepcionForm({
                       title="Clic en PC, dos toques en móvil para eliminar"
                     >
                       <img src={imgUrl} className="w-full h-full object-cover" />
-                      <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${
-                        (armedImage?.key === key && armedImage?.index === idx)
-                          ? "opacity-100"
-                          : "opacity-0 group-hover:opacity-100"
-                      }`}>
+                      <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${(armedImage?.key === key && armedImage?.index === idx)
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100"
+                        }`}>
                         <Trash2 className="h-4.5 w-4.5 text-white" />
                       </div>
                     </div>
@@ -737,7 +786,7 @@ export default function RecepcionForm({
         formData.append("mileage", mileage);
         formData.append("vehicleType", vehicleType);
         formData.append("observations", observations);
-        
+
         // Serializar el checklist con las imágenes asociadas a los fallos
         const checklistWithImages: Record<string, any> = { ...checklist };
         Object.entries(checklistImages).forEach(([key, imgs]) => {
@@ -755,8 +804,31 @@ export default function RecepcionForm({
           formData.append("services", sId.toString());
         });
 
-        startTransition(() => {
-          formAction(formData);
+        // Check payload size before submitting (8MB limit is 8 * 1024 * 1024 bytes)
+        let totalBytes = 0;
+        for (const [key, value] of formData.entries()) {
+          if (typeof value === "string") {
+            totalBytes += value.length;
+          } else if (value instanceof File) {
+            totalBytes += value.size;
+          }
+        }
+
+        if (totalBytes > 8 * 1024 * 1024) {
+          setStepError("El tamaño total de las imágenes y datos de la recepción supera el límite de 8MB. Por favor use fotos de menor tamaño o cargue menos imágenes.");
+          showToast("El tamaño total del formulario supera los 8MB.", "warning");
+          return;
+        }
+
+        startTransition(async () => {
+          try {
+            await formAction(formData);
+          } catch (err: any) {
+            console.error("Error submitting form action:", err);
+            const msg = err?.message || "Ocurrió un error al enviar la información.";
+            setStepError(`Error de envío: ${msg}`);
+            showToast(`Error al enviar el formulario: ${msg}`, "error");
+          }
         });
       }}
       className="flex-1 flex flex-col overflow-hidden h-full"
@@ -796,19 +868,18 @@ export default function RecepcionForm({
           {/* Header */}
           <div
             onClick={() => handleHeaderClick(1)}
-            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${
-              activeStep === 1
-                ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
-                : "hover:bg-zinc-50/40 rounded-xl"
-            }`}
+            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${activeStep === 1
+              ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
+              : "hover:bg-zinc-50/40 rounded-xl"
+              }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div
                 className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${clientName && clientPhone.length === 10
-                    ? "bg-green-100 text-green-700"
-                    : activeStep === 1
-                      ? "bg-[#C9A84C]/25 text-[#9A7A28]"
-                      : "bg-zinc-100 text-zinc-400"
+                  ? "bg-green-100 text-green-700"
+                  : activeStep === 1
+                    ? "bg-[#C9A84C]/25 text-[#9A7A28]"
+                    : "bg-zinc-100 text-zinc-400"
                   }`}
               >
                 {clientName && clientPhone.length === 10 ? "✓" : "1"}
@@ -833,220 +904,111 @@ export default function RecepcionForm({
 
           {/* Expanded panel */}
           <div
-            className={`grid transition-all duration-300 ease-in-out ${
-              activeStep === 1
-                ? "grid-rows-[1fr] opacity-100"
-                : "grid-rows-[0fr] opacity-0 pointer-events-none"
-            }`}
+            className={`grid transition-all duration-300 ease-in-out ${activeStep === 1
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0 pointer-events-none"
+              }`}
           >
             <div className={activeStep === 1 ? "overflow-visible" : "overflow-hidden"}>
               <div className="p-6 space-y-4">
-              {/* Toggle Cliente Registrado vs Nuevo */}
-              <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 w-full max-w-xs select-none">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setClientMode("registered");
-                    setStepError(null);
-                  }}
-                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${clientMode === "registered"
+                {/* Toggle Cliente Registrado vs Nuevo */}
+                <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 w-full max-w-xs select-none">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClientMode("registered");
+                      setStepError(null);
+                    }}
+                    className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${clientMode === "registered"
                       ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
                       : "text-zinc-500 hover:text-zinc-900"
-                    }`}
-                >
-                  Buscar Registrado
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setClientMode("new");
-                    setClientName("");
-                    setClientPhone("");
-                    setClientEmail("");
-                    setSelectedClientObj(null);
-                    setStepError(null);
-                  }}
-                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${clientMode === "new"
+                      }`}
+                  >
+                    Buscar Registrado
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClientMode("new");
+                      setClientName("");
+                      setClientPhone("");
+                      setClientEmail("");
+                      setSelectedClientObj(null);
+                      setStepError(null);
+                    }}
+                    className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${clientMode === "new"
                       ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
                       : "text-zinc-500 hover:text-zinc-900"
-                    }`}
-                >
-                  Nuevo Cliente
-                </button>
-              </div>
-
-              {/* MODO BUSCAR REGISTRADO */}
-              {clientMode === "registered" && (
-                <div className="space-y-3 relative">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                      Buscar Cliente (Nombre o Celular) *
-                    </label>
-                    <div className="relative">
-                      <Search className="absolute inset-y-0 left-3 my-auto h-4.5 w-4.5 text-zinc-400" />
-                      <input
-                        type="text"
-                        placeholder="Escriba nombre o celular..."
-                        value={clientSearchQuery}
-                        onChange={(e) => {
-                          setClientSearchQuery(e.target.value);
-                          setIsClientSearchOpen(true);
-                        }}
-                        onFocus={() => setIsClientSearchOpen(true)}
-                        className="w-full h-11 pl-10 pr-4 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                      />
-                      {isClientSearchOpen && filteredClientsList.length > 0 && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setIsClientSearchOpen(false)} />
-                          <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-700 z-20 animate-[fadeIn_0.15s_ease-out]">
-                            {filteredClientsList.map((c) => (
-                              <div
-                                key={c.id}
-                                onClick={() => {
-                                  setSelectedClientObj(c);
-                                  setClientName(c.name);
-                                  setClientPhone(c.phone);
-                                  setClientEmail(c.email || "");
-                                  setClientDocumentTypeId(c.documentTypeId ? c.documentTypeId.toString() : "");
-                                  setClientDocumentNumber(c.documentNumber || "");
-                                  setClientPhone2(c.phone2 || "");
-                                  setShowPhone2(!!c.phone2);
-                                  setClientSearchQuery("");
-                                  setIsClientSearchOpen(false);
-                                  setStepError(null);
-
-                                  // Auto-fill car toggle to registered if has cars
-                                  if (c.cars && c.cars.length > 0) {
-                                    setCarMode("registered");
-                                  } else {
-                                    setCarMode("new");
-                                  }
-                                }}
-                                className="py-2.5 px-3 hover:bg-zinc-50 cursor-pointer font-semibold transition-colors border-b border-zinc-50 last:border-b-0"
-                              >
-                                <div className="font-bold text-zinc-900">{c.name}</div>
-                                <div className="text-[11px] text-zinc-400">{c.phone}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Ficha Cliente Seleccionado */}
-                  {clientPhone && (
-                    <div className="p-4 bg-[#FBF5E6]/40 border border-[#C9A84C]/30 rounded-xl flex items-center justify-between animate-[fadeIn_0.2s_ease-out]">
-                      <div>
-                        <span className="text-xs font-bold text-[#9A7A28] uppercase tracking-wider block">
-                          Cliente seleccionado
-                        </span>
-                        <h4 className="text-sm font-bold text-zinc-800 mt-1">{clientName}</h4>
-                        <p className="text-xs text-zinc-500 mt-0.5">
-                          Celular: {clientPhone} {clientPhone2 && ` · Celular Alternativo: ${clientPhone2}`} {(() => {
-                            if (!clientDocumentNumber) return null;
-                            const docTypeObj = documentTypes.find(dt => dt.id.toString() === clientDocumentTypeId);
-                            const docLabel = docTypeObj ? docTypeObj.code : "Documento";
-                            return ` · ${docLabel}: ${clientDocumentNumber}`;
-                          })()} {clientEmail && ` · Correo: ${clientEmail}`}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setClientName("");
-                          setClientPhone("");
-                          setClientPhone2("");
-                          setClientDocumentTypeId("");
-                          setClientDocumentNumber("");
-                          setClientEmail("");
-                          setShowPhone2(false);
-                          setSelectedClientObj(null);
-                        }}
-                        className="h-8 px-3 rounded-lg border border-zinc-200 text-xs font-bold text-red-600 bg-white hover:bg-red-50 transition-colors"
-                      >
-                        Remover
-                      </button>
-                    </div>
-                  )}
+                      }`}
+                  >
+                    Nuevo Cliente
+                  </button>
                 </div>
-              )}
 
-              {/* MODO NUEVO CLIENTE */}
-              {clientMode === "new" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-[fadeIn_0.2s_ease-out]">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Nombre completo
-                    </label>
-                    <input
-                      type="text"
-                      name="clientName"
-                      required
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      placeholder="Ej. Carlos Andrés Restrepo"
-                      className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
+                {/* MODO BUSCAR REGISTRADO */}
+                {clientMode === "registered" && (
+                  <div className="space-y-3 relative">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                        Tipo Doc.
+                        Buscar Cliente (Nombre o Celular) *
                       </label>
-                      <input type="hidden" name="clientDocumentTypeId" value={clientDocumentTypeId} />
                       <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsDocTypeDropdownOpen(!isDocTypeDropdownOpen);
-                            setStepError(null);
+                        <Search className="absolute inset-y-0 left-3 my-auto h-4.5 w-4.5 text-zinc-400" />
+                        <input
+                          type="text"
+                          placeholder="Escriba nombre o celular..."
+                          value={clientSearchQuery}
+                          onChange={(e) => {
+                            setClientSearchQuery(e.target.value);
+                            setIsClientSearchOpen(true);
                           }}
-                          className={`w-full h-11 px-2.5 bg-zinc-50 border rounded-lg text-sm text-zinc-805 transition-all flex items-center justify-between cursor-pointer ${
-                            isDocTypeDropdownOpen
-                              ? "border-[#C9A84C] bg-white ring-1 ring-[#C9A84C]/50"
-                              : "border-zinc-200 hover:border-zinc-300"
-                          }`}
-                        >
-                          <span className="truncate">
-                            {clientDocumentTypeId
-                              ? documentTypes.find((dt) => dt.id.toString() === clientDocumentTypeId)?.code || "Sel..."
-                              : "Sel..."}
-                          </span>
-                          <ChevronDown className={`h-4 w-4 text-zinc-400 shrink-0 transition-transform duration-205 ${isDocTypeDropdownOpen ? "rotate-180" : ""}`} />
-                        </button>
-
-                        {isDocTypeDropdownOpen && (
+                          onFocus={() => setIsClientSearchOpen(true)}
+                          className="w-full h-11 pl-10 pr-4 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                        />
+                        {isClientSearchOpen && filteredClientsList.length > 0 && (
                           <>
-                            <div
-                              className="fixed inset-0 z-30"
-                              onClick={() => setIsDocTypeDropdownOpen(false)}
-                            />
-                            <div className="absolute left-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-800 z-40 animate-[fadeIn_0.15s_ease-out] min-w-[140px] max-w-[200px]">
-                              <div
-                                onClick={() => {
-                                  setClientDocumentTypeId("");
-                                  setIsDocTypeDropdownOpen(false);
-                                }}
-                                className={`py-2 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none text-zinc-400`}
-                              >
-                                Sel...
-                              </div>
-                              {documentTypes.map((dt) => (
+                            <div className="fixed inset-0 z-10" onClick={() => setIsClientSearchOpen(false)} />
+                            <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-700 z-20 animate-[fadeIn_0.15s_ease-out]">
+                              {filteredClientsList.map((c) => (
                                 <div
-                                  key={dt.id}
+                                  key={c.id}
                                   onClick={() => {
-                                    setClientDocumentTypeId(dt.id.toString());
-                                    setIsDocTypeDropdownOpen(false);
+                                    setSelectedClientObj(c);
+                                    setClientName(c.name);
+                                    setClientPhone(c.phone);
+                                    setClientEmail(c.email || "");
+                                    setClientDocumentTypeId(c.documentTypeId ? c.documentTypeId.toString() : "");
+                                    setClientDocumentNumber(c.documentNumber || "");
+                                    setClientPhone2(c.phone2 || "");
+                                    setShowPhone2(!!c.phone2);
+                                    setClientSearchQuery("");
+                                    setIsClientSearchOpen(false);
+                                    setStepError(null);
+
+                                    // Auto-fill car toggle to registered if has cars
+                                    if (c.cars && c.cars.length > 0) {
+                                      setCarMode("registered");
+                                    } else {
+                                      setCarMode("new");
+                                    }
                                   }}
-                                  className={`py-2 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${
-                                    clientDocumentTypeId === dt.id.toString()
-                                      ? "text-[#9A7A28] bg-[#FBF5E6]/40"
-                                      : "text-zinc-700"
-                                  }`}
+                                  className="py-2.5 px-3 hover:bg-zinc-50 cursor-pointer font-semibold transition-colors border-b border-zinc-50 last:border-b-0 flex items-center gap-3"
                                 >
-                                  {dt.code} - {dt.name}
+                                  {c.photoUrl ? (
+                                    <img
+                                      src={c.photoUrl}
+                                      alt={c.name}
+                                      className="h-8 w-8 rounded-lg object-cover border border-zinc-200 shrink-0 shadow-2xs"
+                                    />
+                                  ) : (
+                                    <div className="h-8 w-8 rounded-lg bg-zinc-50 flex items-center justify-center text-[#9A7A28] border border-zinc-200 shrink-0">
+                                      <User className="h-4 w-4" />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className="font-bold text-zinc-900">{c.name}</div>
+                                    <div className="text-[11px] text-zinc-400">{c.phone}</div>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -1054,109 +1016,243 @@ export default function RecepcionForm({
                         )}
                       </div>
                     </div>
-
-                    <div className="col-span-2 space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                        Número de Documento
-                      </label>
-                      <input
-                        type="text"
-                        name="clientDocumentNumber"
-                        value={clientDocumentNumber}
-                        onChange={(e) => {
-                          setClientDocumentNumber(e.target.value.replace(/\D/g, "").slice(0, 10));
-                          setStepError(null);
-                        }}
-                        placeholder="Ej. 1045238910"
-                        className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Celular
-                    </label>
-                    <input
-                      type="text"
-                      name="clientPhone"
-                      required
-                      value={clientPhone}
-                      onChange={(e) => handlePhoneChange(e.target.value)}
-                      placeholder="Ej. 3168858161"
-                      className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Correo electrónico
-                    </label>
-                    <input
-                      type="text"
-                      name="clientEmail"
-                      value={clientEmail}
-                      onChange={(e) => setClientEmail(e.target.value)}
-                      placeholder="ejemplo@correo.com (opcional)"
-                      className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
-
-                  {/* Toggle Teléfono Alternativo */}
-                  <div className="md:col-span-2 pt-1">
-                    {!showPhone2 ? (
-                      <button
-                        type="button"
-                        onClick={() => setShowPhone2(true)}
-                        className="text-xs font-semibold text-[#9A7A28] hover:text-[#C9A84C] transition-colors flex items-center gap-1"
-                      >
-                        + Añadir teléfono alternativo
-                      </button>
-                    ) : (
-                      <div className="space-y-1 animate-[fadeIn_0.15s_ease-out]">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                            Celular alternativo (10 dígitos)
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowPhone2(false);
-                              setClientPhone2("");
-                            }}
-                            className="text-[10px] font-semibold text-red-500 hover:text-red-700 transition-colors"
-                          >
-                            Remover celular alternativo
-                          </button>
+                    {/* Ficha Cliente Seleccionado */}
+                    {clientPhone && (
+                      <div className="p-4 bg-[#FBF5E6]/40 border border-[#C9A84C]/30 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-[fadeIn_0.2s_ease-out]">
+                        <div className="flex items-start sm:items-center gap-3 min-w-0 w-full sm:w-auto">
+                          {selectedClientObj?.photoUrl ? (
+                            <img
+                              src={selectedClientObj.photoUrl}
+                              alt={clientName}
+                              className="h-10 w-10 rounded-xl object-cover border border-zinc-200 shrink-0 shadow-xs"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-xl bg-zinc-50 flex items-center justify-center text-[#9A7A28] border border-zinc-200 shrink-0">
+                              <User className="h-5 w-5" />
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs font-bold text-[#9A7A28] uppercase tracking-wider block">
+                              Cliente seleccionado
+                            </span>
+                            <h4 className="text-sm font-bold text-zinc-800 mt-1 truncate">{clientName}</h4>
+                            <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-zinc-500 mt-0.5 min-w-0">
+                              <span className="shrink-0">Celular: {clientPhone}</span>
+                              {clientPhone2 && <span className="shrink-0">· Alt: {clientPhone2}</span>}
+                              {(() => {
+                                if (!clientDocumentNumber) return null;
+                                const docTypeObj = documentTypes.find(dt => dt.id.toString() === clientDocumentTypeId);
+                                const docLabel = docTypeObj ? docTypeObj.code : "Documento";
+                                return <span className="shrink-0">· {docLabel}: {clientDocumentNumber}</span>;
+                              })()}
+                              {clientEmail && <span className="break-all">· Correo: {clientEmail}</span>}
+                            </div>
+                          </div>
                         </div>
-                        <input
-                          type="text"
-                          name="clientPhone2"
-                          value={clientPhone2}
-                          onChange={(e) => setClientPhone2(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                          placeholder="Ej. 3105554433"
-                          className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setClientName("");
+                            setClientPhone("");
+                            setClientPhone2("");
+                            setClientDocumentTypeId("");
+                            setClientDocumentNumber("");
+                            setClientEmail("");
+                            setShowPhone2(false);
+                            setSelectedClientObj(null);
+                          }}
+                          className="h-8 px-4 rounded-lg border border-zinc-200 text-xs font-bold text-red-655 bg-white hover:bg-red-50 transition-all cursor-pointer active:scale-98 shrink-0 self-end sm:self-auto"
+                        >
+                          Remover
+                        </button>
                       </div>
                     )}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Navigation button */}
-              <div className="flex justify-end pt-2">
-                <button
-                  type="button"
-                  onClick={() => handleNextStep(1)}
-                  className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
-                >
-                  Continuar al Vehículo
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+                {/* MODO NUEVO CLIENTE */}
+                {clientMode === "new" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-[fadeIn_0.2s_ease-out]">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Nombre completo
+                      </label>
+                      <input
+                        type="text"
+                        name="clientName"
+                        required
+                        value={clientName}
+                        onChange={(e) => setClientName(e.target.value)}
+                        placeholder="Ej. Carlos Andrés Restrepo"
+                        className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                          Tipo Doc.
+                        </label>
+                        <input type="hidden" name="clientDocumentTypeId" value={clientDocumentTypeId} />
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsDocTypeDropdownOpen(!isDocTypeDropdownOpen);
+                              setStepError(null);
+                            }}
+                            className={`w-full h-11 px-2.5 bg-zinc-50 border rounded-lg text-sm text-zinc-805 transition-all flex items-center justify-between cursor-pointer ${isDocTypeDropdownOpen
+                              ? "border-[#C9A84C] bg-white ring-1 ring-[#C9A84C]/50"
+                              : "border-zinc-200 hover:border-zinc-300"
+                              }`}
+                          >
+                            <span className="truncate">
+                              {clientDocumentTypeId
+                                ? documentTypes.find((dt) => dt.id.toString() === clientDocumentTypeId)?.code || "Sel..."
+                                : "Sel..."}
+                            </span>
+                            <ChevronDown className={`h-4 w-4 text-zinc-400 shrink-0 transition-transform duration-205 ${isDocTypeDropdownOpen ? "rotate-180" : ""}`} />
+                          </button>
+
+                          {isDocTypeDropdownOpen && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-30"
+                                onClick={() => setIsDocTypeDropdownOpen(false)}
+                              />
+                              <div className="absolute left-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-800 z-40 animate-[fadeIn_0.15s_ease-out] min-w-[140px] max-w-[200px]">
+                                <div
+                                  onClick={() => {
+                                    setClientDocumentTypeId("");
+                                    setIsDocTypeDropdownOpen(false);
+                                  }}
+                                  className={`py-2 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none text-zinc-400`}
+                                >
+                                  Sel...
+                                </div>
+                                {documentTypes.map((dt) => (
+                                  <div
+                                    key={dt.id}
+                                    onClick={() => {
+                                      setClientDocumentTypeId(dt.id.toString());
+                                      setIsDocTypeDropdownOpen(false);
+                                    }}
+                                    className={`py-2 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${clientDocumentTypeId === dt.id.toString()
+                                      ? "text-[#9A7A28] bg-[#FBF5E6]/40"
+                                      : "text-zinc-700"
+                                      }`}
+                                  >
+                                    {dt.code} - {dt.name}
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="col-span-2 space-y-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                          Número de Documento
+                        </label>
+                        <input
+                          type="text"
+                          name="clientDocumentNumber"
+                          value={clientDocumentNumber}
+                          onChange={(e) => {
+                            setClientDocumentNumber(e.target.value.replace(/\D/g, "").slice(0, 10));
+                            setStepError(null);
+                          }}
+                          placeholder="Ej. 1045238910"
+                          className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Celular
+                      </label>
+                      <input
+                        type="text"
+                        name="clientPhone"
+                        required
+                        value={clientPhone}
+                        onChange={(e) => handlePhoneChange(e.target.value)}
+                        placeholder="Ej. 3168858161"
+                        className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Correo electrónico
+                      </label>
+                      <input
+                        type="text"
+                        name="clientEmail"
+                        value={clientEmail}
+                        onChange={(e) => setClientEmail(e.target.value)}
+                        placeholder="ejemplo@correo.com (opcional)"
+                        className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
+
+                    {/* Toggle Teléfono Alternativo */}
+                    <div className="md:col-span-2 pt-1">
+                      {!showPhone2 ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowPhone2(true)}
+                          className="text-xs font-semibold text-[#9A7A28] hover:text-[#C9A84C] transition-colors flex items-center gap-1"
+                        >
+                          + Añadir teléfono alternativo
+                        </button>
+                      ) : (
+                        <div className="space-y-1 animate-[fadeIn_0.15s_ease-out]">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                              Celular alternativo (10 dígitos)
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowPhone2(false);
+                                setClientPhone2("");
+                              }}
+                              className="text-[10px] font-semibold text-red-500 hover:text-red-700 transition-colors"
+                            >
+                              Remover celular alternativo
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            name="clientPhone2"
+                            value={clientPhone2}
+                            onChange={(e) => setClientPhone2(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                            placeholder="Ej. 3105554433"
+                            className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation button */}
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={() => handleNextStep(1)}
+                    className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    Continuar al Vehículo
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         </div>
 
         {/* ==================== PASO 2: DATOS DEL VEHÍCULO ==================== */}
@@ -1164,19 +1260,18 @@ export default function RecepcionForm({
           {/* Header */}
           <div
             onClick={() => handleHeaderClick(2)}
-            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${
-              activeStep === 2
-                ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
-                : "hover:bg-zinc-50/40 rounded-xl"
-            }`}
+            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${activeStep === 2
+              ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
+              : "hover:bg-zinc-50/40 rounded-xl"
+              }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div
                 className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${plate.length >= 5 && year && brandId && model && color
-                    ? "bg-green-100 text-green-700"
-                    : activeStep === 2
-                      ? "bg-[#C9A84C]/25 text-[#9A7A28]"
-                      : "bg-zinc-100 text-zinc-400"
+                  ? "bg-green-100 text-green-700"
+                  : activeStep === 2
+                    ? "bg-[#C9A84C]/25 text-[#9A7A28]"
+                    : "bg-zinc-100 text-zinc-400"
                   }`}
               >
                 {plate.length >= 5 && year && brandId && model && color ? "✓" : "2"}
@@ -1201,397 +1296,417 @@ export default function RecepcionForm({
 
           {/* Expanded panel */}
           <div
-            className={`grid transition-all duration-300 ease-in-out ${
-              activeStep === 2
-                ? "grid-rows-[1fr] opacity-100"
-                : "grid-rows-[0fr] opacity-0 pointer-events-none"
-            }`}
+            className={`grid transition-all duration-300 ease-in-out ${activeStep === 2
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0 pointer-events-none"
+              }`}
           >
             <div className={activeStep === 2 ? "overflow-visible" : "overflow-hidden"}>
               <div className="p-6 space-y-4">
-              {/* Toggle Vehículo Registrado vs Nuevo */}
-              <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 w-full max-w-xs select-none">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCarMode("registered");
-                    setStepError(null);
-                  }}
-                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${carMode === "registered"
+                {/* Toggle Vehículo Registrado vs Nuevo */}
+                <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 w-full max-w-xs select-none">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCarMode("registered");
+                      setStepError(null);
+                    }}
+                    className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${carMode === "registered"
                       ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
                       : "text-zinc-500 hover:text-zinc-900"
-                    }`}
-                >
-                  Vehículo Existente
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCarMode("new");
-                    setPlate("");
-                    setYear("");
-                    setBrandId("");
-                    setModel("");
-                    setColor("");
-                    setStepError(null);
-                  }}
-                  className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${carMode === "new"
+                      }`}
+                  >
+                    Vehículo Existente
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCarMode("new");
+                      setPlate("");
+                      setYear("");
+                      setBrandId("");
+                      setModel("");
+                      setColor("");
+                      setStepError(null);
+                    }}
+                    className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${carMode === "new"
                       ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
                       : "text-zinc-500 hover:text-zinc-900"
-                    }`}
-                >
-                  Nuevo Vehículo
-                </button>
-              </div>
+                      }`}
+                  >
+                    Nuevo Vehículo
+                  </button>
+                </div>
 
-              {/* MODO BUSCAR VEHÍCULO REGISTRADO */}
-              {carMode === "registered" && (
-                <div className="space-y-3 relative">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                      {selectedClientObj
-                        ? `Buscar Vehículo de ${selectedClientObj.name} (Placa) *`
-                        : "Buscar Vehículo General (Placa) *"}
-                    </label>
-                    <div className="relative">
-                      <Search className="absolute inset-y-0 left-3 my-auto h-4.5 w-4.5 text-zinc-400" />
+                {/* MODO BUSCAR VEHÍCULO REGISTRADO */}
+                {carMode === "registered" && (
+                  <div className="space-y-3 relative">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                        {selectedClientObj
+                          ? `Buscar Vehículo de ${selectedClientObj.name} (Placa) *`
+                          : "Buscar Vehículo General (Placa) *"}
+                      </label>
+                      <div className="relative">
+                        <Search className="absolute inset-y-0 left-3 my-auto h-4.5 w-4.5 text-zinc-400" />
+                        <input
+                          type="text"
+                          placeholder="Escriba la placa del vehículo..."
+                          value={carSearchQuery}
+                          onChange={(e) => {
+                            setCarSearchQuery(e.target.value.toUpperCase());
+                            setIsCarSearchOpen(true);
+                          }}
+                          onFocus={() => setIsCarSearchOpen(true)}
+                          className="w-full h-11 pl-10 pr-4 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all font-mono tracking-wider"
+                        />
+                        {isCarSearchOpen && filteredCarsList.length > 0 && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setIsCarSearchOpen(false)} />
+                            <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-700 z-20 animate-[fadeIn_0.15s_ease-out]">
+                              {filteredCarsList.map((car) => (
+                                <div
+                                  key={car.id}
+                                  onClick={() => {
+                                    setPlate(car.plate);
+                                    setYear(car.year.toString());
+                                    setBrandId(car.brand.id.toString());
+                                    setModel(car.model);
+                                    setColor(car.color);
+                                    setVehicleType(car.type || "Automóvil");
+                                    setCarSearchQuery("");
+                                    setIsCarSearchOpen(false);
+                                    setStepError(null);
+
+                                    // Auto-fill client if new/empty
+                                    if (!clientPhone) {
+                                      setClientName(car.client.name);
+                                      setClientPhone(car.client.phone);
+                                      setClientPhone2(car.client.phone2 || "");
+                                      setClientDocumentTypeId(car.client.documentTypeId ? car.client.documentTypeId.toString() : "");
+                                      setClientDocumentNumber(car.client.documentNumber || "");
+                                      setShowPhone2(!!car.client.phone2);
+                                      setClientEmail(car.client.email || "");
+                                      setClientMode("registered");
+                                    }
+                                  }}
+                                  className="py-2.5 px-3 hover:bg-zinc-50 cursor-pointer font-semibold transition-colors flex items-center justify-between border-b border-zinc-50 last:border-b-0"
+                                >
+                                  <div>
+                                    <div className="font-bold text-zinc-900">{car.brand.name} {car.model} ({car.year})</div>
+                                    <div className="text-[11px] text-zinc-400">Dueño: {car.client.name}</div>
+                                  </div>
+                                  <span className="font-mono font-bold text-xs bg-zinc-100 border border-zinc-300 rounded px-2 py-0.5 tracking-wider text-zinc-800">
+                                    {car.plate}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Ficha Vehículo Seleccionado */}
+                    {plate && (
+                      <div className="p-4 bg-[#FBF5E6]/40 border border-[#C9A84C]/30 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-[fadeIn_0.2s_ease-out]">
+                        <div className="min-w-0">
+                          <span className="text-xs font-bold text-[#9A7A28] uppercase tracking-wider block">
+                            Vehículo seleccionado
+                          </span>
+                          <div className="flex flex-wrap items-center gap-2 mt-1 min-w-0">
+                            <span className="font-mono font-bold text-xs bg-zinc-200 border border-zinc-350 rounded px-2 py-0.5 tracking-wider text-zinc-800 shrink-0">
+                              {plate}
+                            </span>
+                            <h4 className="text-sm font-bold text-zinc-800 truncate">
+                              {brandId ? brands.find(b => b.id.toString() === brandId)?.name : ""} {model} ({year})
+                            </h4>
+                          </div>
+                          <p className="text-xs text-zinc-500 mt-1">Tipo: {vehicleType} · Color: {color}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPlate("");
+                            setYear("");
+                            setBrandId("");
+                            setModel("");
+                            setColor("");
+                          }}
+                          className="h-8 px-3 rounded-lg border border-zinc-200 text-xs font-bold text-red-600 bg-white hover:bg-red-50 transition-colors cursor-pointer active:scale-98 shrink-0 self-end sm:self-auto"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Campo de Kilometraje obligatorio para vehículo existente */}
+                    <div className="space-y-1 w-full max-w-xs pt-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Kilometraje actual (Solo enteros)
+                      </label>
                       <input
                         type="text"
-                        placeholder="Escriba la placa del vehículo..."
-                        value={carSearchQuery}
-                        onChange={(e) => {
-                          setCarSearchQuery(e.target.value.toUpperCase());
-                          setIsCarSearchOpen(true);
-                        }}
-                        onFocus={() => setIsCarSearchOpen(true)}
-                        className="w-full h-11 pl-10 pr-4 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all font-mono tracking-wider"
+                        name="mileage"
+                        value={mileage}
+                        onChange={(e) => handleMileageChange(e.target.value)}
+                        placeholder="Ej. 12500"
+                        className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
                       />
-                      {isCarSearchOpen && filteredCarsList.length > 0 && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setIsCarSearchOpen(false)} />
-                          <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-700 z-20 animate-[fadeIn_0.15s_ease-out]">
-                            {filteredCarsList.map((car) => (
-                              <div
-                                key={car.id}
-                                onClick={() => {
-                                  setPlate(car.plate);
-                                  setYear(car.year.toString());
-                                  setBrandId(car.brand.id.toString());
-                                  setModel(car.model);
-                                  setColor(car.color);
-                                  setVehicleType(car.type || "Automóvil");
-                                  setCarSearchQuery("");
-                                  setIsCarSearchOpen(false);
-                                  setStepError(null);
-
-                                  // Auto-fill client if new/empty
-                                  if (!clientPhone) {
-                                    setClientName(car.client.name);
-                                    setClientPhone(car.client.phone);
-                                    setClientPhone2(car.client.phone2 || "");
-                                    setClientDocumentTypeId(car.client.documentTypeId ? car.client.documentTypeId.toString() : "");
-                                    setClientDocumentNumber(car.client.documentNumber || "");
-                                    setShowPhone2(!!car.client.phone2);
-                                    setClientEmail(car.client.email || "");
-                                    setClientMode("registered");
-                                  }
-                                }}
-                                className="py-2.5 px-3 hover:bg-zinc-50 cursor-pointer font-semibold transition-colors flex items-center justify-between border-b border-zinc-50 last:border-b-0"
-                              >
-                                <div>
-                                  <div className="font-bold text-zinc-900">{car.brand.name} {car.model} ({car.year})</div>
-                                  <div className="text-[11px] text-zinc-400">Dueño: {car.client.name}</div>
-                                </div>
-                                <span className="font-mono font-bold text-xs bg-zinc-100 border border-zinc-300 rounded px-2 py-0.5 tracking-wider text-zinc-800">
-                                  {car.plate}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </>
-                      )}
                     </div>
                   </div>
+                )}
 
-                  {/* Ficha Vehículo Seleccionado */}
-                  {plate && (
-                    <div className="p-4 bg-[#FBF5E6]/40 border border-[#C9A84C]/30 rounded-xl flex items-center justify-between animate-[fadeIn_0.2s_ease-out]">
-                      <div>
-                        <span className="text-xs font-bold text-[#9A7A28] uppercase tracking-wider block">
-                          Vehículo seleccionado
-                        </span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="font-mono font-bold text-xs bg-zinc-200 border border-zinc-350 rounded px-2 py-0.5 tracking-wider text-zinc-800">
-                            {plate}
-                          </span>
-                          <h4 className="text-sm font-bold text-zinc-800">
-                            {brandId ? brands.find(b => b.id.toString() === brandId)?.name : ""} {model} ({year})
-                          </h4>
-                        </div>
-                        <p className="text-xs text-zinc-500 mt-1">Tipo: {vehicleType} · Color: {color}</p>
+                {/* MODO NUEVO VEHÍCULO */}
+                {carMode === "new" && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-[fadeIn_0.2s_ease-out]">
+                    {/* Tipo de vehículo select buttons */}
+                    <div className="space-y-1 col-span-2 sm:col-span-3">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">
+                        Tipo de vehículo *
+                      </label>
+                      <div className="flex gap-4 max-w-md">
+                        <button
+                          type="button"
+                          onClick={() => setVehicleType("Automóvil")}
+                          className={`flex-1 py-2 px-3 rounded-lg border flex items-center justify-center gap-2 font-bold text-xs uppercase transition-all select-none cursor-pointer ${vehicleType === "Automóvil"
+                            ? "border-[#C9A84C] bg-[#FBF5E6]/60 text-[#9A7A28] shadow-xs animate-[scaleIn_0.15s_ease-out]"
+                            : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-zinc-105 hover:text-zinc-700"
+                            }`}
+                        >
+                          Automóvil
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setVehicleType("Motocicleta")}
+                          className={`flex-1 py-2 px-3 rounded-lg border flex items-center justify-center gap-2 font-bold text-xs uppercase transition-all select-none cursor-pointer ${vehicleType === "Motocicleta"
+                            ? "border-[#C9A84C] bg-[#FBF5E6]/60 text-[#9A7A28] shadow-xs animate-[scaleIn_0.15s_ease-out]"
+                            : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-zinc-105 hover:text-zinc-700"
+                            }`}
+                        >
+                          Motocicleta
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPlate("");
-                          setYear("");
-                          setBrandId("");
-                          setModel("");
-                          setColor("");
-                        }}
-                        className="h-8 px-3 rounded-lg border border-zinc-200 text-xs font-bold text-red-600 bg-white hover:bg-red-50 transition-colors"
-                      >
-                        Remover
-                      </button>
                     </div>
-                  )}
 
-                  {/* Campo de Kilometraje obligatorio para vehículo existente */}
-                  <div className="space-y-1 w-full max-w-xs pt-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Kilometraje actual (Solo enteros)
-                    </label>
-                    <input
-                      type="text"
-                      name="mileage"
-                      value={mileage}
-                      onChange={(e) => handleMileageChange(e.target.value)}
-                      placeholder="Ej. 12500"
-                      className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* MODO NUEVO VEHÍCULO */}
-              {carMode === "new" && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-[fadeIn_0.2s_ease-out]">
-                  {/* Tipo de vehículo select buttons */}
-                  <div className="space-y-1 col-span-2 sm:col-span-3">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">
-                      Tipo de vehículo *
-                    </label>
-                    <div className="flex gap-4 max-w-md">
-                      <button
-                        type="button"
-                        onClick={() => setVehicleType("Automóvil")}
-                        className={`flex-1 py-2 px-3 rounded-lg border flex items-center justify-center gap-2 font-bold text-xs uppercase transition-all select-none cursor-pointer ${vehicleType === "Automóvil"
-                            ? "border-[#C9A84C] bg-[#FBF5E6]/60 text-[#9A7A28] shadow-xs animate-[scaleIn_0.15s_ease-out]"
-                            : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-zinc-105 hover:text-zinc-700"
-                          }`}
-                      >
-                        Automóvil
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setVehicleType("Motocicleta")}
-                        className={`flex-1 py-2 px-3 rounded-lg border flex items-center justify-center gap-2 font-bold text-xs uppercase transition-all select-none cursor-pointer ${vehicleType === "Motocicleta"
-                            ? "border-[#C9A84C] bg-[#FBF5E6]/60 text-[#9A7A28] shadow-xs animate-[scaleIn_0.15s_ease-out]"
-                            : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-zinc-105 hover:text-zinc-700"
-                          }`}
-                      >
-                        Motocicleta
-                      </button>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Placa (Sin espacios)
+                      </label>
+                      <input
+                        type="text"
+                        name="plate"
+                        required
+                        value={plate}
+                        onChange={(e) => handlePlateChange(e.target.value)}
+                        placeholder="AAA000"
+                        className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm font-mono font-bold uppercase tracking-wider text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                      />
                     </div>
-                  </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Placa (Sin espacios, máx. 6) *
-                    </label>
-                    <input
-                      type="text"
-                      name="plate"
-                      required
-                      value={plate}
-                      onChange={(e) => handlePlateChange(e.target.value)}
-                      placeholder="AAA000"
-                      className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm font-mono font-bold uppercase tracking-wider text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Año *
-                    </label>
-                    <input type="hidden" name="year" value={year} required />
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsYearDropdownOpen(!isYearDropdownOpen);
-                          setStepError(null);
-                        }}
-                        className={`w-full h-11 px-3 bg-zinc-50 border rounded-lg text-sm text-zinc-850 transition-all flex items-center justify-between cursor-pointer ${
-                          isYearDropdownOpen
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Año
+                      </label>
+                      <input type="hidden" name="year" value={year} required />
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsYearDropdownOpen(!isYearDropdownOpen);
+                            setStepError(null);
+                          }}
+                          className={`w-full h-11 px-3 bg-zinc-50 border rounded-lg text-sm text-zinc-850 transition-all flex items-center justify-between cursor-pointer ${isYearDropdownOpen
                             ? "border-[#C9A84C] bg-white ring-1 ring-[#C9A84C]/50"
                             : "border-zinc-200 hover:border-zinc-300"
-                        }`}
+                            }`}
+                        >
+                          <span className="truncate">
+                            {year || "Seleccionar..."}
+                          </span>
+                          <ChevronDown className={`h-4 w-4 text-zinc-400 shrink-0 transition-transform duration-205 ${isYearDropdownOpen ? "rotate-180" : ""}`} />
+                        </button>
+
+                        {isYearDropdownOpen && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-30"
+                              onClick={() => setIsYearDropdownOpen(false)}
+                            />
+                            <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-800 z-40 animate-[fadeIn_0.15s_ease-out] min-w-[140px]">
+                              <div
+                                onClick={() => {
+                                  setYear("");
+                                  setIsYearDropdownOpen(false);
+                                }}
+                                className="py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none text-zinc-400"
+                              >
+                                Seleccionar...
+                              </div>
+                              {yearsList.map((y) => (
+                                <div
+                                  key={y}
+                                  onClick={() => {
+                                    setYear(y.toString());
+                                    setIsYearDropdownOpen(false);
+                                  }}
+                                  className={`py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${year === y.toString()
+                                    ? "text-[#9A7A28] bg-[#FBF5E6]/40"
+                                    : "text-zinc-700"
+                                    }`}
+                                >
+                                  {y}
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Custom Styled Brand Selector Dropdown */}
+                    <div className="space-y-1 col-span-2 sm:col-span-1 relative">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                        Marca
+                      </label>
+                      <input type="hidden" name="brandId" value={brandId} required />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsBrandDropdownOpen(!isBrandDropdownOpen);
+                          setStepError(null);
+                        }}
+                        className={`w-full h-11 px-3 bg-zinc-50 border rounded-lg text-sm text-zinc-855 transition-all flex items-center justify-between cursor-pointer active:scale-99 ${isBrandDropdownOpen
+                          ? "border-[#C9A84C] bg-white ring-1 ring-[#C9A84C]/50"
+                          : "border-zinc-200 hover:border-zinc-300"
+                          }`}
                       >
-                        <span className="truncate">
-                          {year || "Seleccionar..."}
-                        </span>
-                        <ChevronDown className={`h-4 w-4 text-zinc-400 shrink-0 transition-transform duration-205 ${isYearDropdownOpen ? "rotate-180" : ""}`} />
+                        <div className="flex items-center gap-2 truncate">
+                          {brandId ? (
+                            (() => {
+                              const b = brands.find((b) => b.id.toString() === brandId);
+                              if (!b) return <span>Seleccionar...</span>;
+                              return (
+                                <>
+                                  {b.logo && (
+                                    <img
+                                      src={b.logo}
+                                      alt={b.name}
+                                      className="h-5 w-5 object-contain rounded shrink-0 bg-white"
+                                    />
+                                  )}
+                                  <span className="truncate font-semibold">{b.name}</span>
+                                </>
+                              );
+                            })()
+                          ) : (
+                            <span>Seleccionar...</span>
+                          )}
+                        </div>
+                        <ChevronDown className={`h-4 w-4 text-zinc-400 shrink-0 transition-transform duration-205 ${isBrandDropdownOpen ? "rotate-180" : ""}`} />
                       </button>
 
-                      {isYearDropdownOpen && (
+                      {isBrandDropdownOpen && (
                         <>
                           <div
                             className="fixed inset-0 z-30"
-                            onClick={() => setIsYearDropdownOpen(false)}
+                            onClick={() => setIsBrandDropdownOpen(false)}
                           />
-                          <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-800 z-40 animate-[fadeIn_0.15s_ease-out] min-w-[140px]">
-                            <div
-                              onClick={() => {
-                                setYear("");
-                                setIsYearDropdownOpen(false);
-                              }}
-                              className="py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none text-zinc-400"
-                            >
-                              Seleccionar...
-                            </div>
-                            {yearsList.map((y) => (
+                          <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-[#0A0A0C] z-40 animate-[fadeIn_0.15s_ease-out]">
+                            {brands.map((brand) => (
                               <div
-                                key={y}
+                                key={brand.id}
                                 onClick={() => {
-                                  setYear(y.toString());
-                                  setIsYearDropdownOpen(false);
+                                  setBrandId(brand.id.toString());
+                                  setIsBrandDropdownOpen(false);
                                 }}
-                                className={`py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${
-                                  year === y.toString()
-                                    ? "text-[#9A7A28] bg-[#FBF5E6]/40"
-                                    : "text-zinc-700"
-                                }`}
+                                className={`py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none flex items-center gap-2 ${brandId === brand.id.toString()
+                                  ? "text-[#9A7A28] bg-[#FBF5E6]/40"
+                                  : "text-zinc-700"
+                                  }`}
                               >
-                                {y}
+                                {brand.logo && (
+                                  <img
+                                    src={brand.logo}
+                                    alt={brand.name}
+                                    className="h-5 w-5 object-contain rounded shrink-0 bg-white"
+                                  />
+                                )}
+                                <span>{brand.name}</span>
                               </div>
                             ))}
                           </div>
                         </>
                       )}
                     </div>
-                  </div>
 
-                  {/* Custom Styled Brand Selector Dropdown */}
-                  <div className="space-y-1 col-span-2 sm:col-span-1 relative">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                      Marca *
-                    </label>
-                    <input type="hidden" name="brandId" value={brandId} required />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsBrandDropdownOpen(!isBrandDropdownOpen);
-                        setStepError(null);
-                      }}
-                      className={`w-full h-11 px-3 bg-zinc-50 border rounded-lg text-sm text-zinc-855 transition-all flex items-center justify-between cursor-pointer ${
-                        isBrandDropdownOpen
-                          ? "border-[#C9A84C] bg-white ring-1 ring-[#C9A84C]/50"
-                          : "border-zinc-200 hover:border-zinc-300"
-                      }`}
-                    >
-                      <span className="truncate">
-                        {brandId
-                          ? brands.find((b) => b.id.toString() === brandId)?.name || "Seleccionar..."
-                          : "Seleccionar..."}
-                      </span>
-                      <ChevronDown className={`h-4 w-4 text-zinc-400 shrink-0 transition-transform duration-205 ${isBrandDropdownOpen ? "rotate-180" : ""}`} />
-                    </button>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Modelo
+                      </label>
+                      <input
+                        type="text"
+                        name="model"
+                        required
+                        value={model}
+                        onChange={(e) => setModel(e.target.value)}
+                        placeholder="Ej. Picanto"
+                        className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
 
-                    {isBrandDropdownOpen && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-30"
-                          onClick={() => setIsBrandDropdownOpen(false)}
-                        />
-                        <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-800 z-40 animate-[fadeIn_0.15s_ease-out]">
-                          {brands.map((brand) => (
-                            <div
-                              key={brand.id}
-                              onClick={() => {
-                                setBrandId(brand.id.toString());
-                                setIsBrandDropdownOpen(false);
-                              }}
-                              className={`py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${brandId === brand.id.toString()
-                                  ? "text-[#9A7A28] bg-[#FBF5E6]/40"
-                                  : "text-zinc-700"
-                                }`}
-                            >
-                              {brand.name}
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-zinc-400">
+                        Color
+                      </label>
+                      <input
+                        type="text"
+                        name="color"
+                        required
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        placeholder="Ej. Blanco perla"
+                        className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Modelo *
-                    </label>
-                    <input
-                      type="text"
-                      name="model"
-                      required
-                      value={model}
-                      onChange={(e) => setModel(e.target.value)}
-                      placeholder="Ej. Picanto"
-                      className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                    />
+                    <div className="space-y-1 col-span-2 sm:col-span-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                        Kilometraje
+                      </label>
+                      <input
+                        type="text"
+                        name="mileage"
+                        value={mileage}
+                        onChange={(e) => handleMileageChange(e.target.value)}
+                        placeholder="Ej. 12500"
+                        className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
                   </div>
+                )}
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Color *
-                    </label>
-                    <input
-                      type="text"
-                      name="color"
-                      required
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
-                      placeholder="Ej. Blanco perla"
-                      className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
-
-                  <div className="space-y-1 col-span-2 sm:col-span-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Kilometraje (Solo enteros)
-                    </label>
-                    <input
-                      type="text"
-                      name="mileage"
-                      value={mileage}
-                      onChange={(e) => handleMileageChange(e.target.value)}
-                      placeholder="Ej. 12500"
-                      className="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
+                {/* Navigation buttons */}
+                <div className="flex justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePrevStep(1)}
+                    className="h-11 px-4 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
+                  >
+                    Regresar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleNextStep(2)}
+                    className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    Continuar a Servicios
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
                 </div>
-              )}
-
-              {/* Navigation buttons */}
-              <div className="flex justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={() => handlePrevStep(1)}
-                  className="h-11 px-4 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
-                >
-                  Regresar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleNextStep(2)}
-                  className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
-                >
-                  Continuar a Servicios
-                  <ArrowRight className="h-4 w-4" />
-                </button>
               </div>
             </div>
           </div>
-        </div>
         </div>
 
         {/* ==================== PASO 3: SERVICIOS CONTRATADOS ==================== */}
@@ -1599,19 +1714,18 @@ export default function RecepcionForm({
           {/* Header */}
           <div
             onClick={() => handleHeaderClick(3)}
-            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${
-              activeStep === 3
-                ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
-                : "hover:bg-zinc-50/40 rounded-xl"
-            }`}
+            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${activeStep === 3
+              ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
+              : "hover:bg-zinc-50/40 rounded-xl"
+              }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div
                 className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${selectedServices.length > 0
-                    ? "bg-green-100 text-green-700"
-                    : activeStep === 3
-                      ? "bg-[#C9A84C]/25 text-[#9A7A28]"
-                      : "bg-zinc-100 text-zinc-400"
+                  ? "bg-green-100 text-green-700"
+                  : activeStep === 3
+                    ? "bg-[#C9A84C]/25 text-[#9A7A28]"
+                    : "bg-zinc-100 text-zinc-400"
                   }`}
               >
                 {selectedServices.length > 0 ? "✓" : "3"}
@@ -1637,11 +1751,10 @@ export default function RecepcionForm({
 
           {/* Expanded panel */}
           <div
-            className={`grid transition-all duration-300 ease-in-out ${
-              activeStep === 3
-                ? "grid-rows-[1fr] opacity-100"
-                : "grid-rows-[0fr] opacity-0 pointer-events-none"
-            }`}
+            className={`grid transition-all duration-300 ease-in-out ${activeStep === 3
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0 pointer-events-none"
+              }`}
           >
             <div className={activeStep === 3 ? "overflow-visible" : "overflow-hidden"}>
               <div className="p-6 space-y-6">
@@ -1666,20 +1779,18 @@ export default function RecepcionForm({
                                 <div
                                   key={service.id}
                                   onClick={() => toggleService(service.id)}
-                                  className={`border rounded-xl p-3 cursor-pointer select-none transition-all duration-200 flex flex-col justify-between h-20 min-h-[50px] relative hover:shadow-xs ${
-                                    isSelected
-                                      ? "border-[#C9A84C] bg-[#FBF5E6]/60 shadow-[0_0_0_3px_rgba(201,168,76,0.12)] text-[#9A7A28]"
-                                      : "border-[#C9A84C]/35 bg-[#FBF5E6]/25 text-zinc-600 hover:border-[#C9A84C]/60 hover:bg-[#FBF5E6]/40"
-                                  }`}
+                                  className={`border rounded-xl p-3 cursor-pointer select-none transition-all duration-200 flex flex-col justify-between h-20 min-h-[50px] relative hover:shadow-xs ${isSelected
+                                    ? "border-[#C9A84C] bg-[#FBF5E6]/60 shadow-[0_0_0_3px_rgba(201,168,76,0.12)] text-[#9A7A28]"
+                                    : "border-[#C9A84C]/35 bg-[#FBF5E6]/25 text-zinc-600 hover:border-[#C9A84C]/60 hover:bg-[#FBF5E6]/40"
+                                    }`}
                                 >
                                   <div className="flex items-center justify-between">
                                     <Icon
                                       className={`h-5 w-5 ${isSelected ? "text-[#C9A84C]" : "text-[#9A7A28]/70"}`}
                                     />
                                     <div
-                                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all shrink-0 ${
-                                        isSelected ? "bg-[#C9A84C] border-[#C9A84C]" : "border-[#C9A84C]/30 bg-white"
-                                      }`}
+                                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all shrink-0 ${isSelected ? "bg-[#C9A84C] border-[#C9A84C]" : "border-[#C9A84C]/30 bg-white"
+                                        }`}
                                     >
                                       {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                     </div>
@@ -1723,20 +1834,18 @@ export default function RecepcionForm({
                                 <div
                                   key={service.id}
                                   onClick={() => toggleService(service.id)}
-                                  className={`border rounded-xl p-3 cursor-pointer select-none transition-all duration-200 flex flex-col justify-between h-20 min-h-[50px] relative hover:shadow-2xs ${
-                                    isSelected
-                                      ? "border-[#C9A84C] bg-[#FBF5E6]/60 shadow-[0_0_0_3px_rgba(201,168,76,0.12)] text-[#9A7A28]"
-                                      : "border-zinc-200 bg-zinc-50/70 text-zinc-600 hover:border-zinc-350 hover:bg-zinc-100/50"
-                                  }`}
+                                  className={`border rounded-xl p-3 cursor-pointer select-none transition-all duration-200 flex flex-col justify-between h-20 min-h-[50px] relative hover:shadow-2xs ${isSelected
+                                    ? "border-[#C9A84C] bg-[#FBF5E6]/60 shadow-[0_0_0_3px_rgba(201,168,76,0.12)] text-[#9A7A28]"
+                                    : "border-zinc-200 bg-zinc-50/70 text-zinc-600 hover:border-zinc-350 hover:bg-zinc-100/50"
+                                    }`}
                                 >
                                   <div className="flex items-center justify-between">
                                     <Icon
                                       className={`h-5 w-5 ${isSelected ? "text-[#C9A84C]" : "text-zinc-450"}`}
                                     />
                                     <div
-                                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all shrink-0 ${
-                                        isSelected ? "bg-[#C9A84C] border-[#C9A84C]" : "border-zinc-300 bg-white"
-                                      }`}
+                                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all shrink-0 ${isSelected ? "bg-[#C9A84C] border-[#C9A84C]" : "border-zinc-300 bg-white"
+                                        }`}
                                     >
                                       {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                     </div>
@@ -1754,27 +1863,27 @@ export default function RecepcionForm({
                   );
                 })()}
 
-              {/* Navigation buttons */}
-              <div className="flex justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={() => handlePrevStep(2)}
-                  className="h-11 px-4 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
-                >
-                  Regresar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleNextStep(3)}
-                  className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
-                >
-                  Continuar a Checklist
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+                {/* Navigation buttons */}
+                <div className="flex justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePrevStep(2)}
+                    className="h-11 px-4 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
+                  >
+                    Regresar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleNextStep(3)}
+                    className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    Continuar a Checklist
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         </div>
 
         {/* ==================== PASO 4: CHECKLIST DE RECEPCIÓN ==================== */}
@@ -1782,17 +1891,16 @@ export default function RecepcionForm({
           {/* Header */}
           <div
             onClick={() => handleHeaderClick(4)}
-            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${
-              activeStep === 4
-                ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
-                : "hover:bg-zinc-50/40 rounded-xl"
-            }`}
+            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${activeStep === 4
+              ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
+              : "hover:bg-zinc-50/40 rounded-xl"
+              }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div
                 className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${activeStep === 4
-                    ? "bg-[#C9A84C]/25 text-[#9A7A28]"
-                    : "bg-zinc-100 text-zinc-400"
+                  ? "bg-[#C9A84C]/25 text-[#9A7A28]"
+                  : "bg-zinc-100 text-zinc-400"
                   }`}
               >
                 4
@@ -1812,99 +1920,98 @@ export default function RecepcionForm({
 
           {/* Expanded panel */}
           <div
-            className={`grid transition-all duration-300 ease-in-out ${
-              activeStep === 4
-                ? "grid-rows-[1fr] opacity-100"
-                : "grid-rows-[0fr] opacity-0 pointer-events-none"
-            }`}
+            className={`grid transition-all duration-300 ease-in-out ${activeStep === 4
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0 pointer-events-none"
+              }`}
           >
             <div className={activeStep === 4 ? "overflow-visible" : "overflow-hidden"}>
               <div className="p-6 space-y-6">
 
-              <div className="space-y-6">
-                {/* Exterior Group */}
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-1">
-                    Exterior
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
-                    {renderChecklistItem("rayones", "Rayones")}
-                    {renderChecklistItem("golpes", "Golpes")}
-                    {renderChecklistItem("pintura", "Estado de pintura")}
-                    {renderChecklistItem("rines", "Estado de rines")}
-                    {renderChecklistItem("vidrios", "Estado de vidrios")}
-                    {renderChecklistItem("parabrisas", "Estado de parabrisas")}
-                    {renderChecklistItem("farolas", "Estado de farolas")}
+                <div className="space-y-6">
+                  {/* Exterior Group */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-1">
+                      Exterior
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
+                      {renderChecklistItem("rayones", "Rayones")}
+                      {renderChecklistItem("golpes", "Golpes")}
+                      {renderChecklistItem("pintura", "Estado de pintura")}
+                      {renderChecklistItem("rines", "Estado de rines")}
+                      {renderChecklistItem("vidrios", "Estado de vidrios")}
+                      {renderChecklistItem("parabrisas", "Estado de parabrisas")}
+                      {renderChecklistItem("farolas", "Estado de farolas")}
+                    </div>
+                  </div>
+
+                  {/* Interior Group */}
+                  <div className="space-y-2 pt-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-1">
+                      Interior
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
+                      {renderChecklistItem("cojineria", "Estado de cojinería")}
+                      {renderChecklistItem("tablero", "Estado del tablero")}
+                      {renderChecklistItem("general_interior", "Estado general interior")}
+                    </div>
+                  </div>
+
+                  {/* Funcionamiento Group */}
+                  <div className="space-y-2 pt-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-1">
+                      Funcionamiento
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
+                      {renderChecklistItem("testigos", "Testigos encendidos")}
+                      {renderChecklistItem("vidrios_electricos", "Vidrios eléctricos")}
+                      {renderChecklistItem("luces", "Luces")}
+                      {renderChecklistItem("direccionales", "Direccionales")}
+                      {renderChecklistItem("reversa", "Reversa")}
+                      {renderChecklistItem("estacionarias", "Estacionarias")}
+                      {renderChecklistItem("pito", "Pito")}
+                      {renderChecklistItem("plumillas", "Plumillas")}
+                      {renderChecklistItem("espejos", "Espejos")}
+                      {renderChecklistItem("lineas_termicas", "Líneas térmicas")}
+                    </div>
                   </div>
                 </div>
 
-                {/* Interior Group */}
-                <div className="space-y-2 pt-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-1">
-                    Interior
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
-                    {renderChecklistItem("cojineria", "Estado de cojinería")}
-                    {renderChecklistItem("tablero", "Estado del tablero")}
-                    {renderChecklistItem("general_interior", "Estado general interior")}
-                  </div>
+                {/* Observaciones text area */}
+                <div className="pt-4 border-t border-zinc-150 space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-400 block">
+                    Observaciones generales
+                  </label>
+                  <ObservationsTextarea
+                    value={observations}
+                    onChange={setObservations}
+                    placeholder="Campo libre para registrar novedades encontradas (rayones específicos, abolladuras, etc.)..."
+                    rows={4}
+                    className="w-full p-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all resize-none font-medium leading-relaxed"
+                  />
                 </div>
 
-                {/* Funcionamiento Group */}
-                <div className="space-y-2 pt-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-1">
-                    Funcionamiento
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
-                    {renderChecklistItem("testigos", "Testigos encendidos")}
-                    {renderChecklistItem("vidrios_electricos", "Vidrios eléctricos")}
-                    {renderChecklistItem("luces", "Luces")}
-                    {renderChecklistItem("direccionales", "Direccionales")}
-                    {renderChecklistItem("reversa", "Reversa")}
-                    {renderChecklistItem("estacionarias", "Estacionarias")}
-                    {renderChecklistItem("pito", "Pito")}
-                    {renderChecklistItem("plumillas", "Plumillas")}
-                    {renderChecklistItem("espejos", "Espejos")}
-                    {renderChecklistItem("lineas_termicas", "Líneas térmicas")}
-                  </div>
+                {/* Navigation buttons */}
+                <div className="flex justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePrevStep(3)}
+                    className="h-11 px-4 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
+                  >
+                    Regresar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleNextStep(4)}
+                    className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    Continuar a Firma
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
                 </div>
-              </div>
-
-              {/* Observaciones text area */}
-              <div className="pt-4 border-t border-zinc-150 space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-zinc-400 block">
-                  Observaciones generales
-                </label>
-                <textarea
-                  value={observations}
-                  onChange={(e) => setObservations(e.target.value)}
-                  placeholder="Campo libre para registrar novedades encontradas (rayones específicos, abolladuras, etc.)..."
-                  rows={4}
-                  className="w-full p-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all resize-none font-medium leading-relaxed"
-                />
-              </div>
-
-              {/* Navigation buttons */}
-              <div className="flex justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={() => handlePrevStep(3)}
-                  className="h-11 px-4 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
-                >
-                  Regresar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleNextStep(4)}
-                  className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-sm"
-                >
-                  Continuar a Firma
-                  <ArrowRight className="h-4 w-4" />
-                </button>
               </div>
             </div>
           </div>
-        </div>
         </div>
 
         {/* ==================== PASO 5: FIRMA DE RECEPCIÓN ==================== */}
@@ -1912,11 +2019,10 @@ export default function RecepcionForm({
           {/* Header */}
           <div
             onClick={() => handleHeaderClick(5)}
-            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${
-              activeStep === 5
-                ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
-                : "hover:bg-zinc-50/40 rounded-xl"
-            }`}
+            className={`px-5 py-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-150 ${activeStep === 5
+              ? "bg-zinc-50/70 border-b border-zinc-100 rounded-t-xl"
+              : "hover:bg-zinc-50/40 rounded-xl"
+              }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div
@@ -1940,86 +2046,85 @@ export default function RecepcionForm({
 
           {/* Expanded panel */}
           <div
-            className={`grid transition-all duration-300 ease-in-out ${
-              activeStep === 5
-                ? "grid-rows-[1fr] opacity-100"
-                : "grid-rows-[0fr] opacity-0 pointer-events-none"
-            }`}
+            className={`grid transition-all duration-300 ease-in-out ${activeStep === 5
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0 pointer-events-none"
+              }`}
           >
             <div className={activeStep === 5 ? "overflow-visible" : "overflow-hidden"}>
               <div className="p-6 space-y-6">
 
-              {/* Firma del Cliente Canvas */}
-              <div className="pt-5 border-t border-zinc-150 space-y-3">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4.5 w-4.5 text-zinc-600" />
-                  <span className="text-sm font-bold text-zinc-805">Firma Digital del Cliente *</span>
-                </div>
-                <p className="text-xs text-zinc-500">
-                  El cliente confirma que el estado del vehículo y los servicios contratados fueron revisados y aceptados.
-                </p>
+                {/* Firma del Cliente Canvas */}
+                <div className="pt-5 border-t border-zinc-150 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4.5 w-4.5 text-zinc-600" />
+                    <span className="text-sm font-bold text-zinc-805">Firma Digital del Cliente *</span>
+                  </div>
+                  <p className="text-xs text-zinc-500">
+                    El cliente confirma que el estado del vehículo y los servicios contratados fueron revisados y aceptados.
+                  </p>
 
-                <div
-                  className="border border-zinc-250 rounded-xl bg-white overflow-hidden relative h-32 w-full max-w-lg shadow-[inset_0_1px_3px_rgba(0,0,0,0.06)]"
-                >
-                  <canvas
-                    ref={canvasRef}
-                    onMouseDown={startDrawing}
-                    onMouseMove={draw}
-                    onMouseUp={stopDrawing}
-                    onMouseLeave={stopDrawing}
-                    onTouchStart={startDrawingTouch}
-                    onTouchMove={drawTouch}
-                    onTouchEnd={stopDrawing}
-                    className="w-full h-full cursor-crosshair touch-none"
-                  />
-                  {signatureData && (
-                    <div className="absolute top-2 right-2 bg-green-100 text-green-700 text-[9px] font-bold px-2.5 py-0.5 rounded-full border border-green-200">
-                      Firmado ✓
-                    </div>
-                  )}
+                  <div
+                    className="border border-zinc-250 rounded-xl bg-white overflow-hidden relative h-32 w-full max-w-lg shadow-[inset_0_1px_3px_rgba(0,0,0,0.06)]"
+                  >
+                    <canvas
+                      ref={canvasRef}
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawingTouch}
+                      onTouchMove={drawTouch}
+                      onTouchEnd={stopDrawing}
+                      className="w-full h-full cursor-crosshair touch-none"
+                    />
+                    {signatureData && (
+                      <div className="absolute top-2 right-2 bg-green-100 text-green-700 text-[9px] font-bold px-2.5 py-0.5 rounded-full border border-green-200">
+                        Firmado ✓
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex justify-between items-center w-full max-w-lg">
+                    <span className="text-[10px] text-zinc-400">Dibuja tu firma sobre el lienzo</span>
+                    <button
+                      type="button"
+                      onClick={clearSignature}
+                      className="h-8 px-3 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-red-500 transition-colors"
+                    >
+                      Limpiar firma
+                    </button>
+                  </div>
+                  <input type="hidden" name="signature" value={signatureData} />
                 </div>
 
-                <div className="flex justify-between items-center w-full max-w-lg">
-                  <span className="text-[10px] text-zinc-400">Dibuja tu firma sobre el lienzo</span>
+                {/* Navigation and Final Submit */}
+                <div className="flex justify-between pt-4 border-t border-zinc-100">
                   <button
                     type="button"
-                    onClick={clearSignature}
-                    className="h-8 px-3 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-red-500 transition-colors"
+                    onClick={() => handlePrevStep(4)}
+                    className="h-11 px-4 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
                   >
-                    Limpiar firma
+                    Regresar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-md disabled:opacity-50"
+                  >
+                    {isPending ? (
+                      <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4" />
+                        Confirmar y Registrar Recepción
+                      </>
+                    )}
                   </button>
                 </div>
-                <input type="hidden" name="signature" value={signatureData} />
-              </div>
-
-              {/* Navigation and Final Submit */}
-              <div className="flex justify-between pt-4 border-t border-zinc-100">
-                <button
-                  type="button"
-                  onClick={() => handlePrevStep(4)}
-                  className="h-11 px-4 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
-                >
-                  Regresar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="h-11 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-colors flex items-center gap-1.5 shadow-md disabled:opacity-50"
-                >
-                  {isPending ? (
-                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4" />
-                      Confirmar y Registrar Recepción
-                    </>
-                  )}
-                </button>
               </div>
             </div>
           </div>
-        </div>
         </div>
       </div>
       {/* DELETE CONFIRMATION MODAL */}
@@ -2112,11 +2217,10 @@ export default function RecepcionForm({
                   title="Clic en PC, dos toques en móvil para eliminar"
                 >
                   <img src={imgUrl} className="w-full h-full object-cover" />
-                  <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${
-                    (armedImage?.key === activeGalleryKey && armedImage?.index === idx)
-                      ? "opacity-100"
-                      : "opacity-0 group-hover:opacity-100"
-                  }`}>
+                  <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${(armedImage?.key === activeGalleryKey && armedImage?.index === idx)
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-100"
+                    }`}>
                     <Trash2 className="h-5 w-5 text-white" />
                   </div>
                 </div>

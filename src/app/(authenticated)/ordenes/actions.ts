@@ -3,8 +3,9 @@
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
-import fs from "fs";
-import path from "path";
+import { uploadBase64, deleteFile, uploadBuffer } from "@/lib/storage";
+import { sendDeliveryEmail } from "@/lib/emails";
+import { generateOrderPdf } from "@/lib/pdf-generator";
 
 export async function updateOrderStatusAction(
   orderId: number,
@@ -59,6 +60,29 @@ export async function updateOrderStatusAction(
       });
     });
 
+    // 4. Send completion email to the client if transitioning to ENTREGADO
+    if (newStatusName === "ENTREGADO") {
+      try {
+        const completeOrder = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: {
+            client: true,
+            car: {
+              include: {
+                brand: true,
+              },
+            },
+          },
+        });
+
+        if (completeOrder && completeOrder.client.email) {
+          await sendDeliveryEmail(completeOrder.client.email, completeOrder);
+        }
+      } catch (emailError) {
+        console.error("Error sending delivery email to client:", emailError);
+      }
+    }
+
     revalidatePath("/dashboard");
     revalidatePath("/ordenes");
     revalidatePath("/clientes");
@@ -73,13 +97,21 @@ export async function updateOrderStatusAction(
   }
 }
 
-export async function uploadDeliveryPdfAction(
-  orderId: number,
-  pdfBase64: string,
-  filename: string
-) {
+export async function uploadDeliveryPdfAction(formData: FormData) {
   try {
     const user = await verifySession();
+
+    const orderIdStr = formData.get("orderId") as string;
+    const file = formData.get("file") as File;
+
+    if (!orderIdStr || !file) {
+      return { success: false, error: "Datos de formulario incompletos." };
+    }
+
+    const orderId = parseInt(orderIdStr, 10);
+    if (isNaN(orderId)) {
+      return { success: false, error: "ID de orden inválido." };
+    }
 
     // 1. Fetch order details to check status
     const order = await prisma.order.findUnique({
@@ -98,55 +130,26 @@ export async function uploadDeliveryPdfAction(
       };
     }
 
-    // --- CLOUDFLARE R2 BUCKET UPLOAD CONFIGURATION (COMMENTED OUT) ---
-    /*
-    const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-    
-    const r2Client = new S3Client({
-      endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-      credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-      },
-      region: "auto",
-    });
+    // Convert file object to Node.js Buffer
+    const buffer = Buffer.from(await file.arrayBuffer());
 
-    const fileBuffer = Buffer.from(pdfBase64.replace(/^data:application\/pdf;base64,/, ""), 'base64');
-    
-    await r2Client.send(new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME!,
-      Key: `delivery-documents/pdf-${orderId}.pdf`,
-      Body: fileBuffer,
-      ContentType: "application/pdf",
-    }));
-
-    const fileUrl = `https://cdn.casatuning.com/delivery-documents/pdf-${orderId}.pdf`;
-    */
-    // -----------------------------------------------------------------
-
-    // PROVISIONAL: Save the PDF locally for testing and development
-    const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
-    const buffer = Buffer.from(base64Data, 'base64');
-    const dirPath = path.join(process.cwd(), 'public', 'uploads', 'pdfs');
-    
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
-    }
-    
-    const filePath = path.join(dirPath, `pdf-${orderId}.pdf`);
-    fs.writeFileSync(filePath, buffer);
-    const localUrl = `/uploads/pdfs/pdf-${orderId}.pdf`;
+    // Upload PDF to the storage bucket using uploadBuffer
+    const fileUrl = await uploadBuffer(
+      buffer,
+      `delivery-documents/pdf-${orderId}.pdf`,
+      "application/pdf"
+    );
 
     // Update order with the PDF URL and log activity
     await prisma.$transaction(async (tx) => {
       await tx.order.update({
         where: { id: orderId },
-        data: { deliveryPdfUrl: localUrl },
+        data: { deliveryPdfUrl: fileUrl },
       });
 
       await tx.activityLog.create({
         data: {
-          description: `Documento de entrega cargado: ${filename}`,
+          description: `Documento de entrega cargado: ${file.name}`,
           orderId: order.id,
           userId: user.id,
         },
@@ -177,13 +180,12 @@ export async function deleteDeliveryPdfAction(orderId: number) {
       return { success: false, error: "La orden no existe." };
     }
 
-    // Delete local file if it exists
-    const filePath = path.join(process.cwd(), 'public', 'uploads', 'pdfs', `pdf-${orderId}.pdf`);
-    if (fs.existsSync(filePath)) {
+    // Delete file from storage if it exists
+    if (order.deliveryPdfUrl) {
       try {
-        fs.unlinkSync(filePath);
+        await deleteFile(order.deliveryPdfUrl);
       } catch (err) {
-        console.error("Error deleting physical PDF file:", err);
+        console.error("Error deleting PDF file from storage:", err);
       }
     }
 
@@ -268,3 +270,37 @@ export async function addOrderCommentAction(orderId: number, content: string) {
     };
   }
 }
+
+export async function downloadOrderPdfAction(orderId: number) {
+  try {
+    const user = await verifySession();
+
+    // Fetch order to get code
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      return { success: false, error: "La orden no existe." };
+    }
+
+    // Generate PDF buffer
+    const pdfBuffer = await generateOrderPdf(orderId);
+
+    // Upload PDF to Cloudflare R2
+    const fileUrl = await uploadBuffer(
+      pdfBuffer,
+      `technical-sheets/sheet-${order.code}.pdf`,
+      "application/pdf"
+    );
+
+    return { success: true, url: fileUrl };
+  } catch (error: any) {
+    console.error("Error generating/uploading PDF for download:", error);
+    return {
+      success: false,
+      error: error.message || "Ocurrió un error al generar la ficha técnica en PDF.",
+    };
+  }
+}
+

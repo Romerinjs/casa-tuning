@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { createClientAction, updateClientAction, createCarAction } from "@/app/(authenticated)/clientes/actions";
+import { createClientAction, updateClientAction, createCarAction, uploadClientPhotoAction } from "@/app/(authenticated)/clientes/actions";
+import { downloadOrderPdfAction } from "@/app/(authenticated)/ordenes/actions";
 import { useToast } from "@/components/ui/Toast";
 import {
   Search,
@@ -15,6 +16,8 @@ import {
   Calendar,
   Edit,
   ChevronDown,
+  Camera,
+  FileText,
 } from "lucide-react";
 
 interface ClientCar {
@@ -41,6 +44,7 @@ interface ClientData {
   documentTypeId: number | null;
   documentType: { id: number; code: string; name: string } | null;
   email: string | null;
+  photoUrl: string | null;
   createdAt: Date;
   cars: ClientCar[];
   orders: ClientOrder[];
@@ -49,6 +53,7 @@ interface ClientData {
 interface BrandItem {
   id: number;
   name: string;
+  logo?: string | null;
 }
 
 interface DocumentTypeItem {
@@ -67,6 +72,8 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
   const { showToast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [downloadingPdfId, setDownloadingPdfId] = useState<number | null>(null);
   
   // Modals Visibility
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -169,6 +176,23 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
     setCarError(null);
   };
 
+  const handleDownloadPdf = async (orderId: number) => {
+    setDownloadingPdfId(orderId);
+    try {
+      const res = await downloadOrderPdfAction(orderId);
+      if (res.success && res.url) {
+        window.open(res.url, "_blank");
+        showToast("Ficha técnica descargada con éxito.", "success");
+      } else {
+        showToast(res.error || "Error al descargar la ficha técnica.", "error");
+      }
+    } catch (err: any) {
+      showToast("Ocurrió un error inesperado al descargar la ficha técnica.", "error");
+    } finally {
+      setDownloadingPdfId(null);
+    }
+  };
+
   const filteredClients = clients.filter(
     (c) =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -200,7 +224,7 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
         </h2>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-4 py-2 text-xs font-semibold text-[#0A0A0C] transition-all duration-150 shadow-[0_2px_8px_rgba(201,168,76,0.25)]"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#b0903c] active:scale-98 px-4 py-2 text-xs font-bold text-[#0A0A0C] transition-all duration-150 shadow-[0_2px_8px_rgba(201,168,76,0.25)] cursor-pointer"
         >
           <Plus className="h-4 w-4 stroke-[2.5]" />
           Nuevo Cliente
@@ -235,10 +259,23 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
                 className="bg-white border border-zinc-200 hover:border-[#C9A84C] rounded-xl p-5 shadow-xs transition-all duration-150 cursor-pointer hover:shadow-md flex flex-col justify-between group"
               >
                 <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-bold text-zinc-900 group-hover:text-[#9A7A28] transition-colors truncate">
-                      {client.name}
-                    </h3>
+                  <div className="flex items-center gap-3 justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {client.photoUrl ? (
+                        <img
+                          src={client.photoUrl}
+                          alt={client.name}
+                          className="h-7 w-7 rounded-lg object-cover border border-zinc-200/60 shrink-0 shadow-2xs"
+                        />
+                      ) : (
+                        <div className="h-7 w-7 rounded-lg bg-zinc-50 flex items-center justify-center text-[#9A7A28] border border-zinc-200 shrink-0">
+                          <User className="h-4 w-4" />
+                        </div>
+                      )}
+                      <h3 className="font-bold text-zinc-900 group-hover:text-[#9A7A28] transition-colors truncate">
+                        {client.name}
+                      </h3>
+                    </div>
                   </div>
                   <div className="mt-3 space-y-1.5">
                     <div className="flex items-center gap-2 text-xs text-zinc-500">
@@ -295,36 +332,84 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
         {selectedClient && (
           <>
             {/* Drawer Header */}
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-4 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-zinc-100 flex items-center justify-center text-[#9A7A28]">
-                  <User className="h-5 w-5" />
+            <div className="flex flex-col items-center text-center gap-3 border-b border-zinc-200 pb-5 mb-6 relative">
+              <button
+                onClick={() => setSelectedClient(null)}
+                className="absolute top-0 right-0 h-8 w-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-650 hover:bg-zinc-150 transition-all cursor-pointer"
+              >
+                <X className="h-4.5 w-4.5" />
+              </button>
+
+              <div className="relative group/avatar cursor-pointer mt-2">
+                {isUploadingPhoto ? (
+                  <div className="h-20 w-20 rounded-2xl bg-zinc-50 border border-zinc-200 flex items-center justify-center">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#9A7A28] border-t-transparent" />
+                  </div>
+                ) : selectedClient.photoUrl ? (
+                  <img
+                    src={selectedClient.photoUrl}
+                    alt={selectedClient.name}
+                    className="h-20 w-20 rounded-2xl object-cover border border-zinc-250 shadow-sm"
+                  />
+                ) : (
+                  <div className="h-20 w-20 rounded-2xl bg-zinc-100 flex items-center justify-center text-[#9A7A28] border border-zinc-200 shadow-sm">
+                    <User className="h-8 w-8" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/45 rounded-2xl flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-150">
+                  <Camera className="h-6 w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-zinc-900 leading-tight">
-                    {selectedClient.name}
-                  </h3>
-                  <span className="text-[10px] text-zinc-400">
-                    Cliente ID: #{selectedClient.id}
-                  </span>
-                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  disabled={isUploadingPhoto}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    
+                    if (!file.type.startsWith("image/")) {
+                      showToast("Por favor, selecciona un archivo de imagen válido", "error");
+                      return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = async (event) => {
+                      const base64Data = event.target?.result as string;
+                      setIsUploadingPhoto(true);
+                      try {
+                        const res = await uploadClientPhotoAction(selectedClient.id, base64Data);
+                        if (res.success && res.photoUrl) {
+                          showToast("Foto de perfil actualizada con éxito", "success");
+                          setSelectedClient(prev => prev ? { ...prev, photoUrl: res.photoUrl || null } : null);
+                        } else {
+                          showToast(res.error || "Error al subir la foto", "error");
+                        }
+                      } catch (err) {
+                        console.error("Error updating photo:", err);
+                        showToast("Error al subir la foto", "error");
+                      } finally {
+                        setIsUploadingPhoto(false);
+                      }
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
               </div>
               
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => openEditModal(selectedClient)}
-                  className="h-8 px-3 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-500 hover:bg-zinc-50 hover:text-[#9A7A28] transition-colors flex items-center gap-1.5"
-                >
-                  <Edit className="h-3.5 w-3.5" />
-                  Editar
-                </button>
-                <button
-                  onClick={() => setSelectedClient(null)}
-                  className="h-8 w-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-650 hover:bg-zinc-100 transition-all"
-                >
-                  <X className="h-4.5 w-4.5" />
-                </button>
+              <div>
+                <h3 className="font-bold text-zinc-900 leading-tight text-lg">
+                  {selectedClient.name}
+                </h3>
               </div>
+
+              <button
+                onClick={() => openEditModal(selectedClient)}
+                className="h-8 px-4 rounded-lg border border-zinc-300 text-xs font-bold text-zinc-700 hover:bg-zinc-50 hover:text-[#9A7A28] hover:border-[#C9A84C]/50 transition-all flex items-center gap-1.5 active:scale-98 cursor-pointer"
+              >
+                <Edit className="h-3.5 w-3.5" />
+                Editar Perfil
+              </button>
             </div>
 
             {/* Drawer Body Scroll */}
@@ -381,7 +466,7 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
                   </h4>
                   <button
                     onClick={() => openAddCarModal(selectedClient.id)}
-                    className="text-xs font-bold text-[#9A7A28] hover:text-[#7C601C] flex items-center gap-1.5 bg-[#FBF5E6]/40 border border-[#C9A84C]/20 px-2.5 py-1 rounded-lg transition-colors"
+                    className="text-xs font-bold text-[#9A7A28] hover:text-[#7C601C] flex items-center gap-1.5 bg-[#FBF5E6] border border-[#C9A84C]/40 px-3 py-1.5 rounded-lg active:scale-98 transition-all cursor-pointer shadow-xs hover:shadow-sm"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     Agregar Vehículo
@@ -455,16 +540,32 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
                             </span>
                           ))}
                         </div>
-                        <span className="text-[9px] text-zinc-400 block pt-1 border-t border-zinc-100">
-                          Recibido:{" "}
-                          {new Date(order.createdAt).toLocaleDateString(
-                            "es-ES"
-                          )}{" "}
-                          {new Date(order.createdAt).toLocaleTimeString(
-                            "es-ES",
-                            { hour: "2-digit", minute: "2-digit" }
-                          )}
-                        </span>
+                        <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-100 mt-1">
+                          <span className="text-[9px] text-zinc-400">
+                            Recibido:{" "}
+                            {new Date(order.createdAt).toLocaleDateString(
+                              "es-ES"
+                            )}{" "}
+                            {new Date(order.createdAt).toLocaleTimeString(
+                              "es-ES",
+                              { hour: "2-digit", minute: "2-digit" }
+                            )}
+                          </span>
+                          
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadPdf(order.id)}
+                            disabled={downloadingPdfId === order.id}
+                            className="inline-flex items-center gap-1 text-[10px] font-bold text-[#9A7A28] hover:text-[#7C601C] disabled:opacity-50 transition-colors cursor-pointer"
+                          >
+                            {downloadingPdfId === order.id ? (
+                              <div className="h-3 w-3 animate-spin rounded-full border border-[#9A7A28] border-t-transparent" />
+                            ) : (
+                              <FileText className="h-3 w-3" />
+                            )}
+                            Ficha Técnica
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -631,14 +732,14 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
-                className="px-4 py-2 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
+                className="px-4 py-2 border border-zinc-300 rounded-lg text-xs font-bold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 active:scale-98 transition-all cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={isPending}
-                className="px-4 py-2 bg-[#C9A84C] hover:bg-[#9A7A28] rounded-lg text-xs font-semibold text-[#0A0A0C] transition-all disabled:opacity-50 inline-flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#C9A84C] hover:bg-[#b0903c] active:scale-98 transition-all rounded-lg text-xs font-bold text-[#0A0A0C] disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md"
               >
                 {isPending ? (
                   <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
@@ -801,14 +902,14 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(false)}
-                className="px-4 py-2 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
+                className="px-4 py-2 border border-zinc-300 rounded-lg text-xs font-bold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 active:scale-98 transition-all cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={isEditPending}
-                className="px-4 py-2 bg-[#C9A84C] hover:bg-[#9A7A28] rounded-lg text-xs font-semibold text-[#0A0A0C] transition-all disabled:opacity-50 inline-flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#C9A84C] hover:bg-[#b0903c] active:scale-98 transition-all rounded-lg text-xs font-bold text-[#0A0A0C] disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md"
               >
                 {isEditPending ? (
                   <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
@@ -934,14 +1035,31 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
                   setIsBrandDropdownOpen(!isBrandDropdownOpen);
                   setCarError(null);
                 }}
-                className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all flex items-center justify-between cursor-pointer"
+                className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-805 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all flex items-center justify-between cursor-pointer active:scale-99"
               >
-                <span>
-                  {carBrandId
-                    ? brands.find((b) => b.id.toString() === carBrandId)?.name || "Seleccionar..."
-                    : "Seleccionar..."}
-                </span>
-                <ChevronDown className="h-4 w-4 text-zinc-400" />
+                <div className="flex items-center gap-2 truncate">
+                  {carBrandId ? (
+                    (() => {
+                      const b = brands.find((b) => b.id.toString() === carBrandId);
+                      if (!b) return <span>Seleccionar...</span>;
+                      return (
+                        <>
+                          {b.logo && (
+                            <img
+                              src={b.logo}
+                              alt={b.name}
+                              className="h-5 w-5 object-contain rounded shrink-0 bg-white"
+                            />
+                          )}
+                          <span className="truncate font-semibold">{b.name}</span>
+                        </>
+                      );
+                    })()
+                  ) : (
+                    <span>Seleccionar...</span>
+                  )}
+                </div>
+                <ChevronDown className="h-4 w-4 text-zinc-400 shrink-0" />
               </button>
 
               {isBrandDropdownOpen && (
@@ -958,13 +1076,20 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
                           setCarBrandId(brand.id.toString());
                           setIsBrandDropdownOpen(false);
                         }}
-                        className={`py-2 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${
+                        className={`py-2 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none flex items-center gap-2 ${
                           carBrandId === brand.id.toString()
                             ? "text-[#9A7A28] bg-[#FBF5E6]/40"
                             : "text-zinc-700"
                         }`}
                       >
-                        {brand.name}
+                        {brand.logo && (
+                          <img
+                            src={brand.logo}
+                            alt={brand.name}
+                            className="h-5 w-5 object-contain rounded shrink-0 bg-white"
+                          />
+                        )}
+                        <span>{brand.name}</span>
                       </div>
                     ))}
                   </div>
@@ -1020,14 +1145,14 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
               <button
                 type="button"
                 onClick={() => setIsCarModalOpen(false)}
-                className="px-4 py-2 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-50 transition-colors"
+                className="px-4 py-2 border border-zinc-300 rounded-lg text-xs font-bold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 active:scale-98 transition-all cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={isCarPending}
-                className="px-4 py-2 bg-[#C9A84C] hover:bg-[#9A7A28] rounded-lg text-xs font-semibold text-[#0A0A0C] transition-all disabled:opacity-50 inline-flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#C9A84C] hover:bg-[#b0903c] active:scale-98 transition-all rounded-lg text-xs font-bold text-[#0A0A0C] disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md"
               >
                 {isCarPending ? (
                   <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />

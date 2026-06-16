@@ -1,13 +1,14 @@
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth-helpers";
 import OrdenesClientView from "@/components/OrdenesClientView";
+import { decryptDocument } from "@/lib/security";
 
 export default async function OrdenesPage() {
   // Session authorization check
   await verifySession();
 
   // Fetch all orders from PostgreSQL database using Prisma
-  const orders = await prisma.order.findMany({
+  const dbOrders = await prisma.order.findMany({
     include: {
       status: true,
       client: {
@@ -42,6 +43,14 @@ export default async function OrdenesPage() {
       createdAt: "desc",
     },
   });
+
+  const orders = dbOrders.map((o) => ({
+    ...o,
+    client: {
+      ...o.client,
+      documentNumber: o.client.documentNumber ? decryptDocument(o.client.documentNumber) : null,
+    },
+  }));
 
   return <OrdenesClientView orders={orders} />;
 }

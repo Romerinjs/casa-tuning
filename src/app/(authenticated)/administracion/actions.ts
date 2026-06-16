@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
+import { uploadBase64 } from "@/lib/storage";
+import { sendWelcomeEmail } from "@/lib/emails";
 
 // Action for creating a new service
 export async function createServiceAction(
@@ -193,10 +195,25 @@ export async function createBrandAction(
       };
     }
 
+    // Upload logo to storage if provided as base64
+    let logoUrl: string | null = null;
+    if (logo) {
+      try {
+        const brandSlug = cleanName.toLowerCase().replace(/[^a-z0-9]/g, "-");
+        logoUrl = await uploadBase64(logo, `brands/logo-${brandSlug}`);
+      } catch (uploadError) {
+        console.error("Error uploading brand logo to storage:", uploadError);
+        return {
+          success: false,
+          error: "Error al subir el logo de la marca al almacenamiento en la nube.",
+        };
+      }
+    }
+
     await prisma.brand.create({
       data: {
         name: cleanName,
-        logo: logo,
+        logo: logoUrl,
       },
     });
 
@@ -260,7 +277,7 @@ export async function createUserAction(
     // Hash the password securely
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.create({
+    const createdUser = await prisma.user.create({
       data: {
         name: name.trim(),
         email: cleanEmail,
@@ -269,6 +286,13 @@ export async function createUserAction(
         isActive: true,
       },
     });
+
+    // Send welcome email with credentials (username & plain-text password)
+    try {
+      await sendWelcomeEmail(cleanEmail, createdUser.name, role.name, password, createdUser.id);
+    } catch (emailError) {
+      console.error("Error sending welcome email to new user:", emailError);
+    }
 
     revalidatePath("/administracion");
     return { success: true };
