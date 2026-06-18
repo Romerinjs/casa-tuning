@@ -7,6 +7,7 @@ import {
   deleteServiceAction,
   createBrandAction,
   createUserAction,
+  sendTestSoundTemplateAction,
 } from "@/app/(authenticated)/administracion/actions";
 import { useToast } from "@/components/ui/Toast";
 import {
@@ -85,7 +86,7 @@ export default function AdministracionClientView({
   roles,
 }: AdministracionClientViewProps) {
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<"servicios" | "marcas" | "usuarios">("servicios");
+  const [activeTab, setActiveTab] = useState<"servicios" | "marcas" | "usuarios" | "whatsapp">("servicios");
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -136,6 +137,7 @@ export default function AdministracionClientView({
   // Form states using React 19 useActionState
   const [brandState, brandFormAction, isBrandPending] = useActionState(createBrandAction, null);
   const [userState, userFormAction, isUserPending] = useActionState(createUserAction, null);
+  const [whatsappState, whatsappFormAction, isWhatsappPending] = useActionState(sendTestSoundTemplateAction, null);
 
   // Form references to clear fields on success
   const serviceFormRef = useRef<HTMLFormElement>(null);
@@ -353,6 +355,17 @@ export default function AdministracionClientView({
           <Users className="h-4 w-4" />
           Usuarios
         </button>
+        <button
+          onClick={() => setActiveTab("whatsapp")}
+          className={`py-3.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === "whatsapp"
+              ? "border-[#C9A84C] text-[#9A7A28]"
+              : "border-transparent text-zinc-400 hover:text-zinc-600"
+          }`}
+        >
+          <Smartphone className="h-4 w-4" />
+          Prueba WhatsApp
+        </button>
       </div>
 
       {/* CONTENT PANEL */}
@@ -450,6 +463,86 @@ export default function AdministracionClientView({
                 })
               )}
             </div>
+          </div>
+        ) : activeTab === "whatsapp" ? (
+          /* Vista de prueba de WhatsApp */
+          <div className="max-w-md mx-auto bg-white border border-zinc-200 rounded-2xl shadow-xs p-6 space-y-6 animate-[scaleIn_0.15s_ease-out]">
+            <div className="border-b border-zinc-150 pb-4">
+              <h3 className="text-base font-extrabold text-zinc-900 flex items-center gap-2">
+                <Smartphone className="h-5.5 w-5.5 text-[#C9A84C]" />
+                Prueba de WhatsApp (Kapso)
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1">
+                Envía un mensaje de prueba utilizando la plantilla Meta <strong>prueba_de_sonido_2</strong> (idioma: <code>es_MX</code>) para verificar que las credenciales y la conexión funcionen correctamente.
+              </p>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const phone = formData.get("phone") as string;
+                if (!phone || phone.replace(/\D/g, "").length !== 10) {
+                  showToast("El celular debe contener exactamente 10 números.", "warning");
+                  return;
+                }
+                startTransition(() => {
+                  whatsappFormAction(formData);
+                });
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                  Número de Celular *
+                </label>
+                <div className="flex gap-2">
+                  <span className="flex items-center px-3 py-2 bg-zinc-100 border border-zinc-200 rounded-lg text-xs font-bold text-zinc-550 select-none">
+                    +57
+                  </span>
+                  <input
+                    type="text"
+                    name="phone"
+                    required
+                    placeholder="Ej: 3208236441"
+                    maxLength={10}
+                    className="flex-1 px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all font-semibold"
+                  />
+                </div>
+                <p className="text-[9px] text-zinc-450 italic mt-1">
+                  El número debe ser de 10 dígitos (Colombia). Se enviará el mensaje con el prefijo +57.
+                </p>
+              </div>
+
+              {whatsappState?.error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3.5 text-center text-xs font-bold text-red-650 flex items-center justify-center gap-1.5 animate-[fadeIn_0.15s_ease-out]">
+                  <XCircle className="h-4.5 w-4.5 shrink-0" />
+                  <span>{whatsappState.error}</span>
+                </div>
+              )}
+
+              {whatsappState?.success && whatsappState?.message && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3.5 text-center text-xs font-bold text-green-650 flex items-center justify-center gap-1.5 animate-[fadeIn_0.15s_ease-out]">
+                  <CheckCircle className="h-4.5 w-4.5 shrink-0 text-green-600" />
+                  <span>{whatsappState.message}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isWhatsappPending}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-4 py-2.5 text-xs font-bold text-[#0A0A0C] transition-all disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+              >
+                {isWhatsappPending ? (
+                  <>
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
+                    <span>Enviando...</span>
+                  </>
+                ) : (
+                  "Enviar Mensaje de Prueba"
+                )}
+              </button>
+            </form>
           </div>
         ) : (
           /* Vista tradicional en columnas divididas para Marcas y Usuarios */

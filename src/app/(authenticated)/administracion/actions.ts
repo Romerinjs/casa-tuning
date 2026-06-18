@@ -304,3 +304,81 @@ export async function createUserAction(
     };
   }
 }
+
+// Action for sending a test WhatsApp message using Meta template "prueba_de_sonido_2"
+export async function sendTestSoundTemplateAction(
+  prevState: { success: boolean; error?: string; message?: string } | null,
+  formData: FormData
+) {
+  try {
+    await verifyAdminSession();
+
+    const phoneInput = formData.get("phone") as string;
+    if (!phoneInput) {
+      return { success: false, error: "El número de celular es requerido." };
+    }
+
+    const clean = phoneInput.replace(/\D/g, "");
+    if (clean.length !== 10) {
+      return { success: false, error: "El celular debe contener exactamente 10 dígitos (Colombia)." };
+    }
+
+    const recipientPhone = `+57${clean}`;
+
+    const baseUrl = process.env.KAPSO_API_BASE_URL || "https://api.kapso.ai";
+    const apiKey = process.env.KAPSO_API_KEY;
+    const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+    if (!apiKey || !phoneId) {
+      return {
+        success: false,
+        error: "Configuración incompleta en el servidor (.env). Asegúrate de configurar KAPSO_API_KEY y WHATSAPP_PHONE_NUMBER_ID."
+      };
+    }
+
+    const endpoint = `${baseUrl}/meta/whatsapp/v24.0/${phoneId}/messages`;
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: recipientPhone,
+      type: "template",
+      template: {
+        name: "prueba_de_sonido_2",
+        language: { code: "es_MX" }
+      }
+    };
+
+    console.log(`[WhatsApp Test] Enviando plantilla 'prueba_de_sonido_2' a ${recipientPhone}`);
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKey
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("[WhatsApp Test] Error de respuesta de la API:", data);
+      return {
+        success: false,
+        error: data.error?.message || "La API de Kapso retornó un error al enviar el mensaje de prueba."
+      };
+    }
+
+    console.log("[WhatsApp Test] Mensaje enviado exitosamente:", data);
+    return { 
+      success: true, 
+      message: `¡Plantilla 'prueba_de_sonido_2' enviada con éxito a ${recipientPhone}!` 
+    };
+  } catch (error) {
+    console.error("Error sending test sound template:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error de red al intentar enviar el mensaje de prueba."
+    };
+  }
+}

@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { uploadBase64 } from "@/lib/storage";
 import { sendReceptionEmail } from "@/lib/emails";
 import { hashDocument, encryptDocument } from "@/lib/security";
+import { sendWhatsAppReceptionAction } from "@/lib/whatsapp";
 
 export async function createOrderAction(
   prevState: { success: boolean; error?: string } | null,
@@ -337,6 +338,17 @@ export async function createOrderAction(
           }
         } catch (emailError) {
           console.error("Error sending reception email to client:", emailError);
+        }
+      }
+
+      // 5. Send WhatsApp confirmation if they have a phone number
+      if (cleanPhone) {
+        try {
+          sendWhatsAppReceptionAction(newOrder.id).catch((err) => {
+            console.error("Error in background sendWhatsAppReceptionAction:", err);
+          });
+        } catch (wsError) {
+          console.error("Error invoking WhatsApp reception notification:", wsError);
         }
       }
     }

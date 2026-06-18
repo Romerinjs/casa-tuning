@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { uploadBase64, deleteFile, uploadBuffer } from "@/lib/storage";
 import { sendDeliveryEmail } from "@/lib/emails";
 import { generateOrderPdf } from "@/lib/pdf-generator";
+import { sendWhatsAppDeliveryAction } from "@/lib/whatsapp";
 
 export async function updateOrderStatusAction(
   orderId: number,
@@ -78,8 +79,15 @@ export async function updateOrderStatusAction(
         if (completeOrder && completeOrder.client.email) {
           await sendDeliveryEmail(completeOrder.client.email, completeOrder);
         }
+
+        // Send WhatsApp delivery notification & recommendations in background
+        if (completeOrder && completeOrder.client.phone) {
+          sendWhatsAppDeliveryAction(orderId).catch((err) => {
+            console.error("Error in background sendWhatsAppDeliveryAction:", err);
+          });
+        }
       } catch (emailError) {
-        console.error("Error sending delivery email to client:", emailError);
+        console.error("Error sending delivery notifications to client:", emailError);
       }
     }
 
