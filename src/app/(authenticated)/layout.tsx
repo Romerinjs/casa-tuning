@@ -1,6 +1,7 @@
 import { verifySession } from "@/lib/auth-helpers";
 import Sidebar from "@/components/Sidebar";
 import { ToastProvider } from "@/components/ui/Toast";
+import PageTransition from "@/components/PageTransition";
 
 export default async function AuthenticatedLayout({
   children,
@@ -18,7 +19,7 @@ export default async function AuthenticatedLayout({
 
         {/* Main operational panel */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </div>
       </div>
     </ToastProvider>

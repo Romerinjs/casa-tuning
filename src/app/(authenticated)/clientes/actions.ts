@@ -3,6 +3,8 @@
 import prisma from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
+import { hashDocument, encryptDocument } from "@/lib/security";
+import { uploadBase64, deleteFile } from "@/lib/storage";
 
 export async function createClientAction(
   prevState: { success: boolean; error?: string } | null,
@@ -58,10 +60,14 @@ export async function createClientAction(
 
     // Check if client with this document number already exists
     const documentTypeId = documentTypeIdStr ? parseInt(documentTypeIdStr, 10) : null;
+    let finalDocNumber = null;
+    let finalDocHash = null;
+
     if (documentNumber) {
       const cleanDoc = documentNumber.trim();
+      const hash = hashDocument(cleanDoc);
       const existingDoc = await prisma.client.findUnique({
-        where: { documentNumber: cleanDoc },
+        where: { documentNumberHash: hash },
       });
       if (existingDoc) {
         return {
@@ -69,6 +75,8 @@ export async function createClientAction(
           error: `Ya existe un cliente con el número de documento ${cleanDoc}.`,
         };
       }
+      finalDocNumber = encryptDocument(cleanDoc);
+      finalDocHash = hash;
     }
 
     await prisma.client.create({
@@ -77,7 +85,8 @@ export async function createClientAction(
         phone: cleanPhone,
         email: cleanEmail ? cleanEmail : null,
         documentTypeId,
-        documentNumber: documentNumber ? documentNumber.trim() : null,
+        documentNumber: finalDocNumber,
+        documentNumberHash: finalDocHash,
       },
     });
 
@@ -144,17 +153,35 @@ export async function updateClientAction(
 
     // Check unique document collision
     const documentTypeId = documentTypeIdStr ? parseInt(documentTypeIdStr, 10) : null;
-    if (documentNumber) {
+    
+    // Fetch current client data to compare document changes
+    const currentClient = await prisma.client.findUnique({
+      where: { id },
+    });
+    if (!currentClient) {
+      return { success: false, error: "El cliente no existe." };
+    }
+
+    let finalDocNumber = currentClient.documentNumber;
+    let finalDocHash = currentClient.documentNumberHash;
+
+    if (documentNumber && documentNumber !== "********") {
       const cleanDoc = documentNumber.trim();
+      const hash = hashDocument(cleanDoc);
       const existingDoc = await prisma.client.findFirst({
         where: {
-          documentNumber: cleanDoc,
+          documentNumberHash: hash,
           id: { not: id },
         },
       });
       if (existingDoc) {
         return { success: false, error: `Ya existe otro cliente con el número de documento ${cleanDoc}.` };
       }
+      finalDocNumber = encryptDocument(cleanDoc);
+      finalDocHash = hash;
+    } else if (!documentNumber) {
+      finalDocNumber = null;
+      finalDocHash = null;
     }
 
     await prisma.client.update({
@@ -164,7 +191,8 @@ export async function updateClientAction(
         phone: cleanPhone,
         email: cleanEmail,
         documentTypeId,
-        documentNumber: documentNumber ? documentNumber.trim() : null,
+        documentNumber: finalDocNumber,
+        documentNumberHash: finalDocHash,
       },
     });
 
@@ -232,5 +260,56 @@ export async function createCarAction(
   } catch (error) {
     console.error("Error creating car:", error);
     return { success: false, error: error instanceof Error ? error.message : "Ocurrió un error inesperado al registrar el vehículo." };
+  }
+}
+
+export async function uploadClientPhotoAction(
+  clientId: number,
+  base64Data: string
+) {
+  try {
+    await verifyAdminSession();
+
+    if (!clientId) {
+      return { success: false, error: "ID de cliente es requerido." };
+    }
+
+    if (!base64Data) {
+      return { success: false, error: "Datos de imagen requeridos." };
+    }
+
+    // Retrieve current client's photoUrl to delete the old photo
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { photoUrl: true },
+    });
+
+    if (client?.photoUrl) {
+      try {
+        await deleteFile(client.photoUrl);
+      } catch (delErr) {
+        console.error("Error deleting old client photo:", delErr);
+      }
+    }
+
+    // Upload to Cloudflare R2
+    const publicUrl = await uploadBase64(base64Data, `clients/avatar-${clientId}-${Date.now()}`);
+
+    // Save URL to the database
+    await prisma.client.update({
+      where: { id: clientId },
+      data: { photoUrl: publicUrl },
+    });
+
+    revalidatePath("/clientes");
+    revalidatePath("/recepcion");
+
+    return { success: true, photoUrl: publicUrl };
+  } catch (error) {
+    console.error("Error uploading client photo:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Ocurrió un error inesperado al subir la foto.",
+    };
   }
 }

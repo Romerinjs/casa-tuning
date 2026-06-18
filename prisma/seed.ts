@@ -79,27 +79,35 @@ async function main() {
 
   // 4. Service Catalog
   const services = [
-    "Polarizado",
-    "PPF (Paint Protection Film)",
-    "Vinilo",
-    "Película de seguridad",
-    "Luces LED",
-    "Exploradoras",
-    "Alarmas",
-    "Sensores",
-    "Radios",
-    "CarPlay",
-    "Parlantes",
-    "Plantas de sonido",
-    "Cámaras de reversa",
-    "Actualización de pantallas y sistemas multimedia",
-    "Plumillas",
+    { name: "Polarizado", icon: "Sun", isTopSelling: true },
+    { name: "PPF (Paint Protection Film)", icon: "Shield", isTopSelling: true },
+    { name: "Vinilo", icon: "Palette", isTopSelling: true },
+    { name: "Película de seguridad", icon: "ShieldAlert", isTopSelling: false },
+    { name: "Luces LED", icon: "Lightbulb", isTopSelling: true },
+    { name: "Exploradoras", icon: "Lightbulb", isTopSelling: false },
+    { name: "Alarmas", icon: "Bell", isTopSelling: false },
+    { name: "Sensores", icon: "Radar", isTopSelling: true },
+    { name: "Radios", icon: "Radio", isTopSelling: true },
+    { name: "CarPlay", icon: "Smartphone", isTopSelling: false },
+    { name: "Parlantes", icon: "Speaker", isTopSelling: false },
+    { name: "Plantas de sonido", icon: "Sliders", isTopSelling: false },
+    { name: "Cámaras de reversa", icon: "Camera", isTopSelling: true },
+    { name: "Actualización de pantallas y sistemas multimedia", icon: "Tv", isTopSelling: false },
+    { name: "Plumillas", icon: "Wind", isTopSelling: false },
   ];
-  for (const name of services) {
+  for (const s of services) {
     await prisma.serviceCatalog.upsert({
-      where: { name },
-      update: {},
-      create: { name, isActive: true },
+      where: { name: s.name },
+      update: {
+        icon: s.icon,
+        isTopSelling: s.isTopSelling,
+      },
+      create: {
+        name: s.name,
+        icon: s.icon,
+        isTopSelling: s.isTopSelling,
+        isActive: true,
+      },
     });
   }
 

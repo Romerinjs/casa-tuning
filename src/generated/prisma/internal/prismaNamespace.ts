@@ -397,7 +397,8 @@ export const ModelName = {
   VisualInspection: 'VisualInspection',
   OrderPhoto: 'OrderPhoto',
   ActivityLog: 'ActivityLog',
-  OrderNotification: 'OrderNotification'
+  OrderNotification: 'OrderNotification',
+  OrderComment: 'OrderComment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -413,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "role" | "orderStatus" | "brand" | "serviceCatalog" | "documentType" | "user" | "client" | "car" | "order" | "orderService" | "visualInspection" | "orderPhoto" | "activityLog" | "orderNotification"
+    modelProps: "role" | "orderStatus" | "brand" | "serviceCatalog" | "documentType" | "user" | "client" | "car" | "order" | "orderService" | "visualInspection" | "orderPhoto" | "activityLog" | "orderNotification" | "orderComment"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1453,6 +1454,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OrderComment: {
+      payload: Prisma.$OrderCommentPayload<ExtArgs>
+      fields: Prisma.OrderCommentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OrderCommentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OrderCommentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload>
+        }
+        findFirst: {
+          args: Prisma.OrderCommentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OrderCommentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload>
+        }
+        findMany: {
+          args: Prisma.OrderCommentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload>[]
+        }
+        create: {
+          args: Prisma.OrderCommentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload>
+        }
+        createMany: {
+          args: Prisma.OrderCommentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OrderCommentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload>[]
+        }
+        delete: {
+          args: Prisma.OrderCommentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload>
+        }
+        update: {
+          args: Prisma.OrderCommentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload>
+        }
+        deleteMany: {
+          args: Prisma.OrderCommentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OrderCommentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OrderCommentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload>[]
+        }
+        upsert: {
+          args: Prisma.OrderCommentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCommentPayload>
+        }
+        aggregate: {
+          args: Prisma.OrderCommentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOrderComment>
+        }
+        groupBy: {
+          args: Prisma.OrderCommentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrderCommentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OrderCommentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrderCommentCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1512,7 +1587,8 @@ export type OrderStatusScalarFieldEnum = (typeof OrderStatusScalarFieldEnum)[key
 
 export const BrandScalarFieldEnum = {
   id: 'id',
-  name: 'name'
+  name: 'name',
+  logo: 'logo'
 } as const
 
 export type BrandScalarFieldEnum = (typeof BrandScalarFieldEnum)[keyof typeof BrandScalarFieldEnum]
@@ -1521,7 +1597,9 @@ export type BrandScalarFieldEnum = (typeof BrandScalarFieldEnum)[keyof typeof Br
 export const ServiceCatalogScalarFieldEnum = {
   id: 'id',
   name: 'name',
-  isActive: 'isActive'
+  isActive: 'isActive',
+  icon: 'icon',
+  isTopSelling: 'isTopSelling'
 } as const
 
 export type ServiceCatalogScalarFieldEnum = (typeof ServiceCatalogScalarFieldEnum)[keyof typeof ServiceCatalogScalarFieldEnum]
@@ -1555,8 +1633,10 @@ export const ClientScalarFieldEnum = {
   phone: 'phone',
   phone2: 'phone2',
   documentNumber: 'documentNumber',
+  documentNumberHash: 'documentNumberHash',
   documentTypeId: 'documentTypeId',
   email: 'email',
+  photoUrl: 'photoUrl',
   createdAt: 'createdAt'
 } as const
 
@@ -1589,7 +1669,8 @@ export const OrderScalarFieldEnum = {
   statusId: 'statusId',
   clientId: 'clientId',
   carId: 'carId',
-  creatorId: 'creatorId'
+  creatorId: 'creatorId',
+  deliveryPdfUrl: 'deliveryPdfUrl'
 } as const
 
 export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
@@ -1642,6 +1723,17 @@ export const OrderNotificationScalarFieldEnum = {
 } as const
 
 export type OrderNotificationScalarFieldEnum = (typeof OrderNotificationScalarFieldEnum)[keyof typeof OrderNotificationScalarFieldEnum]
+
+
+export const OrderCommentScalarFieldEnum = {
+  id: 'id',
+  content: 'content',
+  createdAt: 'createdAt',
+  orderId: 'orderId',
+  userId: 'userId'
+} as const
+
+export type OrderCommentScalarFieldEnum = (typeof OrderCommentScalarFieldEnum)[keyof typeof OrderCommentScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1891,6 +1983,7 @@ export type GlobalOmitConfig = {
   orderPhoto?: Prisma.OrderPhotoOmit
   activityLog?: Prisma.ActivityLogOmit
   orderNotification?: Prisma.OrderNotificationOmit
+  orderComment?: Prisma.OrderCommentOmit
 }
 
 /* Types for Logging */

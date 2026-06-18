@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ClipboardList,
 } from "lucide-react";
+import DashboardFAB from "@/components/DashboardFAB";
 
 export default async function DashboardPage() {
   await verifySession();
@@ -130,20 +131,13 @@ export default async function DashboardPage() {
           <span className="text-xs font-medium text-zinc-500 bg-zinc-100 px-3 py-1.5 rounded-full border border-zinc-200">
             {getFormattedDate()}
           </span>
-          <Link
-            href="/recepcion"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-4 py-2 text-xs font-semibold text-[#0A0A0C] transition-all duration-150 shadow-[0_2px_8px_rgba(201,168,76,0.25)]"
-          >
-            <Plus className="h-4 w-4 stroke-[2.5]" />
-            Registrar vehículo
-          </Link>
         </div>
       </header>
 
       {/* SCROLLABLE CONTENT */}
       <div className="flex-1 overflow-y-auto p-8 space-y-6">
         {/* STATS ROW */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* En proceso */}
           <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-xs relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-orange-500" />
@@ -231,43 +225,109 @@ export default async function DashboardPage() {
               </Link>
             </div>
 
-            <div className="overflow-x-auto">
+            <div>
               {activeOrders.length === 0 ? (
                 <div className="p-8 text-center text-zinc-400 text-sm">
                   No hay órdenes activas registradas.
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-zinc-50 border-b border-zinc-200 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      <th className="py-3 px-5">Placa</th>
-                      <th className="py-3 px-5">Cliente / Vehículo</th>
-                      <th className="py-3 px-5">Servicios</th>
-                      <th className="py-3 px-5">Estado</th>
-                      <th className="py-3 px-5">Hora</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-200">
+                <>
+                  {/* Vista de Escritorio: Tabla */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-zinc-50 border-b border-zinc-200 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                          <th className="py-3 px-5">Placa</th>
+                          <th className="py-3 px-5">Cliente / Vehículo</th>
+                          <th className="py-3 px-5">Servicios</th>
+                          <th className="py-3 px-5">Estado</th>
+                          <th className="py-3 px-5">Hora</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-200">
+                        {activeOrders.map((order) => (
+                          <tr
+                            key={order.id}
+                            className="hover:bg-zinc-50/70 transition-colors text-sm group"
+                          >
+                            <td className="py-3.5 px-5">
+                              <span className="font-mono font-bold text-xs bg-zinc-100 border border-zinc-300 rounded px-2.5 py-1 text-zinc-800 tracking-wider">
+                                {order.car.plate}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-5">
+                              <div className="font-semibold text-zinc-900">
+                                {order.client.name}
+                              </div>
+                              <div className="text-xs text-zinc-500">
+                                {order.car.brand.name} {order.car.model} ({order.car.year})
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-5">
+                              <div className="flex flex-wrap gap-1">
+                                {order.services.map((item) => (
+                                  <span
+                                    key={item.serviceId}
+                                    className="text-[10px] font-medium text-zinc-600 bg-zinc-100 border border-zinc-200 rounded px-2 py-0.5"
+                                  >
+                                    {item.service.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-5">
+                              <span
+                                className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${getStatusStyles(
+                                  order.status.name
+                                )}`}
+                              >
+                                {getStatusLabel(order.status.name)}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-5 text-xs text-zinc-400">
+                              {order.createdAt.toLocaleTimeString("es-ES", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Vista de Móviles: Tarjetas */}
+                  <div className="md:hidden divide-y divide-zinc-100">
                     {activeOrders.map((order) => (
-                      <tr
-                        key={order.id}
-                        className="hover:bg-zinc-50/70 transition-colors text-sm group"
-                      >
-                        <td className="py-3.5 px-5">
+                      <div key={order.id} className="p-5 flex flex-col gap-3">
+                        {/* Cabecera: Placa y Estado */}
+                        <div className="flex items-center justify-between">
                           <span className="font-mono font-bold text-xs bg-zinc-100 border border-zinc-300 rounded px-2.5 py-1 text-zinc-800 tracking-wider">
                             {order.car.plate}
                           </span>
-                        </td>
-                        <td className="py-3.5 px-5">
-                          <div className="font-semibold text-zinc-900">
+                          <span
+                            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${getStatusStyles(
+                              order.status.name
+                            )}`}
+                          >
+                            {getStatusLabel(order.status.name)}
+                          </span>
+                        </div>
+
+                        {/* Cuerpo: Cliente y Vehículo */}
+                        <div className="space-y-0.5">
+                          <h4 className="font-bold text-zinc-900 text-sm">
                             {order.client.name}
-                          </div>
-                          <div className="text-xs text-zinc-500">
+                          </h4>
+                          <p className="text-xs text-zinc-500">
                             {order.car.brand.name} {order.car.model} ({order.car.year})
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-5">
-                          <div className="flex flex-wrap gap-1">
+                          </p>
+                        </div>
+
+                        {/* Pie: Servicios y Hora */}
+                        <div className="flex items-center justify-between gap-4 pt-1">
+                          <div className="flex flex-wrap gap-1 max-w-[70%]">
                             {order.services.map((item) => (
                               <span
                                 key={item.serviceId}
@@ -277,27 +337,18 @@ export default async function DashboardPage() {
                               </span>
                             ))}
                           </div>
-                        </td>
-                        <td className="py-3.5 px-5">
-                          <span
-                            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${getStatusStyles(
-                              order.status.name
-                            )}`}
-                          >
-                            {getStatusLabel(order.status.name)}
+                          <span className="text-xs text-zinc-400 shrink-0">
+                            {order.createdAt.toLocaleTimeString("es-ES", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}
                           </span>
-                        </td>
-                        <td className="py-3.5 px-5 text-xs text-zinc-400">
-                          {order.createdAt.toLocaleTimeString("es-ES", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })}
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -352,6 +403,9 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Floating Action Button (FAB) for Register Vehicle */}
+      <DashboardFAB />
     </div>
   );
 }

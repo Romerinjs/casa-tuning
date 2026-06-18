@@ -87,3 +87,8 @@ export type ActivityLog = Prisma.ActivityLogModel
  * 
  */
 export type OrderNotification = Prisma.OrderNotificationModel
+/**
+ * Model OrderComment
+ * 
+ */
+export type OrderComment = Prisma.OrderCommentModel

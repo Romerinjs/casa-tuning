@@ -64,7 +64,8 @@ export const ModelName = {
   VisualInspection: 'VisualInspection',
   OrderPhoto: 'OrderPhoto',
   ActivityLog: 'ActivityLog',
-  OrderNotification: 'OrderNotification'
+  OrderNotification: 'OrderNotification',
+  OrderComment: 'OrderComment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -103,7 +104,8 @@ export type OrderStatusScalarFieldEnum = (typeof OrderStatusScalarFieldEnum)[key
 
 export const BrandScalarFieldEnum = {
   id: 'id',
-  name: 'name'
+  name: 'name',
+  logo: 'logo'
 } as const
 
 export type BrandScalarFieldEnum = (typeof BrandScalarFieldEnum)[keyof typeof BrandScalarFieldEnum]
@@ -112,7 +114,9 @@ export type BrandScalarFieldEnum = (typeof BrandScalarFieldEnum)[keyof typeof Br
 export const ServiceCatalogScalarFieldEnum = {
   id: 'id',
   name: 'name',
-  isActive: 'isActive'
+  isActive: 'isActive',
+  icon: 'icon',
+  isTopSelling: 'isTopSelling'
 } as const
 
 export type ServiceCatalogScalarFieldEnum = (typeof ServiceCatalogScalarFieldEnum)[keyof typeof ServiceCatalogScalarFieldEnum]
@@ -146,8 +150,10 @@ export const ClientScalarFieldEnum = {
   phone: 'phone',
   phone2: 'phone2',
   documentNumber: 'documentNumber',
+  documentNumberHash: 'documentNumberHash',
   documentTypeId: 'documentTypeId',
   email: 'email',
+  photoUrl: 'photoUrl',
   createdAt: 'createdAt'
 } as const
 
@@ -180,7 +186,8 @@ export const OrderScalarFieldEnum = {
   statusId: 'statusId',
   clientId: 'clientId',
   carId: 'carId',
-  creatorId: 'creatorId'
+  creatorId: 'creatorId',
+  deliveryPdfUrl: 'deliveryPdfUrl'
 } as const
 
 export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
@@ -233,6 +240,17 @@ export const OrderNotificationScalarFieldEnum = {
 } as const
 
 export type OrderNotificationScalarFieldEnum = (typeof OrderNotificationScalarFieldEnum)[keyof typeof OrderNotificationScalarFieldEnum]
+
+
+export const OrderCommentScalarFieldEnum = {
+  id: 'id',
+  content: 'content',
+  createdAt: 'createdAt',
+  orderId: 'orderId',
+  userId: 'userId'
+} as const
+
+export type OrderCommentScalarFieldEnum = (typeof OrderCommentScalarFieldEnum)[keyof typeof OrderCommentScalarFieldEnum]
 
 
 export const SortOrder = {

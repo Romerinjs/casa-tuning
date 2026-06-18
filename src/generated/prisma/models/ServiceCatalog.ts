@@ -38,18 +38,24 @@ export type ServiceCatalogMinAggregateOutputType = {
   id: number | null
   name: string | null
   isActive: boolean | null
+  icon: string | null
+  isTopSelling: boolean | null
 }
 
 export type ServiceCatalogMaxAggregateOutputType = {
   id: number | null
   name: string | null
   isActive: boolean | null
+  icon: string | null
+  isTopSelling: boolean | null
 }
 
 export type ServiceCatalogCountAggregateOutputType = {
   id: number
   name: number
   isActive: number
+  icon: number
+  isTopSelling: number
   _all: number
 }
 
@@ -66,18 +72,24 @@ export type ServiceCatalogMinAggregateInputType = {
   id?: true
   name?: true
   isActive?: true
+  icon?: true
+  isTopSelling?: true
 }
 
 export type ServiceCatalogMaxAggregateInputType = {
   id?: true
   name?: true
   isActive?: true
+  icon?: true
+  isTopSelling?: true
 }
 
 export type ServiceCatalogCountAggregateInputType = {
   id?: true
   name?: true
   isActive?: true
+  icon?: true
+  isTopSelling?: true
   _all?: true
 }
 
@@ -171,6 +183,8 @@ export type ServiceCatalogGroupByOutputType = {
   id: number
   name: string
   isActive: boolean
+  icon: string | null
+  isTopSelling: boolean
   _count: ServiceCatalogCountAggregateOutputType | null
   _avg: ServiceCatalogAvgAggregateOutputType | null
   _sum: ServiceCatalogSumAggregateOutputType | null
@@ -200,6 +214,8 @@ export type ServiceCatalogWhereInput = {
   id?: Prisma.IntFilter<"ServiceCatalog"> | number
   name?: Prisma.StringFilter<"ServiceCatalog"> | string
   isActive?: Prisma.BoolFilter<"ServiceCatalog"> | boolean
+  icon?: Prisma.StringNullableFilter<"ServiceCatalog"> | string | null
+  isTopSelling?: Prisma.BoolFilter<"ServiceCatalog"> | boolean
   orderItems?: Prisma.OrderServiceListRelationFilter
 }
 
@@ -207,6 +223,8 @@ export type ServiceCatalogOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  icon?: Prisma.SortOrderInput | Prisma.SortOrder
+  isTopSelling?: Prisma.SortOrder
   orderItems?: Prisma.OrderServiceOrderByRelationAggregateInput
 }
 
@@ -217,6 +235,8 @@ export type ServiceCatalogWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ServiceCatalogWhereInput[]
   NOT?: Prisma.ServiceCatalogWhereInput | Prisma.ServiceCatalogWhereInput[]
   isActive?: Prisma.BoolFilter<"ServiceCatalog"> | boolean
+  icon?: Prisma.StringNullableFilter<"ServiceCatalog"> | string | null
+  isTopSelling?: Prisma.BoolFilter<"ServiceCatalog"> | boolean
   orderItems?: Prisma.OrderServiceListRelationFilter
 }, "id" | "name">
 
@@ -224,6 +244,8 @@ export type ServiceCatalogOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  icon?: Prisma.SortOrderInput | Prisma.SortOrder
+  isTopSelling?: Prisma.SortOrder
   _count?: Prisma.ServiceCatalogCountOrderByAggregateInput
   _avg?: Prisma.ServiceCatalogAvgOrderByAggregateInput
   _max?: Prisma.ServiceCatalogMaxOrderByAggregateInput
@@ -238,11 +260,15 @@ export type ServiceCatalogScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"ServiceCatalog"> | number
   name?: Prisma.StringWithAggregatesFilter<"ServiceCatalog"> | string
   isActive?: Prisma.BoolWithAggregatesFilter<"ServiceCatalog"> | boolean
+  icon?: Prisma.StringNullableWithAggregatesFilter<"ServiceCatalog"> | string | null
+  isTopSelling?: Prisma.BoolWithAggregatesFilter<"ServiceCatalog"> | boolean
 }
 
 export type ServiceCatalogCreateInput = {
   name: string
   isActive?: boolean
+  icon?: string | null
+  isTopSelling?: boolean
   orderItems?: Prisma.OrderServiceCreateNestedManyWithoutServiceInput
 }
 
@@ -250,12 +276,16 @@ export type ServiceCatalogUncheckedCreateInput = {
   id?: number
   name: string
   isActive?: boolean
+  icon?: string | null
+  isTopSelling?: boolean
   orderItems?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutServiceInput
 }
 
 export type ServiceCatalogUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
   orderItems?: Prisma.OrderServiceUpdateManyWithoutServiceNestedInput
 }
 
@@ -263,6 +293,8 @@ export type ServiceCatalogUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
   orderItems?: Prisma.OrderServiceUncheckedUpdateManyWithoutServiceNestedInput
 }
 
@@ -270,23 +302,31 @@ export type ServiceCatalogCreateManyInput = {
   id?: number
   name: string
   isActive?: boolean
+  icon?: string | null
+  isTopSelling?: boolean
 }
 
 export type ServiceCatalogUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ServiceCatalogUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ServiceCatalogCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  icon?: Prisma.SortOrder
+  isTopSelling?: Prisma.SortOrder
 }
 
 export type ServiceCatalogAvgOrderByAggregateInput = {
@@ -297,12 +337,16 @@ export type ServiceCatalogMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  icon?: Prisma.SortOrder
+  isTopSelling?: Prisma.SortOrder
 }
 
 export type ServiceCatalogMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  icon?: Prisma.SortOrder
+  isTopSelling?: Prisma.SortOrder
 }
 
 export type ServiceCatalogSumOrderByAggregateInput = {
@@ -335,12 +379,16 @@ export type ServiceCatalogUpdateOneRequiredWithoutOrderItemsNestedInput = {
 export type ServiceCatalogCreateWithoutOrderItemsInput = {
   name: string
   isActive?: boolean
+  icon?: string | null
+  isTopSelling?: boolean
 }
 
 export type ServiceCatalogUncheckedCreateWithoutOrderItemsInput = {
   id?: number
   name: string
   isActive?: boolean
+  icon?: string | null
+  isTopSelling?: boolean
 }
 
 export type ServiceCatalogCreateOrConnectWithoutOrderItemsInput = {
@@ -362,12 +410,16 @@ export type ServiceCatalogUpdateToOneWithWhereWithoutOrderItemsInput = {
 export type ServiceCatalogUpdateWithoutOrderItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ServiceCatalogUncheckedUpdateWithoutOrderItemsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -405,6 +457,8 @@ export type ServiceCatalogSelect<ExtArgs extends runtime.Types.Extensions.Intern
   id?: boolean
   name?: boolean
   isActive?: boolean
+  icon?: boolean
+  isTopSelling?: boolean
   orderItems?: boolean | Prisma.ServiceCatalog$orderItemsArgs<ExtArgs>
   _count?: boolean | Prisma.ServiceCatalogCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["serviceCatalog"]>
@@ -413,21 +467,27 @@ export type ServiceCatalogSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   id?: boolean
   name?: boolean
   isActive?: boolean
+  icon?: boolean
+  isTopSelling?: boolean
 }, ExtArgs["result"]["serviceCatalog"]>
 
 export type ServiceCatalogSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
   isActive?: boolean
+  icon?: boolean
+  isTopSelling?: boolean
 }, ExtArgs["result"]["serviceCatalog"]>
 
 export type ServiceCatalogSelectScalar = {
   id?: boolean
   name?: boolean
   isActive?: boolean
+  icon?: boolean
+  isTopSelling?: boolean
 }
 
-export type ServiceCatalogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "isActive", ExtArgs["result"]["serviceCatalog"]>
+export type ServiceCatalogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "isActive" | "icon" | "isTopSelling", ExtArgs["result"]["serviceCatalog"]>
 export type ServiceCatalogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   orderItems?: boolean | Prisma.ServiceCatalog$orderItemsArgs<ExtArgs>
   _count?: boolean | Prisma.ServiceCatalogCountOutputTypeDefaultArgs<ExtArgs>
@@ -444,6 +504,8 @@ export type $ServiceCatalogPayload<ExtArgs extends runtime.Types.Extensions.Inte
     id: number
     name: string
     isActive: boolean
+    icon: string | null
+    isTopSelling: boolean
   }, ExtArgs["result"]["serviceCatalog"]>
   composites: {}
 }
@@ -871,6 +933,8 @@ export interface ServiceCatalogFieldRefs {
   readonly id: Prisma.FieldRef<"ServiceCatalog", 'Int'>
   readonly name: Prisma.FieldRef<"ServiceCatalog", 'String'>
   readonly isActive: Prisma.FieldRef<"ServiceCatalog", 'Boolean'>
+  readonly icon: Prisma.FieldRef<"ServiceCatalog", 'String'>
+  readonly isTopSelling: Prisma.FieldRef<"ServiceCatalog", 'Boolean'>
 }
     
 

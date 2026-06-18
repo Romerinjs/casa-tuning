@@ -1,13 +1,14 @@
 import prisma from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/auth-helpers";
 import ClientesClientView from "@/components/ClientesClientView";
+import { decryptDocument } from "@/lib/security";
 
 export default async function ClientesPage() {
   // Session authorization check
   await verifyAdminSession();
 
   // Fetch clients, brands, and document types in parallel
-  const [clients, brands, documentTypes] = await Promise.all([
+  const [clientsData, brands, documentTypes] = await Promise.all([
     prisma.client.findMany({
       include: {
         documentType: true,
@@ -45,6 +46,11 @@ export default async function ClientesPage() {
       },
     }),
   ]);
+
+  const clients = clientsData.map((c) => ({
+    ...c,
+    documentNumber: c.documentNumber ? decryptDocument(c.documentNumber) : null,
+  }));
 
   return <ClientesClientView clients={clients} brands={brands} documentTypes={documentTypes} />;
 }
