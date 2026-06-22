@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useRef } from "react";
 import { createClientAction, updateClientAction, createCarAction, uploadClientPhotoAction } from "@/app/(authenticated)/clientes/actions";
 import { downloadOrderPdfAction } from "@/app/(authenticated)/ordenes/actions";
 import { useToast } from "@/components/ui/Toast";
@@ -25,7 +25,7 @@ interface ClientCar {
   plate: string;
   model: string;
   year: number;
-  brand: { name: string };
+  brand: { name: string; logo?: string | null };
 }
 
 interface ClientOrder {
@@ -70,6 +70,27 @@ interface ClientesClientViewProps {
 
 export default function ClientesClientView({ clients, brands, documentTypes }: ClientesClientViewProps) {
   const { showToast } = useToast();
+  const brandDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close brand dropdown when clicking/tapping outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      if (
+        brandDropdownRef.current &&
+        !brandDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsBrandDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -390,6 +411,7 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
                         showToast("Error al subir la foto", "error");
                       } finally {
                         setIsUploadingPhoto(false);
+                        e.target.value = "";
                       }
                     };
                     reader.readAsDataURL(file);
@@ -436,13 +458,23 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
                     </a>
                   </div>
                 )}
-                {selectedClient.documentNumber && (
+                {selectedClient.documentNumber ? (
                   <div className="flex items-center gap-2.5 text-sm text-zinc-700 pt-2 border-t border-zinc-200/60">
                     <User className="h-4 w-4 text-zinc-400 shrink-0" />
                     <span className="font-semibold text-zinc-800">
                       {selectedClient.documentType ? `${selectedClient.documentType.code}: ` : "Doc: "}
                       {selectedClient.documentNumber}
                     </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2.5 text-sm text-zinc-700 pt-2 border-t border-zinc-200/60">
+                    <User className="h-4 w-4 text-zinc-400 shrink-0" />
+                    <button
+                      onClick={() => openEditModal(selectedClient)}
+                      className="text-xs font-semibold text-[#9A7A28] hover:text-[#C9A84C] transition-colors underline bg-transparent border-0 p-0 cursor-pointer align-baseline"
+                    >
+                      Añadir número de documento
+                    </button>
                   </div>
                 )}
                 <div className="flex items-center gap-2.5 text-xs text-zinc-400 pt-1 border-t border-zinc-200/60">
@@ -484,6 +516,15 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
                         key={car.id}
                         className="bg-white border border-zinc-200 rounded-xl p-3 flex items-center gap-3"
                       >
+                        {car.brand.logo ? (
+                          <div className="h-8 w-8 rounded-lg bg-zinc-50 border border-zinc-150 p-1 flex items-center justify-center overflow-hidden shrink-0">
+                            <img src={car.brand.logo} alt={car.brand.name} className="h-full w-full object-contain" />
+                          </div>
+                        ) : (
+                          <div className="h-8 w-8 rounded-lg bg-[#FBF5E6] text-[#9A7A28] border border-[#C9A84C]/25 flex items-center justify-center text-xs font-bold shrink-0 select-none">
+                            {car.brand.name.substring(0, 1).toUpperCase()}
+                          </div>
+                        )}
                         <span className="font-mono font-bold text-xs bg-zinc-100 border border-zinc-300 rounded px-2 py-0.5 tracking-wider text-zinc-800 shrink-0">
                           {car.plate}
                         </span>
@@ -680,6 +721,7 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
                   type="text"
                   name="documentNumber"
                   value={clientDocumentNumber}
+                  autoComplete="off"
                   onChange={(e) => {
                     setClientDocumentNumber(e.target.value.replace(/\D/g, "").slice(0, 10));
                     setClientError(null);
@@ -852,6 +894,7 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
                   type="text"
                   name="documentNumber"
                   value={editClientDocumentNumber}
+                  autoComplete="off"
                   onChange={(e) => {
                     setEditClientDocumentNumber(e.target.value.replace(/\D/g, "").slice(0, 10));
                     setEditClientError(null);
@@ -1023,78 +1066,44 @@ export default function ClientesClientView({ clients, brands, documentTypes }: C
               </div>
             </div>
 
-            {/* Custom Styled Brand Selector inside Modal */}
+            {/* Brand native select overlay */}
             <div className="space-y-1 relative">
               <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
                 Marca *
               </label>
-              <input type="hidden" name="brandId" value={carBrandId} required />
               <button
                 type="button"
-                onClick={() => {
-                  setIsBrandDropdownOpen(!isBrandDropdownOpen);
-                  setCarError(null);
+                className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 transition-all flex items-center justify-between cursor-pointer"
+                onClickCapture={() => {
+                  const selector = document.getElementById("addCarBrandSelect");
+                  if (selector) (selector as any).showPicker?.() || selector.focus();
                 }}
-                className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-805 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all flex items-center justify-between cursor-pointer active:scale-99"
               >
-                <div className="flex items-center gap-2 truncate">
-                  {carBrandId ? (
-                    (() => {
-                      const b = brands.find((b) => b.id.toString() === carBrandId);
-                      if (!b) return <span>Seleccionar...</span>;
-                      return (
-                        <>
-                          {b.logo && (
-                            <img
-                              src={b.logo}
-                              alt={b.name}
-                              className="h-5 w-5 object-contain rounded shrink-0 bg-white"
-                            />
-                          )}
-                          <span className="truncate font-semibold">{b.name}</span>
-                        </>
-                      );
-                    })()
-                  ) : (
-                    <span>Seleccionar...</span>
-                  )}
-                </div>
+                <span className="truncate">
+                  {carBrandId
+                    ? brands.find((b) => b.id.toString() === carBrandId)?.name || "Seleccionar..."
+                    : "Seleccionar..."}
+                </span>
                 <ChevronDown className="h-4 w-4 text-zinc-400 shrink-0" />
               </button>
-
-              {isBrandDropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-30"
-                    onClick={() => setIsBrandDropdownOpen(false)}
-                  />
-                  <div className="absolute left-0 right-0 mt-1 max-h-40 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-805 z-40 animate-[fadeIn_0.15s_ease-out]">
-                    {brands.map((brand) => (
-                      <div
-                        key={brand.id}
-                        onClick={() => {
-                          setCarBrandId(brand.id.toString());
-                          setIsBrandDropdownOpen(false);
-                        }}
-                        className={`py-2 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none flex items-center gap-2 ${
-                          carBrandId === brand.id.toString()
-                            ? "text-[#9A7A28] bg-[#FBF5E6]/40"
-                            : "text-zinc-700"
-                        }`}
-                      >
-                        {brand.logo && (
-                          <img
-                            src={brand.logo}
-                            alt={brand.name}
-                            className="h-5 w-5 object-contain rounded shrink-0 bg-white"
-                          />
-                        )}
-                        <span>{brand.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+              <select
+                id="addCarBrandSelect"
+                name="brandId"
+                value={carBrandId}
+                required
+                onChange={(e) => {
+                  setCarBrandId(e.target.value);
+                  setCarError(null);
+                }}
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+              >
+                <option value="">Seleccionar...</option>
+                {brands.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

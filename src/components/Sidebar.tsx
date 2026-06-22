@@ -13,6 +13,8 @@ import {
   LogOut,
   Menu,
   X,
+  Car,
+  Megaphone,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -66,6 +68,16 @@ export default function Sidebar({ user }: SidebarProps) {
               href: "/clientes",
               label: "Clientes",
               icon: Users,
+            },
+            {
+              href: "/vehiculos",
+              label: "Vehículos",
+              icon: Car,
+            },
+            {
+              href: "/promociones",
+              label: "Promociones",
+              icon: Megaphone,
             },
             {
               href: "/administracion",
@@ -157,7 +169,10 @@ export default function Sidebar({ user }: SidebarProps) {
             </div>
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={async () => {
+              await signOut({ redirect: false });
+              window.location.href = "/login";
+            }}
             className="h-8 w-8 rounded-lg flex items-center justify-center text-white/40 hover:text-red-400 hover:bg-white/[0.04] transition-colors shrink-0"
             title="Cerrar sesión"
           >
@@ -171,7 +186,7 @@ export default function Sidebar({ user }: SidebarProps) {
   return (
     <>
       {/* MOBILE HEADER BAR */}
-      <div className="lg:hidden h-14 border-b border-white/[0.06] bg-[#111113] flex items-center justify-between px-6 text-white shrink-0 w-full z-30">
+      <div className="lg:hidden h-14 border-b border-white/[0.06] bg-[#111113] flex items-center justify-between px-6 text-white shrink-0 w-full z-30 relative">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#C9A84C] to-[#9A7A28]">
             <img src="/logo-ct.svg" alt="Casa Tuning Logo" className="h-4.5 w-4.5" />
@@ -187,7 +202,7 @@ export default function Sidebar({ user }: SidebarProps) {
         </div>
         <button
           onClick={() => setIsMobileOpen(true)}
-          className="p-2 rounded-lg text-white/65 hover:text-white hover:bg-white/[0.04] transition-colors shrink-0"
+          className="p-2 rounded-lg text-white/65 hover:text-white hover:bg-white/[0.04] transition-colors shrink-0 cursor-pointer"
         >
           <Menu className="h-5.5 w-5.5" />
         </button>
@@ -196,14 +211,16 @@ export default function Sidebar({ user }: SidebarProps) {
       {/* MOBILE SLIDE-OUT MENU OVERLAY */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden cursor-pointer"
+          role="button"
+          aria-label="Cerrar menú"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
       {/* MOBILE SIDEBAR DRAWER PANEL */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#111113] flex flex-col h-screen shrink-0 text-white select-none transform transition-transform duration-300 ease-out lg:hidden ${isMobileOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#111113] flex flex-col h-[100dvh] shrink-0 text-white select-none transform transition-transform duration-300 ease-out lg:hidden ${isMobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         {renderSidebarContent(() => setIsMobileOpen(false))}

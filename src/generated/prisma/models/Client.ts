@@ -263,6 +263,7 @@ export type ClientWhereInput = {
   documentType?: Prisma.XOR<Prisma.DocumentTypeNullableScalarRelationFilter, Prisma.DocumentTypeWhereInput> | null
   cars?: Prisma.CarListRelationFilter
   orders?: Prisma.OrderListRelationFilter
+  promotions?: Prisma.PromotionClientListRelationFilter
 }
 
 export type ClientOrderByWithRelationInput = {
@@ -279,6 +280,7 @@ export type ClientOrderByWithRelationInput = {
   documentType?: Prisma.DocumentTypeOrderByWithRelationInput
   cars?: Prisma.CarOrderByRelationAggregateInput
   orders?: Prisma.OrderOrderByRelationAggregateInput
+  promotions?: Prisma.PromotionClientOrderByRelationAggregateInput
 }
 
 export type ClientWhereUniqueInput = Prisma.AtLeast<{
@@ -298,6 +300,7 @@ export type ClientWhereUniqueInput = Prisma.AtLeast<{
   documentType?: Prisma.XOR<Prisma.DocumentTypeNullableScalarRelationFilter, Prisma.DocumentTypeWhereInput> | null
   cars?: Prisma.CarListRelationFilter
   orders?: Prisma.OrderListRelationFilter
+  promotions?: Prisma.PromotionClientListRelationFilter
 }, "id" | "phone" | "documentNumberHash">
 
 export type ClientOrderByWithAggregationInput = {
@@ -346,6 +349,7 @@ export type ClientCreateInput = {
   documentType?: Prisma.DocumentTypeCreateNestedOneWithoutClientsInput
   cars?: Prisma.CarCreateNestedManyWithoutClientInput
   orders?: Prisma.OrderCreateNestedManyWithoutClientInput
+  promotions?: Prisma.PromotionClientCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateInput = {
@@ -361,6 +365,7 @@ export type ClientUncheckedCreateInput = {
   createdAt?: Date | string
   cars?: Prisma.CarUncheckedCreateNestedManyWithoutClientInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutClientInput
+  promotions?: Prisma.PromotionClientUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientUpdateInput = {
@@ -375,6 +380,7 @@ export type ClientUpdateInput = {
   documentType?: Prisma.DocumentTypeUpdateOneWithoutClientsNestedInput
   cars?: Prisma.CarUpdateManyWithoutClientNestedInput
   orders?: Prisma.OrderUpdateManyWithoutClientNestedInput
+  promotions?: Prisma.PromotionClientUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateInput = {
@@ -390,6 +396,7 @@ export type ClientUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cars?: Prisma.CarUncheckedUpdateManyWithoutClientNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutClientNestedInput
+  promotions?: Prisma.PromotionClientUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateManyInput = {
@@ -571,6 +578,20 @@ export type ClientUpdateOneRequiredWithoutOrdersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClientUpdateToOneWithWhereWithoutOrdersInput, Prisma.ClientUpdateWithoutOrdersInput>, Prisma.ClientUncheckedUpdateWithoutOrdersInput>
 }
 
+export type ClientCreateNestedOneWithoutPromotionsInput = {
+  create?: Prisma.XOR<Prisma.ClientCreateWithoutPromotionsInput, Prisma.ClientUncheckedCreateWithoutPromotionsInput>
+  connectOrCreate?: Prisma.ClientCreateOrConnectWithoutPromotionsInput
+  connect?: Prisma.ClientWhereUniqueInput
+}
+
+export type ClientUpdateOneRequiredWithoutPromotionsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientCreateWithoutPromotionsInput, Prisma.ClientUncheckedCreateWithoutPromotionsInput>
+  connectOrCreate?: Prisma.ClientCreateOrConnectWithoutPromotionsInput
+  upsert?: Prisma.ClientUpsertWithoutPromotionsInput
+  connect?: Prisma.ClientWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClientUpdateToOneWithWhereWithoutPromotionsInput, Prisma.ClientUpdateWithoutPromotionsInput>, Prisma.ClientUncheckedUpdateWithoutPromotionsInput>
+}
+
 export type ClientCreateWithoutDocumentTypeInput = {
   name: string
   phone: string
@@ -582,6 +603,7 @@ export type ClientCreateWithoutDocumentTypeInput = {
   createdAt?: Date | string
   cars?: Prisma.CarCreateNestedManyWithoutClientInput
   orders?: Prisma.OrderCreateNestedManyWithoutClientInput
+  promotions?: Prisma.PromotionClientCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutDocumentTypeInput = {
@@ -596,6 +618,7 @@ export type ClientUncheckedCreateWithoutDocumentTypeInput = {
   createdAt?: Date | string
   cars?: Prisma.CarUncheckedCreateNestedManyWithoutClientInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutClientInput
+  promotions?: Prisma.PromotionClientUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutDocumentTypeInput = {
@@ -651,6 +674,7 @@ export type ClientCreateWithoutCarsInput = {
   createdAt?: Date | string
   documentType?: Prisma.DocumentTypeCreateNestedOneWithoutClientsInput
   orders?: Prisma.OrderCreateNestedManyWithoutClientInput
+  promotions?: Prisma.PromotionClientCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutCarsInput = {
@@ -665,6 +689,7 @@ export type ClientUncheckedCreateWithoutCarsInput = {
   photoUrl?: string | null
   createdAt?: Date | string
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutClientInput
+  promotions?: Prisma.PromotionClientUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutCarsInput = {
@@ -694,6 +719,7 @@ export type ClientUpdateWithoutCarsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   documentType?: Prisma.DocumentTypeUpdateOneWithoutClientsNestedInput
   orders?: Prisma.OrderUpdateManyWithoutClientNestedInput
+  promotions?: Prisma.PromotionClientUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutCarsInput = {
@@ -708,6 +734,7 @@ export type ClientUncheckedUpdateWithoutCarsInput = {
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orders?: Prisma.OrderUncheckedUpdateManyWithoutClientNestedInput
+  promotions?: Prisma.PromotionClientUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateWithoutOrdersInput = {
@@ -721,6 +748,7 @@ export type ClientCreateWithoutOrdersInput = {
   createdAt?: Date | string
   documentType?: Prisma.DocumentTypeCreateNestedOneWithoutClientsInput
   cars?: Prisma.CarCreateNestedManyWithoutClientInput
+  promotions?: Prisma.PromotionClientCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutOrdersInput = {
@@ -735,6 +763,7 @@ export type ClientUncheckedCreateWithoutOrdersInput = {
   photoUrl?: string | null
   createdAt?: Date | string
   cars?: Prisma.CarUncheckedCreateNestedManyWithoutClientInput
+  promotions?: Prisma.PromotionClientUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutOrdersInput = {
@@ -764,6 +793,7 @@ export type ClientUpdateWithoutOrdersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   documentType?: Prisma.DocumentTypeUpdateOneWithoutClientsNestedInput
   cars?: Prisma.CarUpdateManyWithoutClientNestedInput
+  promotions?: Prisma.PromotionClientUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutOrdersInput = {
@@ -778,6 +808,81 @@ export type ClientUncheckedUpdateWithoutOrdersInput = {
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cars?: Prisma.CarUncheckedUpdateManyWithoutClientNestedInput
+  promotions?: Prisma.PromotionClientUncheckedUpdateManyWithoutClientNestedInput
+}
+
+export type ClientCreateWithoutPromotionsInput = {
+  name: string
+  phone: string
+  phone2?: string | null
+  documentNumber?: string | null
+  documentNumberHash?: string | null
+  email?: string | null
+  photoUrl?: string | null
+  createdAt?: Date | string
+  documentType?: Prisma.DocumentTypeCreateNestedOneWithoutClientsInput
+  cars?: Prisma.CarCreateNestedManyWithoutClientInput
+  orders?: Prisma.OrderCreateNestedManyWithoutClientInput
+}
+
+export type ClientUncheckedCreateWithoutPromotionsInput = {
+  id?: number
+  name: string
+  phone: string
+  phone2?: string | null
+  documentNumber?: string | null
+  documentNumberHash?: string | null
+  documentTypeId?: number | null
+  email?: string | null
+  photoUrl?: string | null
+  createdAt?: Date | string
+  cars?: Prisma.CarUncheckedCreateNestedManyWithoutClientInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutClientInput
+}
+
+export type ClientCreateOrConnectWithoutPromotionsInput = {
+  where: Prisma.ClientWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientCreateWithoutPromotionsInput, Prisma.ClientUncheckedCreateWithoutPromotionsInput>
+}
+
+export type ClientUpsertWithoutPromotionsInput = {
+  update: Prisma.XOR<Prisma.ClientUpdateWithoutPromotionsInput, Prisma.ClientUncheckedUpdateWithoutPromotionsInput>
+  create: Prisma.XOR<Prisma.ClientCreateWithoutPromotionsInput, Prisma.ClientUncheckedCreateWithoutPromotionsInput>
+  where?: Prisma.ClientWhereInput
+}
+
+export type ClientUpdateToOneWithWhereWithoutPromotionsInput = {
+  where?: Prisma.ClientWhereInput
+  data: Prisma.XOR<Prisma.ClientUpdateWithoutPromotionsInput, Prisma.ClientUncheckedUpdateWithoutPromotionsInput>
+}
+
+export type ClientUpdateWithoutPromotionsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  phone2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentNumberHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentType?: Prisma.DocumentTypeUpdateOneWithoutClientsNestedInput
+  cars?: Prisma.CarUpdateManyWithoutClientNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutClientNestedInput
+}
+
+export type ClientUncheckedUpdateWithoutPromotionsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  phone2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentNumberHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentTypeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cars?: Prisma.CarUncheckedUpdateManyWithoutClientNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateManyDocumentTypeInput = {
@@ -803,6 +908,7 @@ export type ClientUpdateWithoutDocumentTypeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cars?: Prisma.CarUpdateManyWithoutClientNestedInput
   orders?: Prisma.OrderUpdateManyWithoutClientNestedInput
+  promotions?: Prisma.PromotionClientUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutDocumentTypeInput = {
@@ -817,6 +923,7 @@ export type ClientUncheckedUpdateWithoutDocumentTypeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cars?: Prisma.CarUncheckedUpdateManyWithoutClientNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutClientNestedInput
+  promotions?: Prisma.PromotionClientUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateManyWithoutDocumentTypeInput = {
@@ -839,11 +946,13 @@ export type ClientUncheckedUpdateManyWithoutDocumentTypeInput = {
 export type ClientCountOutputType = {
   cars: number
   orders: number
+  promotions: number
 }
 
 export type ClientCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   cars?: boolean | ClientCountOutputTypeCountCarsArgs
   orders?: boolean | ClientCountOutputTypeCountOrdersArgs
+  promotions?: boolean | ClientCountOutputTypeCountPromotionsArgs
 }
 
 /**
@@ -870,6 +979,13 @@ export type ClientCountOutputTypeCountOrdersArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.OrderWhereInput
 }
 
+/**
+ * ClientCountOutputType without action
+ */
+export type ClientCountOutputTypeCountPromotionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PromotionClientWhereInput
+}
+
 
 export type ClientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -885,6 +1001,7 @@ export type ClientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   documentType?: boolean | Prisma.Client$documentTypeArgs<ExtArgs>
   cars?: boolean | Prisma.Client$carsArgs<ExtArgs>
   orders?: boolean | Prisma.Client$ordersArgs<ExtArgs>
+  promotions?: boolean | Prisma.Client$promotionsArgs<ExtArgs>
   _count?: boolean | Prisma.ClientCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["client"]>
 
@@ -934,6 +1051,7 @@ export type ClientInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   documentType?: boolean | Prisma.Client$documentTypeArgs<ExtArgs>
   cars?: boolean | Prisma.Client$carsArgs<ExtArgs>
   orders?: boolean | Prisma.Client$ordersArgs<ExtArgs>
+  promotions?: boolean | Prisma.Client$promotionsArgs<ExtArgs>
   _count?: boolean | Prisma.ClientCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClientIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -949,6 +1067,7 @@ export type $ClientPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     documentType: Prisma.$DocumentTypePayload<ExtArgs> | null
     cars: Prisma.$CarPayload<ExtArgs>[]
     orders: Prisma.$OrderPayload<ExtArgs>[]
+    promotions: Prisma.$PromotionClientPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1358,6 +1477,7 @@ export interface Prisma__ClientClient<T, Null = never, ExtArgs extends runtime.T
   documentType<T extends Prisma.Client$documentTypeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$documentTypeArgs<ExtArgs>>): Prisma.Prisma__DocumentTypeClient<runtime.Types.Result.GetResult<Prisma.$DocumentTypePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   cars<T extends Prisma.Client$carsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$carsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CarPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   orders<T extends Prisma.Client$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  promotions<T extends Prisma.Client$promotionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$promotionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PromotionClientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1862,6 +1982,30 @@ export type Client$ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
+}
+
+/**
+ * Client.promotions
+ */
+export type Client$promotionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PromotionClient
+   */
+  select?: Prisma.PromotionClientSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PromotionClient
+   */
+  omit?: Prisma.PromotionClientOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PromotionClientInclude<ExtArgs> | null
+  where?: Prisma.PromotionClientWhereInput
+  orderBy?: Prisma.PromotionClientOrderByWithRelationInput | Prisma.PromotionClientOrderByWithRelationInput[]
+  cursor?: Prisma.PromotionClientWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PromotionClientScalarFieldEnum | Prisma.PromotionClientScalarFieldEnum[]
 }
 
 /**

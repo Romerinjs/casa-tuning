@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "8mb",
     },
   },
+  allowedDevOrigins: ["designate-tidiness-stifle.ngrok-free.dev"],
 };
 
 export default nextConfig;

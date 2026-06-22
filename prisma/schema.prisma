@@ -34,7 +34,8 @@ model Brand {
   name String @unique @db.VarChar(50)
   logo String? @db.Text // Base64 logo of the brand
 
-  cars Car[]
+  cars       Car[]
+  promotions Promotion[]
 
   @@map("brands")
 }
@@ -47,6 +48,7 @@ model ServiceCatalog {
   isTopSelling Boolean        @default(false) @map("is_top_selling")
 
   orderItems   OrderService[]
+  promotions   Promotion[]
 
   @@map("service_catalog")
 }
@@ -95,19 +97,21 @@ model Client {
   photoUrl           String?       @db.Text @map("photo_url")
   createdAt          DateTime      @default(now()) @map("created_at")
 
-  cars   Car[]
-  orders Order[]
+  cars       Car[]
+  orders     Order[]
+  promotions PromotionClient[]
 
   @@map("clients")
 }
 
 model Car {
-  id    Int    @id @default(autoincrement())
-  plate String @unique @db.VarChar(10)
-  type  String @default("Automóvil") @db.VarChar(30)
-  model String @db.VarChar(100)
-  year  Int
-  color String @db.VarChar(50)
+  id       Int     @id @default(autoincrement())
+  plate    String  @db.VarChar(10)
+  type     String  @default("Automóvil") @db.VarChar(30)
+  model    String  @db.VarChar(100)
+  year     Int
+  color    String  @db.VarChar(50)
+  isActive Boolean @default(true) @map("is_active")
 
   clientId Int    @map("client_id")
   client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -116,6 +120,7 @@ model Car {
 
   orders Order[]
 
+  @@unique([plate, clientId])
   @@index([clientId])
   @@index([brandId])
   @@map("cars")
@@ -235,4 +240,34 @@ model OrderComment {
 
   @@index([orderId])
   @@map("order_comments")
+}
+
+model Promotion {
+  id           Int               @id @default(autoincrement())
+  name         String            @db.VarChar(150)
+  templateName String            @map("template_name") @db.VarChar(100)
+  fileUrl      String?           @map("file_url") @db.Text
+  createdAt    DateTime          @default(now()) @map("created_at")
+  
+  serviceId    Int               @map("service_id")
+  service      ServiceCatalog    @relation(fields: [serviceId], references: [id])
+  brandId      Int               @map("brand_id")
+  brand        Brand             @relation(fields: [brandId], references: [id])
+  
+  clients      PromotionClient[]
+
+  @@map("promotions")
+}
+
+model PromotionClient {
+  promotionId Int      @map("promotion_id")
+  clientId    Int      @map("client_id")
+  sentAt      DateTime @default(now()) @map("sent_at")
+  status      String   @default("SENT") @db.VarChar(20) // SENT | FAILED
+
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@id([promotionId, clientId])
+  @@map("promotion_clients")
 }

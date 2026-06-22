@@ -7,6 +7,7 @@ import { uploadBase64 } from "@/lib/storage";
 import { sendReceptionEmail } from "@/lib/emails";
 import { hashDocument, encryptDocument } from "@/lib/security";
 import { sendWhatsAppReceptionAction } from "@/lib/whatsapp";
+import { after } from "next/server";
 
 export async function createOrderAction(
   prevState: { success: boolean; error?: string } | null,
@@ -84,6 +85,22 @@ export async function createOrderAction(
       return { success: false, error: "El correo electrónico del cliente no tiene un formato válido." };
     }
 
+    // Check unique email collision
+    if (cleanEmail) {
+      const existingEmail = await prisma.client.findFirst({
+        where: {
+          email: cleanEmail,
+          phone: { not: cleanPhone },
+        },
+      });
+      if (existingEmail) {
+        return {
+          success: false,
+          error: "El correo electrónico ya está registrado con otro número de celular.",
+        };
+      }
+    }
+
     // Clean and validate plate (no spaces, alphanumeric, uppercase, max 6, min 5)
     const cleanPlate = plate.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
     if (cleanPlate.length < 5 || cleanPlate.length > 6) {
@@ -93,11 +110,11 @@ export async function createOrderAction(
     // Clean mileage (digits only)
     const cleanMileage = mileage ? mileage.replace(/\D/g, "") : null;
 
-    const clientDocumentTypeId = clientDocumentTypeIdStr ? parseInt(clientDocumentTypeIdStr, 10) : null;
+    const clientDocumentTypeId = (clientDocumentTypeIdStr && !isNaN(parseInt(clientDocumentTypeIdStr, 10))) ? parseInt(clientDocumentTypeIdStr, 10) : null;
     let finalDocNumber: string | null | undefined = undefined;
     let finalDocHash: string | null | undefined = undefined;
 
-    if (clientDocumentNumber && clientDocumentNumber !== "********") {
+    if (clientDocumentNumber && clientDocumentNumber !== "********" && clientDocumentNumber.trim() !== "") {
       const cleanDocNumber = clientDocumentNumber.trim();
       const hash = hashDocument(cleanDocNumber);
       const existingDoc = await prisma.client.findFirst({
@@ -160,12 +177,16 @@ export async function createOrderAction(
         });
       }
 
-      // Find or create car by plate
-      let dbCar = await tx.car.findUnique({
-        where: { plate: cleanPlate },
+      // Find active car by plate
+      let dbCar = await tx.car.findFirst({
+        where: { plate: cleanPlate, isActive: true },
       });
 
       if (dbCar) {
+        // Validation: If active car belongs to another client, block the check-in.
+        if (dbCar.clientId !== dbClient.id) {
+          throw new Error(`El vehículo con la placa ${cleanPlate} ya está registrado y activo con otro cliente.`);
+        }
         // Update car details if linked to different parameters, keep linked to client
         dbCar = await tx.car.update({
           where: { id: dbCar.id },
@@ -174,7 +195,6 @@ export async function createOrderAction(
             model: model.trim(),
             year: year,
             color: color.trim(),
-            clientId: dbClient.id,
             brandId: brandId,
           },
         });
@@ -188,6 +208,7 @@ export async function createOrderAction(
             color: color.trim(),
             clientId: dbClient.id,
             brandId: brandId,
+            isActive: true,
           },
         });
       }
@@ -245,112 +266,117 @@ export async function createOrderAction(
     });
 
     if (newOrder) {
-      let signatureUrl: string | null = null;
-      let finalChecklist = checklist;
-
-      // 1. Process client signature if provided
-      if (signature) {
+      // Execute all file uploads, database updates, and email/WhatsApp notifications asynchronously in the background
+      after(async () => {
         try {
-          const match = newOrder.code.match(/(\d+)$/);
-          const sequence = match ? match[1] : String(newOrder.id);
-          signatureUrl = await uploadBase64(signature, `signatures/sig-${sequence}`);
-        } catch (uploadError) {
-          console.error("Error uploading signature to storage:", uploadError);
-        }
-      }
+          let signatureUrl: string | null = null;
+          let finalChecklist = checklist;
 
-      // 2. Process checklist images if provided
-      if (checklist) {
-        try {
-          const checklistObj = { ...checklist } as Record<string, any>;
-          let hasUpdates = false;
+          // 1. Process client signature if provided
+          if (signature) {
+            try {
+              const match = newOrder.code.match(/(\d+)$/);
+              const sequence = match ? match[1] : String(newOrder.id);
+              signatureUrl = await uploadBase64(signature, `signatures/sig-${sequence}`);
+            } catch (uploadError) {
+              console.error("Error uploading signature to storage in background:", uploadError);
+            }
+          }
 
-          for (const [key, val] of Object.entries(checklistObj)) {
-            if (key.startsWith("_images_") && Array.isArray(val)) {
-              const checkpointName = key.replace("_images_", "");
-              const updatedUrls: string[] = [];
+          // 2. Process checklist images if provided
+          if (checklist) {
+            try {
+              const checklistObj = { ...checklist } as Record<string, any>;
+              let hasUpdates = false;
 
-              for (let i = 0; i < val.length; i++) {
-                const imgBase64 = val[i];
-                if (typeof imgBase64 === "string" && imgBase64.startsWith("data:image")) {
-                  const uploadUrl = await uploadBase64(
-                    imgBase64,
-                    `checklist-images/${newOrder.code}-${checkpointName}-${i}`
-                  );
-                  updatedUrls.push(uploadUrl);
-                  hasUpdates = true;
-                } else if (typeof imgBase64 === "string") {
-                  updatedUrls.push(imgBase64);
+              for (const [key, val] of Object.entries(checklistObj)) {
+                if (key.startsWith("_images_") && Array.isArray(val)) {
+                  const checkpointName = key.replace("_images_", "");
+                  const updatedUrls: string[] = [];
+
+                  for (let i = 0; i < val.length; i++) {
+                    const imgBase64 = val[i];
+                    if (typeof imgBase64 === "string" && imgBase64.startsWith("data:image")) {
+                      const uploadUrl = await uploadBase64(
+                        imgBase64,
+                        `checklist-images/${newOrder.code}-${checkpointName}-${i}`
+                      );
+                      updatedUrls.push(uploadUrl);
+                      hasUpdates = true;
+                    } else if (typeof imgBase64 === "string") {
+                      updatedUrls.push(imgBase64);
+                    }
+                  }
+
+                  if (hasUpdates) {
+                    checklistObj[key] = updatedUrls;
+                  }
                 }
               }
 
               if (hasUpdates) {
-                checklistObj[key] = updatedUrls;
+                finalChecklist = checklistObj;
               }
+            } catch (checklistError) {
+              console.error("Error processing checklist images in background:", checklistError);
             }
           }
 
-          if (hasUpdates) {
-            finalChecklist = checklistObj;
-          }
-        } catch (checklistError) {
-          console.error("Error processing checklist images:", checklistError);
-        }
-      }
-
-      // 3. Update the order with uploaded URLs
-      if (signatureUrl || finalChecklist !== checklist) {
-        try {
-          await prisma.order.update({
-            where: { id: newOrder.id },
-            data: {
-              signatureUrl: signatureUrl || undefined,
-              checklist: finalChecklist || undefined,
-            },
-          });
-        } catch (dbUpdateError) {
-          console.error("Error updating order with storage URLs:", dbUpdateError);
-        }
-      }
-
-      // 4. Send email confirmation to the client if they have an email address
-      if (cleanEmail) {
-        try {
-          const completeOrder = await prisma.order.findUnique({
-            where: { id: newOrder.id },
-            include: {
-              client: true,
-              car: {
-                include: {
-                  brand: true,
+          // 3. Update the order with uploaded URLs
+          if (signatureUrl || finalChecklist !== checklist) {
+            try {
+              await prisma.order.update({
+                where: { id: newOrder.id },
+                data: {
+                  signatureUrl: signatureUrl || undefined,
+                  checklist: finalChecklist || undefined,
                 },
-              },
-              services: {
-                include: {
-                  service: true,
-                },
-              },
-            },
-          });
-
-          if (completeOrder) {
-            await sendReceptionEmail(cleanEmail, completeOrder);
+              });
+            } catch (dbUpdateError) {
+              console.error("Error updating order with storage URLs in background:", dbUpdateError);
+            }
           }
-        } catch (emailError) {
-          console.error("Error sending reception email to client:", emailError);
-        }
-      }
 
-      // 5. Send WhatsApp confirmation if they have a phone number
-      if (cleanPhone) {
-        try {
-          sendWhatsAppReceptionAction(newOrder.id).catch((err) => {
-            console.error("Error in background sendWhatsAppReceptionAction:", err);
-          });
-        } catch (wsError) {
-          console.error("Error invoking WhatsApp reception notification:", wsError);
+          // 4. Send email confirmation to the client if they have an email address
+          if (cleanEmail) {
+            try {
+              const completeOrder = await prisma.order.findUnique({
+                where: { id: newOrder.id },
+                include: {
+                  client: true,
+                  car: {
+                    include: {
+                      brand: true,
+                    },
+                  },
+                  services: {
+                    include: {
+                      service: true,
+                    },
+                  },
+                },
+              });
+
+              if (completeOrder) {
+                await sendReceptionEmail(cleanEmail, completeOrder);
+              }
+            } catch (emailError) {
+              console.error("Error sending reception email in background:", emailError);
+            }
+          }
+
+          // 5. Send WhatsApp confirmation if they have a phone number
+          if (cleanPhone) {
+            try {
+              await sendWhatsAppReceptionAction(newOrder.id);
+            } catch (wsError) {
+              console.error("Error sending WhatsApp notification in background:", wsError);
+            }
+          }
+        } catch (bgError) {
+          console.error("Error in background operations:", bgError);
         }
-      }
+      });
     }
 
     revalidatePath("/dashboard");

@@ -47,6 +47,7 @@ export type CarMinAggregateOutputType = {
   model: string | null
   year: number | null
   color: string | null
+  isActive: boolean | null
   clientId: number | null
   brandId: number | null
 }
@@ -58,6 +59,7 @@ export type CarMaxAggregateOutputType = {
   model: string | null
   year: number | null
   color: string | null
+  isActive: boolean | null
   clientId: number | null
   brandId: number | null
 }
@@ -69,6 +71,7 @@ export type CarCountAggregateOutputType = {
   model: number
   year: number
   color: number
+  isActive: number
   clientId: number
   brandId: number
   _all: number
@@ -96,6 +99,7 @@ export type CarMinAggregateInputType = {
   model?: true
   year?: true
   color?: true
+  isActive?: true
   clientId?: true
   brandId?: true
 }
@@ -107,6 +111,7 @@ export type CarMaxAggregateInputType = {
   model?: true
   year?: true
   color?: true
+  isActive?: true
   clientId?: true
   brandId?: true
 }
@@ -118,6 +123,7 @@ export type CarCountAggregateInputType = {
   model?: true
   year?: true
   color?: true
+  isActive?: true
   clientId?: true
   brandId?: true
   _all?: true
@@ -216,6 +222,7 @@ export type CarGroupByOutputType = {
   model: string
   year: number
   color: string
+  isActive: boolean
   clientId: number
   brandId: number
   _count: CarCountAggregateOutputType | null
@@ -250,6 +257,7 @@ export type CarWhereInput = {
   model?: Prisma.StringFilter<"Car"> | string
   year?: Prisma.IntFilter<"Car"> | number
   color?: Prisma.StringFilter<"Car"> | string
+  isActive?: Prisma.BoolFilter<"Car"> | boolean
   clientId?: Prisma.IntFilter<"Car"> | number
   brandId?: Prisma.IntFilter<"Car"> | number
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
@@ -264,6 +272,7 @@ export type CarOrderByWithRelationInput = {
   model?: Prisma.SortOrder
   year?: Prisma.SortOrder
   color?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
   client?: Prisma.ClientOrderByWithRelationInput
@@ -273,20 +282,22 @@ export type CarOrderByWithRelationInput = {
 
 export type CarWhereUniqueInput = Prisma.AtLeast<{
   id?: number
-  plate?: string
+  plate_clientId?: Prisma.CarPlateClientIdCompoundUniqueInput
   AND?: Prisma.CarWhereInput | Prisma.CarWhereInput[]
   OR?: Prisma.CarWhereInput[]
   NOT?: Prisma.CarWhereInput | Prisma.CarWhereInput[]
+  plate?: Prisma.StringFilter<"Car"> | string
   type?: Prisma.StringFilter<"Car"> | string
   model?: Prisma.StringFilter<"Car"> | string
   year?: Prisma.IntFilter<"Car"> | number
   color?: Prisma.StringFilter<"Car"> | string
+  isActive?: Prisma.BoolFilter<"Car"> | boolean
   clientId?: Prisma.IntFilter<"Car"> | number
   brandId?: Prisma.IntFilter<"Car"> | number
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
   brand?: Prisma.XOR<Prisma.BrandScalarRelationFilter, Prisma.BrandWhereInput>
   orders?: Prisma.OrderListRelationFilter
-}, "id" | "plate">
+}, "id" | "plate_clientId">
 
 export type CarOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -295,6 +306,7 @@ export type CarOrderByWithAggregationInput = {
   model?: Prisma.SortOrder
   year?: Prisma.SortOrder
   color?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
   _count?: Prisma.CarCountOrderByAggregateInput
@@ -314,6 +326,7 @@ export type CarScalarWhereWithAggregatesInput = {
   model?: Prisma.StringWithAggregatesFilter<"Car"> | string
   year?: Prisma.IntWithAggregatesFilter<"Car"> | number
   color?: Prisma.StringWithAggregatesFilter<"Car"> | string
+  isActive?: Prisma.BoolWithAggregatesFilter<"Car"> | boolean
   clientId?: Prisma.IntWithAggregatesFilter<"Car"> | number
   brandId?: Prisma.IntWithAggregatesFilter<"Car"> | number
 }
@@ -324,6 +337,7 @@ export type CarCreateInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   client: Prisma.ClientCreateNestedOneWithoutCarsInput
   brand: Prisma.BrandCreateNestedOneWithoutCarsInput
   orders?: Prisma.OrderCreateNestedManyWithoutCarInput
@@ -336,6 +350,7 @@ export type CarUncheckedCreateInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   clientId: number
   brandId: number
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCarInput
@@ -347,6 +362,7 @@ export type CarUpdateInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   client?: Prisma.ClientUpdateOneRequiredWithoutCarsNestedInput
   brand?: Prisma.BrandUpdateOneRequiredWithoutCarsNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCarNestedInput
@@ -359,6 +375,7 @@ export type CarUncheckedUpdateInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   brandId?: Prisma.IntFieldUpdateOperationsInput | number
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCarNestedInput
@@ -371,6 +388,7 @@ export type CarCreateManyInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   clientId: number
   brandId: number
 }
@@ -381,6 +399,7 @@ export type CarUpdateManyMutationInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type CarUncheckedUpdateManyInput = {
@@ -390,6 +409,7 @@ export type CarUncheckedUpdateManyInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   brandId?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -404,6 +424,11 @@ export type CarOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type CarPlateClientIdCompoundUniqueInput = {
+  plate: string
+  clientId: number
+}
+
 export type CarCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   plate?: Prisma.SortOrder
@@ -411,6 +436,7 @@ export type CarCountOrderByAggregateInput = {
   model?: Prisma.SortOrder
   year?: Prisma.SortOrder
   color?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
 }
@@ -429,6 +455,7 @@ export type CarMaxOrderByAggregateInput = {
   model?: Prisma.SortOrder
   year?: Prisma.SortOrder
   color?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
 }
@@ -440,6 +467,7 @@ export type CarMinOrderByAggregateInput = {
   model?: Prisma.SortOrder
   year?: Prisma.SortOrder
   color?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
 }
@@ -560,6 +588,7 @@ export type CarCreateWithoutBrandInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   client: Prisma.ClientCreateNestedOneWithoutCarsInput
   orders?: Prisma.OrderCreateNestedManyWithoutCarInput
 }
@@ -571,6 +600,7 @@ export type CarUncheckedCreateWithoutBrandInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   clientId: number
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCarInput
 }
@@ -611,6 +641,7 @@ export type CarScalarWhereInput = {
   model?: Prisma.StringFilter<"Car"> | string
   year?: Prisma.IntFilter<"Car"> | number
   color?: Prisma.StringFilter<"Car"> | string
+  isActive?: Prisma.BoolFilter<"Car"> | boolean
   clientId?: Prisma.IntFilter<"Car"> | number
   brandId?: Prisma.IntFilter<"Car"> | number
 }
@@ -621,6 +652,7 @@ export type CarCreateWithoutClientInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   brand: Prisma.BrandCreateNestedOneWithoutCarsInput
   orders?: Prisma.OrderCreateNestedManyWithoutCarInput
 }
@@ -632,6 +664,7 @@ export type CarUncheckedCreateWithoutClientInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   brandId: number
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCarInput
 }
@@ -668,6 +701,7 @@ export type CarCreateWithoutOrdersInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   client: Prisma.ClientCreateNestedOneWithoutCarsInput
   brand: Prisma.BrandCreateNestedOneWithoutCarsInput
 }
@@ -679,6 +713,7 @@ export type CarUncheckedCreateWithoutOrdersInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   clientId: number
   brandId: number
 }
@@ -705,6 +740,7 @@ export type CarUpdateWithoutOrdersInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   client?: Prisma.ClientUpdateOneRequiredWithoutCarsNestedInput
   brand?: Prisma.BrandUpdateOneRequiredWithoutCarsNestedInput
 }
@@ -716,6 +752,7 @@ export type CarUncheckedUpdateWithoutOrdersInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   brandId?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -727,6 +764,7 @@ export type CarCreateManyBrandInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   clientId: number
 }
 
@@ -736,6 +774,7 @@ export type CarUpdateWithoutBrandInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   client?: Prisma.ClientUpdateOneRequiredWithoutCarsNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCarNestedInput
 }
@@ -747,6 +786,7 @@ export type CarUncheckedUpdateWithoutBrandInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCarNestedInput
 }
@@ -758,6 +798,7 @@ export type CarUncheckedUpdateManyWithoutBrandInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -768,6 +809,7 @@ export type CarCreateManyClientInput = {
   model: string
   year: number
   color: string
+  isActive?: boolean
   brandId: number
 }
 
@@ -777,6 +819,7 @@ export type CarUpdateWithoutClientInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   brand?: Prisma.BrandUpdateOneRequiredWithoutCarsNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCarNestedInput
 }
@@ -788,6 +831,7 @@ export type CarUncheckedUpdateWithoutClientInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   brandId?: Prisma.IntFieldUpdateOperationsInput | number
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCarNestedInput
 }
@@ -799,6 +843,7 @@ export type CarUncheckedUpdateManyWithoutClientInput = {
   model?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   brandId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -840,6 +885,7 @@ export type CarSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
   model?: boolean
   year?: boolean
   color?: boolean
+  isActive?: boolean
   clientId?: boolean
   brandId?: boolean
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -855,6 +901,7 @@ export type CarSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extension
   model?: boolean
   year?: boolean
   color?: boolean
+  isActive?: boolean
   clientId?: boolean
   brandId?: boolean
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -868,6 +915,7 @@ export type CarSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extension
   model?: boolean
   year?: boolean
   color?: boolean
+  isActive?: boolean
   clientId?: boolean
   brandId?: boolean
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -881,11 +929,12 @@ export type CarSelectScalar = {
   model?: boolean
   year?: boolean
   color?: boolean
+  isActive?: boolean
   clientId?: boolean
   brandId?: boolean
 }
 
-export type CarOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "plate" | "type" | "model" | "year" | "color" | "clientId" | "brandId", ExtArgs["result"]["car"]>
+export type CarOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "plate" | "type" | "model" | "year" | "color" | "isActive" | "clientId" | "brandId", ExtArgs["result"]["car"]>
 export type CarInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   brand?: boolean | Prisma.BrandDefaultArgs<ExtArgs>
@@ -915,6 +964,7 @@ export type $CarPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     model: string
     year: number
     color: string
+    isActive: boolean
     clientId: number
     brandId: number
   }, ExtArgs["result"]["car"]>
@@ -1349,6 +1399,7 @@ export interface CarFieldRefs {
   readonly model: Prisma.FieldRef<"Car", 'String'>
   readonly year: Prisma.FieldRef<"Car", 'Int'>
   readonly color: Prisma.FieldRef<"Car", 'String'>
+  readonly isActive: Prisma.FieldRef<"Car", 'Boolean'>
   readonly clientId: Prisma.FieldRef<"Car", 'Int'>
   readonly brandId: Prisma.FieldRef<"Car", 'Int'>
 }

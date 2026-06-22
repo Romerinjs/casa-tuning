@@ -398,7 +398,9 @@ export const ModelName = {
   OrderPhoto: 'OrderPhoto',
   ActivityLog: 'ActivityLog',
   OrderNotification: 'OrderNotification',
-  OrderComment: 'OrderComment'
+  OrderComment: 'OrderComment',
+  Promotion: 'Promotion',
+  PromotionClient: 'PromotionClient'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -414,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "role" | "orderStatus" | "brand" | "serviceCatalog" | "documentType" | "user" | "client" | "car" | "order" | "orderService" | "visualInspection" | "orderPhoto" | "activityLog" | "orderNotification" | "orderComment"
+    modelProps: "role" | "orderStatus" | "brand" | "serviceCatalog" | "documentType" | "user" | "client" | "car" | "order" | "orderService" | "visualInspection" | "orderPhoto" | "activityLog" | "orderNotification" | "orderComment" | "promotion" | "promotionClient"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1528,6 +1530,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Promotion: {
+      payload: Prisma.$PromotionPayload<ExtArgs>
+      fields: Prisma.PromotionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PromotionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PromotionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload>
+        }
+        findFirst: {
+          args: Prisma.PromotionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PromotionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload>
+        }
+        findMany: {
+          args: Prisma.PromotionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload>[]
+        }
+        create: {
+          args: Prisma.PromotionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload>
+        }
+        createMany: {
+          args: Prisma.PromotionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PromotionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload>[]
+        }
+        delete: {
+          args: Prisma.PromotionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload>
+        }
+        update: {
+          args: Prisma.PromotionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload>
+        }
+        deleteMany: {
+          args: Prisma.PromotionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PromotionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PromotionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload>[]
+        }
+        upsert: {
+          args: Prisma.PromotionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionPayload>
+        }
+        aggregate: {
+          args: Prisma.PromotionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePromotion>
+        }
+        groupBy: {
+          args: Prisma.PromotionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PromotionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PromotionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PromotionCountAggregateOutputType> | number
+        }
+      }
+    }
+    PromotionClient: {
+      payload: Prisma.$PromotionClientPayload<ExtArgs>
+      fields: Prisma.PromotionClientFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PromotionClientFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PromotionClientFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload>
+        }
+        findFirst: {
+          args: Prisma.PromotionClientFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PromotionClientFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload>
+        }
+        findMany: {
+          args: Prisma.PromotionClientFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload>[]
+        }
+        create: {
+          args: Prisma.PromotionClientCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload>
+        }
+        createMany: {
+          args: Prisma.PromotionClientCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PromotionClientCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload>[]
+        }
+        delete: {
+          args: Prisma.PromotionClientDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload>
+        }
+        update: {
+          args: Prisma.PromotionClientUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload>
+        }
+        deleteMany: {
+          args: Prisma.PromotionClientDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PromotionClientUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PromotionClientUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload>[]
+        }
+        upsert: {
+          args: Prisma.PromotionClientUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromotionClientPayload>
+        }
+        aggregate: {
+          args: Prisma.PromotionClientAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePromotionClient>
+        }
+        groupBy: {
+          args: Prisma.PromotionClientGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PromotionClientGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PromotionClientCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PromotionClientCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1650,6 +1800,7 @@ export const CarScalarFieldEnum = {
   model: 'model',
   year: 'year',
   color: 'color',
+  isActive: 'isActive',
   clientId: 'clientId',
   brandId: 'brandId'
 } as const
@@ -1734,6 +1885,29 @@ export const OrderCommentScalarFieldEnum = {
 } as const
 
 export type OrderCommentScalarFieldEnum = (typeof OrderCommentScalarFieldEnum)[keyof typeof OrderCommentScalarFieldEnum]
+
+
+export const PromotionScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  templateName: 'templateName',
+  fileUrl: 'fileUrl',
+  createdAt: 'createdAt',
+  serviceId: 'serviceId',
+  brandId: 'brandId'
+} as const
+
+export type PromotionScalarFieldEnum = (typeof PromotionScalarFieldEnum)[keyof typeof PromotionScalarFieldEnum]
+
+
+export const PromotionClientScalarFieldEnum = {
+  promotionId: 'promotionId',
+  clientId: 'clientId',
+  sentAt: 'sentAt',
+  status: 'status'
+} as const
+
+export type PromotionClientScalarFieldEnum = (typeof PromotionClientScalarFieldEnum)[keyof typeof PromotionClientScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1984,6 +2158,8 @@ export type GlobalOmitConfig = {
   activityLog?: Prisma.ActivityLogOmit
   orderNotification?: Prisma.OrderNotificationOmit
   orderComment?: Prisma.OrderCommentOmit
+  promotion?: Prisma.PromotionOmit
+  promotionClient?: Prisma.PromotionClientOmit
 }
 
 /* Types for Logging */

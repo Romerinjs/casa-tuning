@@ -65,7 +65,9 @@ export const ModelName = {
   OrderPhoto: 'OrderPhoto',
   ActivityLog: 'ActivityLog',
   OrderNotification: 'OrderNotification',
-  OrderComment: 'OrderComment'
+  OrderComment: 'OrderComment',
+  Promotion: 'Promotion',
+  PromotionClient: 'PromotionClient'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -167,6 +169,7 @@ export const CarScalarFieldEnum = {
   model: 'model',
   year: 'year',
   color: 'color',
+  isActive: 'isActive',
   clientId: 'clientId',
   brandId: 'brandId'
 } as const
@@ -251,6 +254,29 @@ export const OrderCommentScalarFieldEnum = {
 } as const
 
 export type OrderCommentScalarFieldEnum = (typeof OrderCommentScalarFieldEnum)[keyof typeof OrderCommentScalarFieldEnum]
+
+
+export const PromotionScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  templateName: 'templateName',
+  fileUrl: 'fileUrl',
+  createdAt: 'createdAt',
+  serviceId: 'serviceId',
+  brandId: 'brandId'
+} as const
+
+export type PromotionScalarFieldEnum = (typeof PromotionScalarFieldEnum)[keyof typeof PromotionScalarFieldEnum]
+
+
+export const PromotionClientScalarFieldEnum = {
+  promotionId: 'promotionId',
+  clientId: 'clientId',
+  sentAt: 'sentAt',
+  status: 'status'
+} as const
+
+export type PromotionClientScalarFieldEnum = (typeof PromotionClientScalarFieldEnum)[keyof typeof PromotionClientScalarFieldEnum]
 
 
 export const SortOrder = {

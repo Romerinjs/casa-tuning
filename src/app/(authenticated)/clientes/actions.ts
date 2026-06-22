@@ -47,6 +47,19 @@ export async function createClientAction(
       };
     }
 
+    // Check unique email collision
+    if (cleanEmail) {
+      const existingEmail = await prisma.client.findFirst({
+        where: { email: cleanEmail },
+      });
+      if (existingEmail) {
+        return {
+          success: false,
+          error: `Ya existe un cliente con el correo electrónico ${cleanEmail}.`,
+        };
+      }
+    }
+
     // Check if client with this phone already exists
     const existingPhone = await prisma.client.findUnique({
       where: { phone: cleanPhone },
@@ -59,11 +72,11 @@ export async function createClientAction(
     }
 
     // Check if client with this document number already exists
-    const documentTypeId = documentTypeIdStr ? parseInt(documentTypeIdStr, 10) : null;
+    const documentTypeId = (documentTypeIdStr && !isNaN(parseInt(documentTypeIdStr, 10))) ? parseInt(documentTypeIdStr, 10) : null;
     let finalDocNumber = null;
     let finalDocHash = null;
 
-    if (documentNumber) {
+    if (documentNumber && documentNumber.trim() !== "") {
       const cleanDoc = documentNumber.trim();
       const hash = hashDocument(cleanDoc);
       const existingDoc = await prisma.client.findUnique({
@@ -139,6 +152,19 @@ export async function updateClientAction(
       return { success: false, error: "El correo electrónico del cliente no tiene un formato válido." };
     }
 
+    // Check unique email collision
+    if (cleanEmail) {
+      const existingEmail = await prisma.client.findFirst({
+        where: {
+          email: cleanEmail,
+          id: { not: id },
+        },
+      });
+      if (existingEmail) {
+        return { success: false, error: `Ya existe otro cliente con el correo electrónico ${cleanEmail}.` };
+      }
+    }
+
     // Check unique phone collision
     const existing = await prisma.client.findFirst({
       where: {
@@ -152,7 +178,7 @@ export async function updateClientAction(
     }
 
     // Check unique document collision
-    const documentTypeId = documentTypeIdStr ? parseInt(documentTypeIdStr, 10) : null;
+    const documentTypeId = (documentTypeIdStr && !isNaN(parseInt(documentTypeIdStr, 10))) ? parseInt(documentTypeIdStr, 10) : null;
     
     // Fetch current client data to compare document changes
     const currentClient = await prisma.client.findUnique({
@@ -165,7 +191,7 @@ export async function updateClientAction(
     let finalDocNumber = currentClient.documentNumber;
     let finalDocHash = currentClient.documentNumberHash;
 
-    if (documentNumber && documentNumber !== "********") {
+    if (documentNumber && documentNumber !== "********" && documentNumber.trim() !== "") {
       const cleanDoc = documentNumber.trim();
       const hash = hashDocument(cleanDoc);
       const existingDoc = await prisma.client.findFirst({
@@ -179,7 +205,7 @@ export async function updateClientAction(
       }
       finalDocNumber = encryptDocument(cleanDoc);
       finalDocHash = hash;
-    } else if (!documentNumber) {
+    } else if (!documentNumber || documentNumber.trim() === "") {
       finalDocNumber = null;
       finalDocHash = null;
     }
@@ -235,13 +261,13 @@ export async function createCarAction(
       return { success: false, error: "La placa debe contener entre 5 y 6 caracteres alfanuméricos." };
     }
 
-    // Check if plate already exists in DB
-    const existingCar = await prisma.car.findUnique({
-      where: { plate: cleanPlate },
+    // Check if plate already exists in DB as active
+    const existingCar = await prisma.car.findFirst({
+      where: { plate: cleanPlate, isActive: true },
     });
 
     if (existingCar) {
-      return { success: false, error: `La placa ${cleanPlate} ya está registrada en el sistema.` };
+      return { success: false, error: `La placa ${cleanPlate} ya está registrada como activa en el sistema.` };
     }
 
     await prisma.car.create({
