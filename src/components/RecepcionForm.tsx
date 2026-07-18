@@ -204,11 +204,36 @@ export default function RecepcionForm({
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === "string") {
-          const base64Str = reader.result;
-          setChecklistImages((prev) => ({
-            ...prev,
-            [key]: [...(prev[key] || []), base64Str],
-          }));
+          const img = new Image();
+          img.src = reader.result;
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let width = img.width;
+            let height = img.height;
+            const maxDimension = 1280;
+
+            if (width > maxDimension || height > maxDimension) {
+              if (width > height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+              setChecklistImages((prev) => ({
+                ...prev,
+                [key]: [...(prev[key] || []), compressedBase64],
+              }));
+            }
+          };
         }
       };
       reader.readAsDataURL(file);
@@ -253,10 +278,60 @@ export default function RecepcionForm({
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureData, setSignatureData] = useState("");
 
+  // Refs for click outside to close dropdowns
+  const clientSearchRef = useRef<HTMLDivElement>(null);
+  const carSearchRef = useRef<HTMLDivElement>(null);
+  const docTypeDropdownRef = useRef<HTMLDivElement>(null);
+  const yearDropdownRef = useRef<HTMLDivElement>(null);
+  const brandDropdownRef = useRef<HTMLDivElement>(null);
+
   // Custom Dropdown states
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
   const [isDocTypeDropdownOpen, setIsDocTypeDropdownOpen] = useState(false);
   const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
+
+  // Close dropdowns when clicking/tapping outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      if (
+        clientSearchRef.current &&
+        !clientSearchRef.current.contains(event.target as Node)
+      ) {
+        setIsClientSearchOpen(false);
+      }
+      if (
+        carSearchRef.current &&
+        !carSearchRef.current.contains(event.target as Node)
+      ) {
+        setIsCarSearchOpen(false);
+      }
+      if (
+        docTypeDropdownRef.current &&
+        !docTypeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDocTypeDropdownOpen(false);
+      }
+      if (
+        yearDropdownRef.current &&
+        !yearDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsYearDropdownOpen(false);
+      }
+      if (
+        brandDropdownRef.current &&
+        !brandDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsBrandDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
 
   // 3. Local Step Errors
   const [stepError, setStepError] = useState<string | null>(null);
@@ -743,13 +818,13 @@ export default function RecepcionForm({
               )}
 
               {/* Upload button */}
-              <label className="h-14 w-14 rounded-xl border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-white hover:bg-zinc-50 flex items-center justify-center cursor-pointer shrink-0 transition-colors">
+              <label className="h-14 w-14 rounded-xl border-2 border-dashed border-zinc-300 hover:border-zinc-400 bg-white hover:bg-zinc-50 flex items-center justify-center cursor-pointer shrink-0 transition-colors relative">
                 <Plus className="h-5 w-5 text-zinc-400" />
                 <input
                   type="file"
                   accept="image/*"
                   multiple
-                  className="hidden"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   onChange={(e) => handleImageUpload(key, e.target.files)}
                 />
               </label>
@@ -912,7 +987,7 @@ export default function RecepcionForm({
             <div className={activeStep === 1 ? "overflow-visible" : "overflow-hidden"}>
               <div className="p-6 space-y-4">
                 {/* Toggle Cliente Registrado vs Nuevo */}
-                <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 w-full max-w-xs select-none">
+                <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 w-full max-w-xs">
                   <button
                     type="button"
                     onClick={() => {
@@ -930,6 +1005,7 @@ export default function RecepcionForm({
                     type="button"
                     onClick={() => {
                       setClientMode("new");
+                      setCarMode("new");
                       setClientName("");
                       setClientPhone("");
                       setClientEmail("");
@@ -952,7 +1028,7 @@ export default function RecepcionForm({
                       <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
                         Buscar Cliente (Nombre o Celular) *
                       </label>
-                      <div className="relative">
+                      <div className="relative" ref={clientSearchRef}>
                         <Search className="absolute inset-y-0 left-3 my-auto h-4.5 w-4.5 text-zinc-400" />
                         <input
                           type="text"
@@ -967,7 +1043,6 @@ export default function RecepcionForm({
                         />
                         {isClientSearchOpen && filteredClientsList.length > 0 && (
                           <>
-                            <div className="fixed inset-0 z-10" onClick={() => setIsClientSearchOpen(false)} />
                             <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-700 z-20 animate-[fadeIn_0.15s_ease-out]">
                               {filteredClientsList.map((c) => (
                                 <div
@@ -1094,7 +1169,7 @@ export default function RecepcionForm({
                           Tipo Doc.
                         </label>
                         <input type="hidden" name="clientDocumentTypeId" value={clientDocumentTypeId} />
-                        <div className="relative">
+                        <div className="relative" ref={docTypeDropdownRef}>
                           <button
                             type="button"
                             onClick={() => {
@@ -1116,10 +1191,6 @@ export default function RecepcionForm({
 
                           {isDocTypeDropdownOpen && (
                             <>
-                              <div
-                                className="fixed inset-0 z-30"
-                                onClick={() => setIsDocTypeDropdownOpen(false)}
-                              />
                               <div className="absolute left-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-800 z-40 animate-[fadeIn_0.15s_ease-out] min-w-[140px] max-w-[200px]">
                                 <div
                                   onClick={() => {
@@ -1159,6 +1230,7 @@ export default function RecepcionForm({
                           type="text"
                           name="clientDocumentNumber"
                           value={clientDocumentNumber}
+                          autoComplete="off"
                           onChange={(e) => {
                             setClientDocumentNumber(e.target.value.replace(/\D/g, "").slice(0, 10));
                             setStepError(null);
@@ -1304,9 +1376,10 @@ export default function RecepcionForm({
             <div className={activeStep === 2 ? "overflow-visible" : "overflow-hidden"}>
               <div className="p-6 space-y-4">
                 {/* Toggle Vehículo Registrado vs Nuevo */}
-                <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 w-full max-w-xs select-none">
+                <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 w-full max-w-xs">
                   <button
                     type="button"
+                    disabled={clientMode === "new"}
                     onClick={() => {
                       setCarMode("registered");
                       setStepError(null);
@@ -1314,7 +1387,7 @@ export default function RecepcionForm({
                     className={`flex-1 text-center py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${carMode === "registered"
                       ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/50"
                       : "text-zinc-500 hover:text-zinc-900"
-                      }`}
+                      } ${clientMode === "new" ? "opacity-40 cursor-not-allowed" : ""}`}
                   >
                     Vehículo Existente
                   </button>
@@ -1347,7 +1420,7 @@ export default function RecepcionForm({
                           ? `Buscar Vehículo de ${selectedClientObj.name} (Placa) *`
                           : "Buscar Vehículo General (Placa) *"}
                       </label>
-                      <div className="relative">
+                      <div className="relative" ref={carSearchRef}>
                         <Search className="absolute inset-y-0 left-3 my-auto h-4.5 w-4.5 text-zinc-400" />
                         <input
                           type="text"
@@ -1362,7 +1435,6 @@ export default function RecepcionForm({
                         />
                         {isCarSearchOpen && filteredCarsList.length > 0 && (
                           <>
-                            <div className="fixed inset-0 z-10" onClick={() => setIsCarSearchOpen(false)} />
                             <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-700 z-20 animate-[fadeIn_0.15s_ease-out]">
                               {filteredCarsList.map((car) => (
                                 <div
@@ -1509,14 +1581,14 @@ export default function RecepcionForm({
                         Año
                       </label>
                       <input type="hidden" name="year" value={year} required />
-                      <div className="relative">
+                      <div className="relative" ref={yearDropdownRef}>
                         <button
                           type="button"
                           onClick={() => {
                             setIsYearDropdownOpen(!isYearDropdownOpen);
                             setStepError(null);
                           }}
-                          className={`w-full h-11 px-3 bg-zinc-50 border rounded-lg text-sm text-zinc-850 transition-all flex items-center justify-between cursor-pointer ${isYearDropdownOpen
+                          className={`w-full h-11 px-3 bg-zinc-50 border rounded-lg text-sm text-zinc-855 transition-all flex items-center justify-between cursor-pointer ${isYearDropdownOpen
                             ? "border-[#C9A84C] bg-white ring-1 ring-[#C9A84C]/50"
                             : "border-zinc-200 hover:border-zinc-300"
                             }`}
@@ -1528,44 +1600,38 @@ export default function RecepcionForm({
                         </button>
 
                         {isYearDropdownOpen && (
-                          <>
+                          <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-800 z-40 animate-[fadeIn_0.15s_ease-out] min-w-[140px]">
                             <div
-                              className="fixed inset-0 z-30"
-                              onClick={() => setIsYearDropdownOpen(false)}
-                            />
-                            <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-zinc-800 z-40 animate-[fadeIn_0.15s_ease-out] min-w-[140px]">
+                              onClick={() => {
+                                setYear("");
+                                setIsYearDropdownOpen(false);
+                              }}
+                              className="py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none text-zinc-400"
+                            >
+                              Seleccionar...
+                            </div>
+                            {yearsList.map((y) => (
                               <div
+                                key={y}
                                 onClick={() => {
-                                  setYear("");
+                                  setYear(y.toString());
                                   setIsYearDropdownOpen(false);
                                 }}
-                                className="py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none text-zinc-400"
+                                className={`py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${year === y.toString()
+                                  ? "text-[#9A7A28] bg-[#FBF5E6]/40"
+                                  : "text-zinc-700"
+                                  }`}
                               >
-                                Seleccionar...
+                                {y}
                               </div>
-                              {yearsList.map((y) => (
-                                <div
-                                  key={y}
-                                  onClick={() => {
-                                    setYear(y.toString());
-                                    setIsYearDropdownOpen(false);
-                                  }}
-                                  className={`py-2.5 px-3 hover:bg-zinc-50 font-semibold cursor-pointer transition-colors select-none ${year === y.toString()
-                                    ? "text-[#9A7A28] bg-[#FBF5E6]/40"
-                                    : "text-zinc-700"
-                                    }`}
-                                >
-                                  {y}
-                                </div>
-                              ))}
-                            </div>
-                          </>
+                            ))}
+                          </div>
                         )}
                       </div>
                     </div>
 
                     {/* Custom Styled Brand Selector Dropdown */}
-                    <div className="space-y-1 col-span-2 sm:col-span-1 relative">
+                    <div className="space-y-1 col-span-2 sm:col-span-1 relative" ref={brandDropdownRef}>
                       <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
                         Marca
                       </label>
@@ -1608,10 +1674,6 @@ export default function RecepcionForm({
 
                       {isBrandDropdownOpen && (
                         <>
-                          <div
-                            className="fixed inset-0 z-30"
-                            onClick={() => setIsBrandDropdownOpen(false)}
-                          />
                           <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg text-sm text-[#0A0A0C] z-40 animate-[fadeIn_0.15s_ease-out]">
                             {brands.map((brand) => (
                               <div

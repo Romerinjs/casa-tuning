@@ -6,6 +6,7 @@ import {
   updateServiceAction,
   deleteServiceAction,
   createBrandAction,
+  updateBrandAction,
   createUserAction,
   sendTestSoundTemplateAction,
 } from "@/app/(authenticated)/administracion/actions";
@@ -135,7 +136,20 @@ export default function AdministracionClientView({
   } | null>(null);
 
   // Form states using React 19 useActionState
-  const [brandState, brandFormAction, isBrandPending] = useActionState(createBrandAction, null);
+  const [editingBrand, setEditingBrand] = useState<BrandItem | null>(null);
+  const [brandName, setBrandName] = useState("");
+
+  const [brandState, brandFormAction, isBrandPending] = useActionState(
+    async (prevState: any, formData: FormData) => {
+      if (editingBrand) {
+        formData.append("id", editingBrand.id.toString());
+        return updateBrandAction(prevState, formData);
+      } else {
+        return createBrandAction(prevState, formData);
+      }
+    },
+    null
+  );
   const [userState, userFormAction, isUserPending] = useActionState(createUserAction, null);
   const [whatsappState, whatsappFormAction, isWhatsappPending] = useActionState(sendTestSoundTemplateAction, null);
 
@@ -191,6 +205,19 @@ export default function AdministracionClientView({
     if (serviceFormRef.current) {
       serviceFormRef.current.reset();
     }
+  };
+
+  const startEditBrand = (brand: BrandItem) => {
+    setEditingBrand(brand);
+    setBrandName(brand.name);
+    setBrandLogo(brand.logo || null);
+  };
+
+  const clearBrandForm = () => {
+    setEditingBrand(null);
+    setBrandName("");
+    setBrandLogo(null);
+    setIsBrandModalOpen(false);
   };
 
   const triggerDeleteService = (service: ServiceItem) => {
@@ -296,10 +323,14 @@ export default function AdministracionClientView({
   };
 
   useEffect(() => {
-    if (brandState?.success && brandFormRef.current) {
-      brandFormRef.current.reset();
+    if (brandState?.success) {
+      if (brandFormRef.current) {
+        brandFormRef.current.reset();
+      }
       setIsBrandModalOpen(false);
       setBrandLogo(null);
+      setEditingBrand(null);
+      setBrandName("");
     }
   }, [brandState]);
 
@@ -552,9 +583,19 @@ export default function AdministracionClientView({
               {/* MARCAS LIST */}
               {activeTab === "marcas" && (
                 <div>
-                  <div className="p-5 border-b border-zinc-100 bg-zinc-50/50 flex flex-col gap-1">
-                    <h3 className="text-sm font-bold text-zinc-800">Marcas de vehículos</h3>
-                    <p className="text-[10px] text-zinc-400">Listado de marcas disponibles en el sistema.</p>
+                  <div className="p-5 border-b border-zinc-100 bg-zinc-50/50 flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-zinc-800">Marcas de vehículos</h3>
+                      <p className="text-[10px] text-zinc-400">Listado de marcas disponibles en el sistema.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsBrandModalOpen(true)}
+                      className="hidden sm:inline-flex lg:hidden items-center justify-center gap-1 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-3.5 py-2 text-[11px] font-bold text-[#0A0A0C] transition-all shadow-xs cursor-pointer shrink-0"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Crear Nueva Marca
+                    </button>
                   </div>
                   <div className="p-5">
                     {brands.length === 0 ? (
@@ -564,14 +605,25 @@ export default function AdministracionClientView({
                         {brands.map((item) => (
                           <div
                             key={item.id}
-                            className="group bg-white border border-zinc-200 hover:border-[#C9A84C]/50 hover:shadow-xs rounded-xl p-4 transition-all duration-200 flex flex-col items-center justify-center gap-3 text-center"
+                            className="group bg-white border border-zinc-200 hover:border-[#C9A84C]/50 hover:shadow-xs rounded-xl p-4 transition-all duration-200 flex flex-col items-center justify-center gap-3 text-center relative"
                           >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                startEditBrand(item);
+                                setIsBrandModalOpen(true);
+                              }}
+                              className="absolute top-2 right-2 h-7 w-7 rounded-lg border border-zinc-200 bg-white flex items-center justify-center text-zinc-400 hover:text-[#9A7A28] hover:border-[#C9A84C]/35 hover:bg-[#FBF5E6]/40 opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-10"
+                              title="Editar Marca"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </button>
                             {item.logo ? (
                               <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl bg-zinc-50 border border-zinc-150 p-2 flex items-center justify-center overflow-hidden transition-transform duration-200 group-hover:scale-105 shrink-0">
                                 <img src={item.logo} alt={item.name} className="h-full w-full object-contain" />
                               </div>
                             ) : (
-                              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl bg-gradient-to-br from-[#FBF5E6] to-[#E9D5B0] text-[#9A7A28] border border-[#C9A84C]/20 flex items-center justify-center text-2xl font-extrabold transition-transform duration-200 group-hover:scale-105 shrink-0 select-none shadow-xs">
+                              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl bg-gradient-to-br from-[#FBF5E6] to-[#E9D5B0] text-[#9A7A28] border border-[#C9A84C]/25 flex items-center justify-center text-2xl font-extrabold transition-transform duration-200 group-hover:scale-105 shrink-0 select-none shadow-xs">
                                 {item.name.substring(0, 1).toUpperCase()}
                               </div>
                             )}
@@ -589,8 +641,19 @@ export default function AdministracionClientView({
               {/* USUARIOS LIST */}
               {activeTab === "usuarios" && (
                 <div>
-                  <div className="p-5 border-b border-zinc-100 bg-zinc-50/50">
-                    <h3 className="text-sm font-bold text-zinc-800">Usuarios del sistema</h3>
+                  <div className="p-5 border-b border-zinc-100 bg-zinc-50/50 flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-zinc-800">Usuarios del sistema</h3>
+                      <p className="text-[10px] text-zinc-400">Listado de usuarios registrados en el sistema.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsUserModalOpen(true)}
+                      className="hidden sm:inline-flex lg:hidden items-center justify-center gap-1 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-3.5 py-2 text-[11px] font-bold text-[#0A0A0C] transition-all shadow-xs cursor-pointer shrink-0"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Crear Nuevo Usuario
+                    </button>
                   </div>
                   <div className="divide-y divide-zinc-200">
                     {users.map((item) => (
@@ -634,9 +697,20 @@ export default function AdministracionClientView({
                   className="p-6 space-y-4"
                 >
                   <h3 className="text-sm font-bold text-zinc-800 flex items-center gap-2 border-b border-zinc-100 pb-3">
-                    <Plus className="h-4.5 w-4.5 text-[#C9A84C]" />
-                    Crear Nueva Marca
+                    {editingBrand ? (
+                      <>
+                        <Edit className="h-4.5 w-4.5 text-[#C9A84C]" />
+                        Editar Marca
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4.5 w-4.5 text-[#C9A84C]" />
+                        Crear Nueva Marca
+                      </>
+                    )}
                   </h3>
+
+                  <input type="hidden" name="id" value={editingBrand?.id || ""} />
 
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
@@ -646,6 +720,8 @@ export default function AdministracionClientView({
                       type="text"
                       name="name"
                       required
+                      value={brandName}
+                      onChange={(e) => setBrandName(e.target.value)}
                       placeholder="Ej. Suzuki"
                       className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all font-semibold"
                     />
@@ -667,7 +743,7 @@ export default function AdministracionClientView({
                         <button
                           type="button"
                           onClick={() => setBrandLogo(null)}
-                          className="h-8 w-8 rounded-lg flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-650 transition-all cursor-pointer"
+                          className="h-8 w-8 rounded-lg flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-655 transition-all cursor-pointer"
                         >
                           <X className="h-4.5 w-4.5" />
                         </button>
@@ -714,21 +790,33 @@ export default function AdministracionClientView({
                   {brandState?.success && (
                     <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-center text-xs font-semibold text-green-600 flex items-center justify-center gap-1.5 animate-[fadeIn_0.15s_ease-out]">
                       <CheckCircle className="h-4 w-4 shrink-0" />
-                      <span>Marca creada con éxito</span>
+                      <span>Marca guardada con éxito</span>
                     </div>
                   )}
 
-                  <button
-                    type="submit"
-                    disabled={isBrandPending}
-                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-4 py-2.5 text-xs font-bold text-[#0A0A0C] transition-all disabled:opacity-50 cursor-pointer"
-                  >
-                    {isBrandPending ? (
-                      <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
-                    ) : (
-                      "Guardar Marca"
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="submit"
+                      disabled={isBrandPending}
+                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-4 py-2.5 text-xs font-bold text-[#0A0A0C] transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      {isBrandPending ? (
+                        <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
+                      ) : (
+                        editingBrand ? "Guardar Cambios" : "Guardar Marca"
+                      )}
+                    </button>
+
+                    {editingBrand && (
+                      <button
+                        type="button"
+                        onClick={clearBrandForm}
+                        className="w-full inline-flex items-center justify-center h-10 border border-zinc-200 hover:bg-zinc-50 text-zinc-500 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Cancelar Edición
+                      </button>
                     )}
-                  </button>
+                  </div>
                 </form>
               )}
 
@@ -1069,29 +1157,31 @@ export default function AdministracionClientView({
           </div>
         </>
       )}
-      {/* BRAND MODAL FOR MOBILE */}
-      {isBrandModalOpen && (
+           {isBrandModalOpen && (
         <>
           <div
             className="fixed inset-0 bg-black/45 backdrop-blur-xs z-40 transition-opacity duration-300 animate-[fadeIn_0.2s_ease-out] lg:hidden"
-            onClick={() => {
-              setIsBrandModalOpen(false);
-              setBrandLogo(null);
-            }}
+            onClick={clearBrandForm}
           />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-40 w-full max-w-sm border border-zinc-200 overflow-hidden animate-[scaleIn_0.2s_ease-out_both] flex flex-col lg:hidden">
             <div className="p-5 border-b border-zinc-150 flex items-center justify-between bg-zinc-50">
               <h3 className="font-bold text-zinc-950 text-sm flex items-center gap-2">
-                <Tag className="h-4.5 w-4.5 text-[#C9A84C]" />
-                Crear Nueva Marca
+                {editingBrand ? (
+                  <>
+                    <Edit className="h-4.5 w-4.5 text-[#C9A84C]" />
+                    Editar Marca
+                  </>
+                ) : (
+                  <>
+                    <Tag className="h-4.5 w-4.5 text-[#C9A84C]" />
+                    Crear Nueva Marca
+                  </>
+                )}
               </h3>
               <button
                 type="button"
-                onClick={() => {
-                  setIsBrandModalOpen(false);
-                  setBrandLogo(null);
-                }}
-                className="h-8 w-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-650 hover:bg-zinc-200/50 transition-all cursor-pointer"
+                onClick={clearBrandForm}
+                className="h-8 w-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-655 hover:bg-zinc-200/50 transition-all cursor-pointer"
               >
                 <X className="h-4.5 w-4.5" />
               </button>
@@ -1106,6 +1196,8 @@ export default function AdministracionClientView({
               }}
               className="p-6 space-y-4"
             >
+              <input type="hidden" name="id" value={editingBrand?.id || ""} />
+
               <div className="space-y-1">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                   Nombre de la Marca *
@@ -1114,6 +1206,8 @@ export default function AdministracionClientView({
                   type="text"
                   name="name"
                   required
+                  value={brandName}
+                  onChange={(e) => setBrandName(e.target.value)}
                   placeholder="Ej. Suzuki"
                   className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all font-semibold"
                 />
@@ -1182,21 +1276,33 @@ export default function AdministracionClientView({
               {brandState?.success && (
                 <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-center text-xs font-semibold text-green-600 flex items-center justify-center gap-1.5 animate-[fadeIn_0.15s_ease-out]">
                   <CheckCircle className="h-4 w-4 shrink-0" />
-                  <span>Marca creada con éxito</span>
+                  <span>Marca guardada con éxito</span>
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={isBrandPending}
-                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-4 py-2.5 text-xs font-bold text-[#0A0A0C] transition-all disabled:opacity-50 cursor-pointer"
-              >
-                {isBrandPending ? (
-                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
-                ) : (
-                  "Guardar Marca"
+              <div className="flex flex-col gap-2">
+                <button
+                  type="submit"
+                  disabled={isBrandPending}
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-4 py-2.5 text-xs font-bold text-[#0A0A0C] transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  {isBrandPending ? (
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
+                  ) : (
+                    editingBrand ? "Guardar Cambios" : "Guardar Marca"
+                  )}
+                </button>
+
+                {editingBrand && (
+                  <button
+                    type="button"
+                    onClick={clearBrandForm}
+                    className="w-full inline-flex items-center justify-center h-10 border border-zinc-200 hover:bg-zinc-50 text-zinc-500 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Cancelar Edición
+                  </button>
                 )}
-              </button>
+              </div>
             </form>
           </div>
         </>
@@ -1321,7 +1427,7 @@ export default function AdministracionClientView({
       )}
 
       {/* Dynamic Floating Action Button (FAB) for Mobile catalog views */}
-      <div className="fixed bottom-6 right-6 z-30 group sm:hidden">
+      <div className="fixed bottom-6 right-6 z-30 group lg:hidden">
         {/* Tooltip */}
         <div className={`absolute right-0 bottom-16 bg-[#0A0A0C] text-[#F5F5F7] text-[10px] font-bold py-2 px-3 rounded-xl shadow-xl border border-zinc-800/60 whitespace-nowrap transition-all duration-300 pointer-events-none select-none after:content-[''] after:absolute after:top-full after:right-5 after:border-4 after:border-transparent after:border-t-[#0A0A0C] ${
           showTooltip
@@ -1338,6 +1444,7 @@ export default function AdministracionClientView({
               clearServiceForm();
               setIsServiceModalOpen(true);
             } else if (activeTab === "marcas") {
+              clearBrandForm();
               setIsBrandModalOpen(true);
             } else {
               setIsUserModalOpen(true);

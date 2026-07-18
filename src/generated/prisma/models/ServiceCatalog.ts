@@ -217,6 +217,7 @@ export type ServiceCatalogWhereInput = {
   icon?: Prisma.StringNullableFilter<"ServiceCatalog"> | string | null
   isTopSelling?: Prisma.BoolFilter<"ServiceCatalog"> | boolean
   orderItems?: Prisma.OrderServiceListRelationFilter
+  promotions?: Prisma.PromotionListRelationFilter
 }
 
 export type ServiceCatalogOrderByWithRelationInput = {
@@ -226,6 +227,7 @@ export type ServiceCatalogOrderByWithRelationInput = {
   icon?: Prisma.SortOrderInput | Prisma.SortOrder
   isTopSelling?: Prisma.SortOrder
   orderItems?: Prisma.OrderServiceOrderByRelationAggregateInput
+  promotions?: Prisma.PromotionOrderByRelationAggregateInput
 }
 
 export type ServiceCatalogWhereUniqueInput = Prisma.AtLeast<{
@@ -238,6 +240,7 @@ export type ServiceCatalogWhereUniqueInput = Prisma.AtLeast<{
   icon?: Prisma.StringNullableFilter<"ServiceCatalog"> | string | null
   isTopSelling?: Prisma.BoolFilter<"ServiceCatalog"> | boolean
   orderItems?: Prisma.OrderServiceListRelationFilter
+  promotions?: Prisma.PromotionListRelationFilter
 }, "id" | "name">
 
 export type ServiceCatalogOrderByWithAggregationInput = {
@@ -270,6 +273,7 @@ export type ServiceCatalogCreateInput = {
   icon?: string | null
   isTopSelling?: boolean
   orderItems?: Prisma.OrderServiceCreateNestedManyWithoutServiceInput
+  promotions?: Prisma.PromotionCreateNestedManyWithoutServiceInput
 }
 
 export type ServiceCatalogUncheckedCreateInput = {
@@ -279,6 +283,7 @@ export type ServiceCatalogUncheckedCreateInput = {
   icon?: string | null
   isTopSelling?: boolean
   orderItems?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutServiceInput
+  promotions?: Prisma.PromotionUncheckedCreateNestedManyWithoutServiceInput
 }
 
 export type ServiceCatalogUpdateInput = {
@@ -287,6 +292,7 @@ export type ServiceCatalogUpdateInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
   orderItems?: Prisma.OrderServiceUpdateManyWithoutServiceNestedInput
+  promotions?: Prisma.PromotionUpdateManyWithoutServiceNestedInput
 }
 
 export type ServiceCatalogUncheckedUpdateInput = {
@@ -296,6 +302,7 @@ export type ServiceCatalogUncheckedUpdateInput = {
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
   orderItems?: Prisma.OrderServiceUncheckedUpdateManyWithoutServiceNestedInput
+  promotions?: Prisma.PromotionUncheckedUpdateManyWithoutServiceNestedInput
 }
 
 export type ServiceCatalogCreateManyInput = {
@@ -376,11 +383,26 @@ export type ServiceCatalogUpdateOneRequiredWithoutOrderItemsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ServiceCatalogUpdateToOneWithWhereWithoutOrderItemsInput, Prisma.ServiceCatalogUpdateWithoutOrderItemsInput>, Prisma.ServiceCatalogUncheckedUpdateWithoutOrderItemsInput>
 }
 
+export type ServiceCatalogCreateNestedOneWithoutPromotionsInput = {
+  create?: Prisma.XOR<Prisma.ServiceCatalogCreateWithoutPromotionsInput, Prisma.ServiceCatalogUncheckedCreateWithoutPromotionsInput>
+  connectOrCreate?: Prisma.ServiceCatalogCreateOrConnectWithoutPromotionsInput
+  connect?: Prisma.ServiceCatalogWhereUniqueInput
+}
+
+export type ServiceCatalogUpdateOneRequiredWithoutPromotionsNestedInput = {
+  create?: Prisma.XOR<Prisma.ServiceCatalogCreateWithoutPromotionsInput, Prisma.ServiceCatalogUncheckedCreateWithoutPromotionsInput>
+  connectOrCreate?: Prisma.ServiceCatalogCreateOrConnectWithoutPromotionsInput
+  upsert?: Prisma.ServiceCatalogUpsertWithoutPromotionsInput
+  connect?: Prisma.ServiceCatalogWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ServiceCatalogUpdateToOneWithWhereWithoutPromotionsInput, Prisma.ServiceCatalogUpdateWithoutPromotionsInput>, Prisma.ServiceCatalogUncheckedUpdateWithoutPromotionsInput>
+}
+
 export type ServiceCatalogCreateWithoutOrderItemsInput = {
   name: string
   isActive?: boolean
   icon?: string | null
   isTopSelling?: boolean
+  promotions?: Prisma.PromotionCreateNestedManyWithoutServiceInput
 }
 
 export type ServiceCatalogUncheckedCreateWithoutOrderItemsInput = {
@@ -389,6 +411,7 @@ export type ServiceCatalogUncheckedCreateWithoutOrderItemsInput = {
   isActive?: boolean
   icon?: string | null
   isTopSelling?: boolean
+  promotions?: Prisma.PromotionUncheckedCreateNestedManyWithoutServiceInput
 }
 
 export type ServiceCatalogCreateOrConnectWithoutOrderItemsInput = {
@@ -412,6 +435,7 @@ export type ServiceCatalogUpdateWithoutOrderItemsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  promotions?: Prisma.PromotionUpdateManyWithoutServiceNestedInput
 }
 
 export type ServiceCatalogUncheckedUpdateWithoutOrderItemsInput = {
@@ -420,6 +444,57 @@ export type ServiceCatalogUncheckedUpdateWithoutOrderItemsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  promotions?: Prisma.PromotionUncheckedUpdateManyWithoutServiceNestedInput
+}
+
+export type ServiceCatalogCreateWithoutPromotionsInput = {
+  name: string
+  isActive?: boolean
+  icon?: string | null
+  isTopSelling?: boolean
+  orderItems?: Prisma.OrderServiceCreateNestedManyWithoutServiceInput
+}
+
+export type ServiceCatalogUncheckedCreateWithoutPromotionsInput = {
+  id?: number
+  name: string
+  isActive?: boolean
+  icon?: string | null
+  isTopSelling?: boolean
+  orderItems?: Prisma.OrderServiceUncheckedCreateNestedManyWithoutServiceInput
+}
+
+export type ServiceCatalogCreateOrConnectWithoutPromotionsInput = {
+  where: Prisma.ServiceCatalogWhereUniqueInput
+  create: Prisma.XOR<Prisma.ServiceCatalogCreateWithoutPromotionsInput, Prisma.ServiceCatalogUncheckedCreateWithoutPromotionsInput>
+}
+
+export type ServiceCatalogUpsertWithoutPromotionsInput = {
+  update: Prisma.XOR<Prisma.ServiceCatalogUpdateWithoutPromotionsInput, Prisma.ServiceCatalogUncheckedUpdateWithoutPromotionsInput>
+  create: Prisma.XOR<Prisma.ServiceCatalogCreateWithoutPromotionsInput, Prisma.ServiceCatalogUncheckedCreateWithoutPromotionsInput>
+  where?: Prisma.ServiceCatalogWhereInput
+}
+
+export type ServiceCatalogUpdateToOneWithWhereWithoutPromotionsInput = {
+  where?: Prisma.ServiceCatalogWhereInput
+  data: Prisma.XOR<Prisma.ServiceCatalogUpdateWithoutPromotionsInput, Prisma.ServiceCatalogUncheckedUpdateWithoutPromotionsInput>
+}
+
+export type ServiceCatalogUpdateWithoutPromotionsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  orderItems?: Prisma.OrderServiceUpdateManyWithoutServiceNestedInput
+}
+
+export type ServiceCatalogUncheckedUpdateWithoutPromotionsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isTopSelling?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  orderItems?: Prisma.OrderServiceUncheckedUpdateManyWithoutServiceNestedInput
 }
 
 
@@ -429,10 +504,12 @@ export type ServiceCatalogUncheckedUpdateWithoutOrderItemsInput = {
 
 export type ServiceCatalogCountOutputType = {
   orderItems: number
+  promotions: number
 }
 
 export type ServiceCatalogCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   orderItems?: boolean | ServiceCatalogCountOutputTypeCountOrderItemsArgs
+  promotions?: boolean | ServiceCatalogCountOutputTypeCountPromotionsArgs
 }
 
 /**
@@ -452,6 +529,13 @@ export type ServiceCatalogCountOutputTypeCountOrderItemsArgs<ExtArgs extends run
   where?: Prisma.OrderServiceWhereInput
 }
 
+/**
+ * ServiceCatalogCountOutputType without action
+ */
+export type ServiceCatalogCountOutputTypeCountPromotionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PromotionWhereInput
+}
+
 
 export type ServiceCatalogSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -460,6 +544,7 @@ export type ServiceCatalogSelect<ExtArgs extends runtime.Types.Extensions.Intern
   icon?: boolean
   isTopSelling?: boolean
   orderItems?: boolean | Prisma.ServiceCatalog$orderItemsArgs<ExtArgs>
+  promotions?: boolean | Prisma.ServiceCatalog$promotionsArgs<ExtArgs>
   _count?: boolean | Prisma.ServiceCatalogCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["serviceCatalog"]>
 
@@ -490,6 +575,7 @@ export type ServiceCatalogSelectScalar = {
 export type ServiceCatalogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "isActive" | "icon" | "isTopSelling", ExtArgs["result"]["serviceCatalog"]>
 export type ServiceCatalogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   orderItems?: boolean | Prisma.ServiceCatalog$orderItemsArgs<ExtArgs>
+  promotions?: boolean | Prisma.ServiceCatalog$promotionsArgs<ExtArgs>
   _count?: boolean | Prisma.ServiceCatalogCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ServiceCatalogIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -499,6 +585,7 @@ export type $ServiceCatalogPayload<ExtArgs extends runtime.Types.Extensions.Inte
   name: "ServiceCatalog"
   objects: {
     orderItems: Prisma.$OrderServicePayload<ExtArgs>[]
+    promotions: Prisma.$PromotionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -901,6 +988,7 @@ readonly fields: ServiceCatalogFieldRefs;
 export interface Prisma__ServiceCatalogClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   orderItems<T extends Prisma.ServiceCatalog$orderItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ServiceCatalog$orderItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderServicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  promotions<T extends Prisma.ServiceCatalog$promotionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ServiceCatalog$promotionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PromotionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1349,6 +1437,30 @@ export type ServiceCatalog$orderItemsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.OrderServiceScalarFieldEnum | Prisma.OrderServiceScalarFieldEnum[]
+}
+
+/**
+ * ServiceCatalog.promotions
+ */
+export type ServiceCatalog$promotionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Promotion
+   */
+  select?: Prisma.PromotionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Promotion
+   */
+  omit?: Prisma.PromotionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PromotionInclude<ExtArgs> | null
+  where?: Prisma.PromotionWhereInput
+  orderBy?: Prisma.PromotionOrderByWithRelationInput | Prisma.PromotionOrderByWithRelationInput[]
+  cursor?: Prisma.PromotionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PromotionScalarFieldEnum | Prisma.PromotionScalarFieldEnum[]
 }
 
 /**

@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
-import { uploadBase64 } from "@/lib/storage";
+import { uploadBase64, deleteFile } from "@/lib/storage";
 import { sendWelcomeEmail } from "@/lib/emails";
 
 // Action for creating a new service
@@ -225,6 +225,110 @@ export async function createBrandAction(
     return {
       success: false,
       error: error instanceof Error ? error.message : "Error al registrar la marca.",
+    };
+  }
+}
+
+// Action for updating an existing vehicle brand
+export async function updateBrandAction(
+  prevState: { success: boolean; error?: string } | null,
+  formData: FormData
+) {
+  try {
+    await verifyAdminSession();
+
+    const idStr = formData.get("id") as string;
+    const name = formData.get("name") as string;
+    const logo = formData.get("logo") as string || null;
+
+    if (!idStr || !name || name.trim() === "") {
+      return { success: false, error: "El ID y el nombre de la marca son requeridos." };
+    }
+
+    const id = parseInt(idStr, 10);
+    const cleanName = name.trim();
+
+    if (isNaN(id)) {
+      return { success: false, error: "El ID de la marca no es válido." };
+    }
+
+    // Fetch current brand data to compare
+    const currentBrand = await prisma.brand.findUnique({
+      where: { id },
+    });
+
+    if (!currentBrand) {
+      return { success: false, error: "La marca no existe." };
+    }
+
+    // Check unique name collision
+    const existing = await prisma.brand.findFirst({
+      where: {
+        name: cleanName,
+        NOT: { id },
+      },
+    });
+
+    if (existing) {
+      return {
+        success: false,
+        error: `La marca '${cleanName}' ya existe en otro registro.`,
+      };
+    }
+
+    let logoUrl = currentBrand.logo;
+
+    // If a new logo is uploaded (base64 string)
+    if (logo && logo.startsWith("data:image")) {
+      // Delete the old logo from storage if it exists to optimize space
+      if (currentBrand.logo) {
+        try {
+          await deleteFile(currentBrand.logo);
+        } catch (delErr) {
+          console.error("Error deleting old brand logo from storage:", delErr);
+        }
+      }
+
+      try {
+        const brandSlug = cleanName.toLowerCase().replace(/[^a-z0-9]/g, "-");
+        logoUrl = await uploadBase64(logo, `brands/logo-${brandSlug}-${Date.now()}`);
+      } catch (uploadError) {
+        console.error("Error uploading new brand logo to storage:", uploadError);
+        return {
+          success: false,
+          error: "Error al subir el logo de la marca al almacenamiento en la nube.",
+        };
+      }
+    } else if (logo === "") {
+      // If logo was cleared/removed
+      if (currentBrand.logo) {
+        try {
+          await deleteFile(currentBrand.logo);
+        } catch (delErr) {
+          console.error("Error deleting brand logo from storage:", delErr);
+        }
+      }
+      logoUrl = null;
+    }
+
+    await prisma.brand.update({
+      where: { id },
+      data: {
+        name: cleanName,
+        logo: logoUrl,
+      },
+    });
+
+    revalidatePath("/administracion");
+    revalidatePath("/recepcion");
+    revalidatePath("/clientes");
+    revalidatePath("/vehiculos");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating brand:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error al actualizar la marca.",
     };
   }
 }

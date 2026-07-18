@@ -92,3 +92,13 @@ export type OrderNotification = Prisma.OrderNotificationModel
  * 
  */
 export type OrderComment = Prisma.OrderCommentModel
+/**
+ * Model Promotion
+ * 
+ */
+export type Promotion = Prisma.PromotionModel
+/**
+ * Model PromotionClient
+ * 
+ */
+export type PromotionClient = Prisma.PromotionClientModel

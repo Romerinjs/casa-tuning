@@ -69,6 +69,7 @@ interface OrderData {
     year: number;
     brand: {
       name: string;
+      logo: string | null;
     };
   };
   services: OrderService[];
@@ -273,7 +274,8 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
     const matchesSearch =
       order.car.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.code.toLowerCase().includes(searchTerm.toLowerCase());
+      order.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.car.brand.name.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "TODOS" || order.status.name === statusFilter;
@@ -413,6 +415,15 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                               Vehículo
                             </span>
                             <div className="flex items-start gap-2.5">
+                              {order.car.brand.logo ? (
+                                <div className="h-7 w-7 rounded bg-zinc-50 border border-zinc-150 p-0.5 flex items-center justify-center overflow-hidden shrink-0">
+                                  <img src={order.car.brand.logo} alt={order.car.brand.name} className="h-full w-full object-contain" />
+                                </div>
+                              ) : (
+                                <div className="h-7 w-7 rounded bg-[#FBF5E6] text-[#9A7A28] border border-[#C9A84C]/25 flex items-center justify-center text-[10px] font-bold shrink-0">
+                                  {order.car.brand.name.substring(0, 1).toUpperCase()}
+                                </div>
+                              )}
                               <span className="font-mono font-extrabold text-[10.5px] bg-[#FCD34D]/25 text-[#78350F] border border-[#F59E0B]/30 rounded px-1.5 py-0.5 tracking-wider shrink-0 select-none shadow-2xs">
                                 {order.car.plate}
                               </span>
@@ -707,9 +718,20 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                     </div>
                     <div>
                       <span className="text-zinc-400 block">Vehículo</span>
-                      <span className="font-bold text-zinc-800">
-                        {selectedOrder.car.brand.name} {selectedOrder.car.model} ({selectedOrder.car.year})
-                      </span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        {selectedOrder.car.brand.logo ? (
+                          <div className="h-6 w-6 rounded bg-zinc-50 border border-zinc-150 p-0.5 flex items-center justify-center overflow-hidden shrink-0">
+                            <img src={selectedOrder.car.brand.logo} alt={selectedOrder.car.brand.name} className="h-full w-full object-contain" />
+                          </div>
+                        ) : (
+                          <div className="h-6 w-6 rounded bg-[#FBF5E6] text-[#9A7A28] border border-[#C9A84C]/25 flex items-center justify-center text-[10px] font-bold shrink-0">
+                            {selectedOrder.car.brand.name.substring(0, 1).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="font-bold text-zinc-800">
+                          {selectedOrder.car.brand.name} {selectedOrder.car.model} ({selectedOrder.car.year})
+                        </span>
+                      </div>
                     </div>
                     {selectedOrder.mileage && (
                       <div>

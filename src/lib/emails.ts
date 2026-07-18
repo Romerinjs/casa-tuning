@@ -119,8 +119,8 @@ export async function sendWelcomeEmail(
             <table width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e4e4e7; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border-collapse: collapse;">
               <!-- Header with Centered Logo -->
               <tr>
-                <td style="background: linear-gradient(135deg, #0a0a0c 0%, #1a1a20 100%); padding: 32px; text-align: center; border-bottom: 3px solid #C9A84C;">
-                  ${logoUrl ? `<img src="${logoUrl}" alt="Casa Tuning" style="height: 50px; display: block; margin: 0 auto 12px auto;" />` : `<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">CASA TUNING</h1>`}
+                <td style="background-color: #0a0a0c; background: linear-gradient(135deg, #0a0a0c 0%, #1a1a20 100%); padding: 32px; text-align: center; border-bottom: 3px solid #C9A84C;">
+                  ${logoUrl ? `<img src="${logoUrl}" alt="Casa Tuning" height="50" style="height: 50px; display: block; margin: 0 auto 12px auto;" />` : `<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">CASA TUNING</h1>`}
                   <p style="color: #C9A84C; margin: 4px 0 0 0; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">Administración de Personal</p>
                 </td>
               </tr>
@@ -309,8 +309,8 @@ export async function sendReceptionEmail(
             <table width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e4e4e7; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border-collapse: collapse;">
               <!-- Header with Centered Logo -->
               <tr>
-                <td style="background: linear-gradient(135deg, #0a0a0c 0%, #1a1a20 100%); padding: 32px; text-align: center; border-bottom: 3px solid #C9A84C;">
-                  ${logoUrl ? `<img src="${logoUrl}" alt="Casa Tuning" style="height: 50px; display: block; margin: 0 auto 12px auto;" />` : `<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">CASA TUNING</h1>`}
+                <td style="background-color: #0a0a0c; background: linear-gradient(135deg, #0a0a0c 0%, #1a1a20 100%); padding: 32px; text-align: center; border-bottom: 3px solid #C9A84C;">
+                  ${logoUrl ? `<img src="${logoUrl}" alt="Casa Tuning" height="50" style="height: 50px; display: block; margin: 0 auto 12px auto;" />` : `<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">CASA TUNING</h1>`}
                   <p style="color: #C9A84C; margin: 4px 0 0 0; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">Ficha Técnica de Recepción</p>
                 </td>
               </tr>
@@ -465,8 +465,8 @@ export async function sendDeliveryEmail(
             <table width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e4e4e7; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border-collapse: collapse;">
               <!-- Header with Centered Logo -->
               <tr>
-                <td style="background: linear-gradient(135deg, #0a0a0c 0%, #1a1a20 100%); padding: 32px; text-align: center; border-bottom: 3px solid #C9A84C;">
-                  ${logoUrl ? `<img src="${logoUrl}" alt="Casa Tuning" style="height: 50px; display: block; margin: 0 auto 12px auto;" />` : `<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">CASA TUNING</h1>`}
+                <td style="background-color: #0a0a0c; background: linear-gradient(135deg, #0a0a0c 0%, #1a1a20 100%); padding: 32px; text-align: center; border-bottom: 3px solid #C9A84C;">
+                  ${logoUrl ? `<img src="${logoUrl}" alt="Casa Tuning" height="50" style="height: 50px; display: block; margin: 0 auto 12px auto;" />` : `<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">CASA TUNING</h1>`}
                   <p style="color: #C9A84C; margin: 4px 0 0 0; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">Servicio Completado</p>
                 </td>
               </tr>

@@ -315,3 +315,89 @@ export async function sendWhatsAppDeliveryAction(orderId: number): Promise<boole
     return false;
   }
 }
+
+/**
+ * Envía una plantilla de promoción de WhatsApp a un cliente
+ */
+export async function sendWhatsAppPromotionAction(promotionId: number, clientId: number): Promise<boolean> {
+  try {
+    const promotion = await prisma.promotion.findUnique({
+      where: { id: promotionId },
+      include: {
+        service: true,
+        brand: true,
+      },
+    });
+
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+    });
+
+    if (!promotion || !client || !client.phone) {
+      console.warn(`[WhatsApp Promotion] Campaña o cliente no encontrado para envío.`);
+      return false;
+    }
+
+    const customerName = client.name;
+    const serviceName = promotion.service.name;
+    const brandName = promotion.brand.name;
+    const recipientPhone = formatearTelefono(client.phone);
+
+    // Mapeo automático de variables (1 = Cliente, 2 = Servicio, 3 = Marca)
+    const parameters = [
+      { type: "text", parameter_name: "customer_name", text: customerName },
+      { type: "text", parameter_name: "service_name", text: serviceName },
+      { type: "text", parameter_name: "brand_name", text: brandName }
+    ];
+
+    const components: any[] = [
+      {
+        type: "body",
+        parameters: parameters
+      }
+    ];
+
+    // Si la promoción tiene un archivo adjunto, lo vinculamos en el header
+    if (promotion.fileUrl) {
+      const urlLower = promotion.fileUrl.toLowerCase();
+      let mediaType: "image" | "video" | "document" = "document";
+      
+      if (urlLower.endsWith(".png") || urlLower.endsWith(".jpg") || urlLower.endsWith(".jpeg") || urlLower.endsWith(".webp")) {
+        mediaType = "image";
+      } else if (urlLower.endsWith(".mp4") || urlLower.endsWith(".m4v") || urlLower.endsWith(".mov") || urlLower.endsWith(".avi")) {
+        mediaType = "video";
+      }
+
+      components.push({
+        type: "header",
+        parameters: [
+          {
+            type: mediaType,
+            [mediaType]: {
+              link: promotion.fileUrl,
+              ...(mediaType === "document" ? { filename: `Promocion_${promotion.brand.name.replace(/\s+/g, "_")}.pdf` } : {})
+            }
+          }
+        ]
+      });
+    }
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: recipientPhone,
+      type: "template",
+      template: {
+        name: promotion.templateName,
+        language: { code: "es_MX" },
+        components: components
+      }
+    };
+
+    console.log(`[WhatsApp Promotion] Campaña ${promotion.name} enviando a ${recipientPhone} vía plantilla '${promotion.templateName}'`);
+    return await enviarMensajeKapso(payload);
+  } catch (error) {
+    console.error(`[WhatsApp Promotion] Error al enviar mensaje de promoción:`, error);
+    return false;
+  }
+}
+

@@ -13,7 +13,7 @@ export default async function AuthenticatedLayout({
 
   return (
     <ToastProvider>
-      <div className="flex flex-col lg:flex-row h-screen w-screen overflow-hidden bg-[#F7F7F8] font-sans antialiased text-[#111113]">
+      <div className="flex flex-col lg:flex-row h-[100dvh] fixed inset-0 w-screen overflow-hidden bg-[#F7F7F8] font-sans antialiased text-[#111113]">
         {/* Shared navigation sidebar */}
         <Sidebar user={user} />
 

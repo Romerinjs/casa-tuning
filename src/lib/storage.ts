@@ -1,4 +1,5 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const accountId = process.env.R2_ACCOUNT_ID;
 const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -103,6 +104,7 @@ export async function uploadBuffer(
       Key: normalizedKey,
       Body: buffer,
       ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
     })
   );
 
@@ -166,4 +168,34 @@ function getKeyFromUrlOrKey(urlOrKey: string): string {
     }
     return urlOrKey;
   }
+}
+
+/**
+ * Generates a presigned URL to upload a file directly to the R2 bucket.
+ * 
+ * @param key Target object key
+ * @param contentType Content type of the file
+ * @param expiresIn Seconds until the link expires
+ * @returns Object containing the uploadUrl and the final public fileUrl
+ */
+export async function getPresignedUploadUrl(
+  key: string,
+  contentType: string,
+  expiresIn: number = 3600
+): Promise<{ uploadUrl: string; fileUrl: string }> {
+  const client = getClient();
+  const normalizedKey = key.replace(/^\/+/, "");
+
+  const command = new PutObjectCommand({
+    Bucket: bucketName!,
+    Key: normalizedKey,
+    ContentType: contentType,
+    CacheControl: "public, max-age=31536000, immutable",
+  });
+
+  const uploadUrl = await getSignedUrl(client, command, { expiresIn });
+  const baseUrl = publicUrl!.endsWith("/") ? publicUrl!.slice(0, -1) : publicUrl!;
+  const fileUrl = `${baseUrl}/${normalizedKey}`;
+
+  return { uploadUrl, fileUrl };
 }
