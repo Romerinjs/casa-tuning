@@ -42,7 +42,7 @@ export async function getWhatsAppTemplatesAction() {
       return { success: false, error: "Configuración incompleta en el servidor (.env)." };
     }
 
-    const endpoint = `${baseUrl}/meta/whatsapp/v24.0/${wabaId}/templates?limit=100`;
+    const endpoint = `${baseUrl}/meta/whatsapp/v24.0/${wabaId}/message_templates?limit=100`;
 
     const response = await fetch(endpoint, {
       method: "GET",
