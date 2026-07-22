@@ -172,7 +172,7 @@ export async function sendWhatsAppReceptionAction(orderId: number): Promise<bool
             sub_type: "url",
             index: "0",
             parameters: [
-              { type: "text", text: order.code }
+              { type: "text", text: `sheet-${order.code}.pdf` }
             ]
           }
         ]
@@ -250,7 +250,7 @@ export async function sendWhatsAppDeliveryAction(orderId: number): Promise<boole
             sub_type: "url",
             index: "0",
             parameters: [
-              { type: "text", text: order.code }
+              { type: "text", text: `sheet-${order.code}.pdf` }
             ]
           }
         ]
