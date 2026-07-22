@@ -427,7 +427,8 @@ export async function sendDeliveryEmail(
     techSheetUrl = await uploadBuffer(
       pdfBuffer,
       `technical-sheets/sheet-${order.code}.pdf`,
-      "application/pdf"
+      "application/pdf",
+      "public, max-age=60"
     );
     console.log(`[Resend Emails] Ficha técnica generada y subida a R2: ${techSheetUrl}`);
   } catch (pdfErr) {

@@ -299,7 +299,8 @@ export async function downloadOrderPdfAction(orderId: number) {
     const fileUrl = await uploadBuffer(
       pdfBuffer,
       `technical-sheets/sheet-${order.code}.pdf`,
-      "application/pdf"
+      "application/pdf",
+      "public, max-age=60"
     );
 
     return { success: true, url: fileUrl };

@@ -3,7 +3,8 @@
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
-import { uploadBase64 } from "@/lib/storage";
+import { uploadBase64, uploadBuffer } from "@/lib/storage";
+import { generateOrderPdf } from "@/lib/pdf-generator";
 import { sendReceptionEmail } from "@/lib/emails";
 import { hashDocument, encryptDocument } from "@/lib/security";
 import { sendWhatsAppReceptionAction } from "@/lib/whatsapp";
@@ -335,6 +336,20 @@ export async function createOrderAction(
             } catch (dbUpdateError) {
               console.error("Error updating order with storage URLs in background:", dbUpdateError);
             }
+          }
+
+          // 3.5. Generate Initial Technical Sheet PDF and upload to Cloudflare R2
+          try {
+            const pdfBuffer = await generateOrderPdf(newOrder.id);
+            await uploadBuffer(
+              pdfBuffer,
+              `technical-sheets/sheet-${newOrder.code}.pdf`,
+              "application/pdf",
+              "public, max-age=60"
+            );
+            console.log(`[Recepción] Ficha técnica inicial generada y subida a R2 para orden ${newOrder.code}`);
+          } catch (pdfErr) {
+            console.error("Error generando/subiendo ficha técnica inicial a R2:", pdfErr);
           }
 
           // 4. Send email confirmation to the client if they have an email address
