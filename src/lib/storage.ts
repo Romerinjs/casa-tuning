@@ -93,7 +93,8 @@ function pathHasExtension(pathStr: string): boolean {
 export async function uploadBuffer(
   buffer: Buffer,
   key: string,
-  contentType: string
+  contentType: string,
+  cacheControl: string = "public, max-age=31536000, immutable"
 ): Promise<string> {
   const client = getClient();
   const normalizedKey = key.replace(/^\/+/, "");
@@ -104,7 +105,7 @@ export async function uploadBuffer(
       Key: normalizedKey,
       Body: buffer,
       ContentType: contentType,
-      CacheControl: "public, max-age=31536000, immutable",
+      CacheControl: cacheControl,
     })
   );
 
