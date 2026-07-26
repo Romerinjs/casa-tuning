@@ -277,6 +277,7 @@ export default function RecepcionForm({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureData, setSignatureData] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(true);
 
   // Refs for click outside to close dropdowns
   const clientSearchRef = useRef<HTMLDivElement>(null);
@@ -660,7 +661,7 @@ export default function RecepcionForm({
       setActiveStep(3);
     } else if (step === 4 && validateStep1() && validateStep2() && validateStep3()) {
       setActiveStep(4);
-    } else if (step === 5 && validateStep1() && validateStep2() && validateStep3() && validateStep4()) {
+    } else if (step === 5) {
       setActiveStep(5);
     }
   };
@@ -840,6 +841,11 @@ export default function RecepcionForm({
       onSubmit={(e) => {
         e.preventDefault();
         if (!validateStep1() || !validateStep2() || !validateStep3() || !validateStep4()) return;
+        if (!acceptTerms) {
+          setStepError("Primero debes aceptar los terminos y condiciones.");
+          showToast("Primero debes aceptar los terminos y condiciones.", "warning");
+          return;
+        }
         if (!signatureData) {
           setStepError("La firma digital del cliente es obligatoria.");
           showToast("La firma digital del cliente es obligatoria.", "warning");
@@ -2158,6 +2164,39 @@ export default function RecepcionForm({
                     </button>
                   </div>
                   <input type="hidden" name="signature" value={signatureData} />
+                </div>
+
+                {/* Aceptación de Políticas de Tratamiento de Datos */}
+                <div className="pt-4 border-t border-zinc-150 space-y-2 max-w-lg">
+                  {!acceptTerms && (
+                    <p className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200/80 rounded-lg px-3 py-1.5 animate-[fadeIn_0.15s_ease-out]">
+                      primero debes aceptar los terminos y condiciones
+                    </p>
+                  )}
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={acceptTerms}
+                      onChange={(e) => {
+                        setAcceptTerms(e.target.checked);
+                        if (e.target.checked) {
+                          setStepError(null);
+                        }
+                      }}
+                      className="h-4 w-4 rounded border-zinc-300 text-[#C9A84C] focus:ring-[#C9A84C] cursor-pointer"
+                    />
+                    <span className="text-xs text-zinc-700 font-medium">
+                      Acepto las{" "}
+                      <a
+                        href="/politicas-privacidad-terminos-y-condiciones"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#9A7A28] font-bold underline hover:text-[#C9A84C] transition-colors"
+                      >
+                        políticas de tratamiento de datos
+                      </a>
+                    </span>
+                  </label>
                 </div>
 
                 {/* Navigation and Final Submit */}
