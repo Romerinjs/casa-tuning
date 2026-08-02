@@ -106,6 +106,7 @@ interface RecepcionFormProps {
   existingClients?: ClientData[];
   existingCars?: CarData[];
   documentTypes: DocumentTypeData[];
+  initialOrder?: any;
 }
 
 interface ObservationsTextareaProps {
@@ -166,6 +167,7 @@ export default function RecepcionForm({
   existingClients = [],
   existingCars = [],
   documentTypes = [],
+  initialOrder,
 }: RecepcionFormProps) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -174,26 +176,69 @@ export default function RecepcionForm({
   const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   // 2. Real-time form input states
-  const [clientName, setClientName] = useState("");
-  const [clientPhone, setClientPhone] = useState("");
-  const [clientPhone2, setClientPhone2] = useState("");
-  const [showPhone2, setShowPhone2] = useState(false);
-  const [clientDocumentTypeId, setClientDocumentTypeId] = useState("");
-  const [clientDocumentNumber, setClientDocumentNumber] = useState("");
-  const [clientEmail, setClientEmail] = useState("");
+  const [clientName, setClientName] = useState(initialOrder?.client?.name || "");
+  const [clientPhone, setClientPhone] = useState(initialOrder?.client?.phone || "");
+  const [clientPhone2, setClientPhone2] = useState(initialOrder?.client?.phone2 || "");
+  const [showPhone2, setShowPhone2] = useState(!!initialOrder?.client?.phone2);
+  const [clientDocumentTypeId, setClientDocumentTypeId] = useState(
+    initialOrder?.client?.documentTypeId ? initialOrder.client.documentTypeId.toString() : ""
+  );
+  const [clientDocumentNumber, setClientDocumentNumber] = useState(initialOrder?.client?.documentNumber || "");
+  const [clientEmail, setClientEmail] = useState(initialOrder?.client?.email || "");
 
-  const [plate, setPlate] = useState("");
-  const [year, setYear] = useState("");
-  const [brandId, setBrandId] = useState("");
-  const [model, setModel] = useState("");
-  const [color, setColor] = useState("");
-  const [mileage, setMileage] = useState("");
-  const [vehicleType, setVehicleType] = useState("Automóvil");
+  const [plate, setPlate] = useState(initialOrder?.car?.plate || "");
+  const [year, setYear] = useState(initialOrder?.car?.year ? initialOrder.car.year.toString() : "");
+  const [brandId, setBrandId] = useState(initialOrder?.car?.brandId ? initialOrder.car.brandId.toString() : "");
+  const [model, setModel] = useState(initialOrder?.car?.model || "");
+  const [color, setColor] = useState(initialOrder?.car?.color || "");
+  const [mileage, setMileage] = useState(initialOrder?.mileage || "");
+  const [vehicleType, setVehicleType] = useState(initialOrder?.car?.type || "Automóvil");
 
-  const [selectedServices, setSelectedServices] = useState<number[]>([]);
+  const [selectedServices, setSelectedServices] = useState<number[]>(
+    initialOrder?.services?.map((s: any) => s.serviceId) || []
+  );
+  const [serviceDescription, setServiceDescription] = useState(initialOrder?.serviceDescription || "");
 
-  const [observations, setObservations] = useState("");
-  const [checklistImages, setChecklistImages] = useState<Record<string, string[]>>({});
+  const [observations, setObservations] = useState(initialOrder?.observations || "");
+
+  // Extract initial checklist values and images
+  const initialChecklist: Record<string, string> = {
+    rayones: "no",
+    golpes: "no",
+    pintura: "bueno",
+    rines: "bueno",
+    vidrios: "bueno",
+    parabrisas: "bueno",
+    farolas: "bueno",
+    cojineria: "bueno",
+    tablero: "bueno",
+    general_interior: "bueno",
+    testigos: "bueno",
+    vidrios_electricos: "bueno",
+    luces: "bueno",
+    direccionales: "bueno",
+    reversa: "bueno",
+    estacionarias: "bueno",
+    pito: "bueno",
+    plumillas: "bueno",
+    espejos: "bueno",
+    lineas_termicas: "bueno",
+  };
+
+  const initialChecklistImages: Record<string, string[]> = {};
+
+  if (initialOrder?.checklist && typeof initialOrder.checklist === "object") {
+    Object.entries(initialOrder.checklist as Record<string, any>).forEach(([key, val]) => {
+      if (key.startsWith("_images_")) {
+        initialChecklistImages[key.replace("_images_", "")] = val;
+      } else {
+        initialChecklist[key] = val;
+      }
+    });
+  }
+
+  const [checklist, setChecklist] = useState<Record<string, string>>(initialChecklist);
+  const [checklistImages, setChecklistImages] = useState<Record<string, string[]>>(initialChecklistImages);
   const [activeGalleryKey, setActiveGalleryKey] = useState<string | null>(null);
   const [imageToDelete, setImageToDelete] = useState<{ key: string; index: number } | null>(null);
   const [armedImage, setArmedImage] = useState<{ key: string; index: number } | null>(null);
@@ -240,43 +285,20 @@ export default function RecepcionForm({
     });
   };
 
-  const [checklist, setChecklist] = useState<Record<string, string>>({
-    rayones: "no",
-    golpes: "no",
-    pintura: "bueno",
-    rines: "bueno",
-    vidrios: "bueno",
-    parabrisas: "bueno",
-    farolas: "bueno",
-    cojineria: "bueno",
-    tablero: "bueno",
-    general_interior: "bueno",
-    testigos: "bueno",
-    vidrios_electricos: "bueno",
-    luces: "bueno",
-    direccionales: "bueno",
-    reversa: "bueno",
-    estacionarias: "bueno",
-    pito: "bueno",
-    plumillas: "bueno",
-    espejos: "bueno",
-    lineas_termicas: "bueno",
-  });
-
   // Toggles and Search states
-  const [clientMode, setClientMode] = useState<"registered" | "new">("registered");
+  const [clientMode, setClientMode] = useState<"registered" | "new">(initialOrder ? "new" : "registered");
   const [clientSearchQuery, setClientSearchQuery] = useState("");
   const [isClientSearchOpen, setIsClientSearchOpen] = useState(false);
   const [selectedClientObj, setSelectedClientObj] = useState<ClientData | null>(null);
 
-  const [carMode, setCarMode] = useState<"registered" | "new">("registered");
+  const [carMode, setCarMode] = useState<"registered" | "new">(initialOrder ? "new" : "registered");
   const [carSearchQuery, setCarSearchQuery] = useState("");
   const [isCarSearchOpen, setIsCarSearchOpen] = useState(false);
 
   // Signature states
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [signatureData, setSignatureData] = useState("");
+  const [signatureData, setSignatureData] = useState(initialOrder?.signatureUrl || "");
   const [acceptTerms, setAcceptTerms] = useState(true);
 
   // Refs for click outside to close dropdowns
@@ -846,13 +868,11 @@ export default function RecepcionForm({
           showToast("Primero debes aceptar los terminos y condiciones.", "warning");
           return;
         }
-        if (!signatureData) {
-          setStepError("La firma digital del cliente es obligatoria.");
-          showToast("La firma digital del cliente es obligatoria.", "warning");
-          return;
-        }
 
         const formData = new FormData();
+        if (initialOrder) {
+          formData.append("orderId", initialOrder.id.toString());
+        }
         formData.append("clientName", clientName);
         formData.append("clientPhone", clientPhone);
         formData.append("clientPhone2", showPhone2 ? clientPhone2 : "");
@@ -867,6 +887,7 @@ export default function RecepcionForm({
         formData.append("mileage", mileage);
         formData.append("vehicleType", vehicleType);
         formData.append("observations", observations);
+        formData.append("serviceDescription", serviceDescription);
 
         // Serializar el checklist con las imágenes asociadas a los fallos
         const checklistWithImages: Record<string, any> = { ...checklist };
@@ -1931,6 +1952,22 @@ export default function RecepcionForm({
                   );
                 })()}
 
+                {/* DESCRIPCION GLOBAL DE SERVICIOS (NUEVO) */}
+                {selectedServices.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-zinc-150 space-y-2 animate-[fadeIn_0.2s_ease-out]">
+                    <label className="text-xs font-bold uppercase tracking-wider text-zinc-400 block">
+                      Especificaciones o detalles de los servicios
+                    </label>
+                    <textarea
+                      value={serviceDescription}
+                      onChange={(e) => setServiceDescription(e.target.value)}
+                      placeholder="Ej: Polarizado nano-cerámico 20% en laterales y 35% en panorámico. Luces LED altas y bajas referencia H4..."
+                      rows={3}
+                      className="w-full p-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 placeholder-zinc-400 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all resize-none font-medium leading-relaxed"
+                    />
+                  </div>
+                )}
+
                 {/* Navigation buttons */}
                 <div className="flex justify-between pt-2">
                   <button
@@ -2126,7 +2163,7 @@ export default function RecepcionForm({
                 <div className="pt-5 border-t border-zinc-150 space-y-3">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4.5 w-4.5 text-zinc-600" />
-                    <span className="text-sm font-bold text-zinc-805">Firma Digital del Cliente *</span>
+                    <span className="text-sm font-bold text-zinc-805">Firma Digital del Cliente (Opcional)</span>
                   </div>
                   <p className="text-xs text-zinc-500">
                     El cliente confirma que el estado del vehículo y los servicios contratados fueron revisados y aceptados.

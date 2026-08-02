@@ -134,6 +134,7 @@ model Order {
   mileage      String?  @db.VarChar(50)
   signatureUrl String?  @map("signature_url") @db.VarChar(255)
   observations String?  @db.Text
+  serviceDescription String? @db.Text
   checklist    Json?
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")

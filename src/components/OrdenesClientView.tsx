@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   updateOrderStatusAction,
   uploadDeliveryPdfAction,
   deleteDeliveryPdfAction,
   addOrderCommentAction,
   downloadOrderPdfAction,
+  saveOrderSignatureAction,
 } from "@/app/(authenticated)/ordenes/actions";
 import { useToast } from "@/components/ui/Toast";
 import {
@@ -24,6 +26,8 @@ import {
   MessageSquare,
   Download,
   ChevronDown,
+  ChevronRight,
+  Edit,
 } from "lucide-react";
 
 const getInitials = (name: string) => {
@@ -47,6 +51,7 @@ interface OrderData {
   mileage: string | null;
   signatureUrl: string | null;
   observations: string | null;
+  serviceDescription: string | null;
   checklist: any;
   createdAt: Date;
   status: {
@@ -92,6 +97,7 @@ interface OrdenesClientViewProps {
 }
 
 export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
+  const router = useRouter();
   const { showToast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("TODOS");
@@ -105,6 +111,228 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [downloadingPdfId, setDownloadingPdfId] = useState<number | null>(null);
   const [collapsedOrders, setCollapsedOrders] = useState<Record<number, boolean>>({});
+
+  // Delivery modal and signature states (NUEVO)
+  const [deliveryOrder, setDeliveryOrder] = useState<OrderData | null>(null);
+  const [deliverySignatureData, setDeliverySignatureData] = useState("");
+  const [isSavingDelivery, setIsSavingDelivery] = useState(false);
+  const [isSavingSignature, setIsSavingSignature] = useState(false);
+  const [detailsSignatureData, setDetailsSignatureData] = useState("");
+
+  // Canvas drawing variables for modal
+  useEffect(() => {
+    const canvas = document.getElementById("details-sig-canvas") as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    ctx.strokeStyle = "#18181b";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    let drawing = false;
+
+    const startDrawing = (e: MouseEvent | TouchEvent) => {
+      drawing = true;
+      const coords = getCoords(e);
+      ctx.beginPath();
+      ctx.moveTo(coords.x, coords.y);
+    };
+
+    const draw = (e: MouseEvent | TouchEvent) => {
+      if (!drawing) return;
+      e.preventDefault();
+      const coords = getCoords(e);
+      ctx.lineTo(coords.x, coords.y);
+      ctx.stroke();
+    };
+
+    const stopDrawing = () => {
+      drawing = false;
+      setDetailsSignatureData(canvas.toDataURL());
+    };
+
+    const getCoords = (e: MouseEvent | TouchEvent) => {
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const cRect = canvas.getBoundingClientRect();
+      return {
+        x: clientX - cRect.left,
+        y: clientY - cRect.top
+      };
+    };
+
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseleave", stopDrawing);
+
+    canvas.addEventListener("touchstart", startDrawing, { passive: false });
+    canvas.addEventListener("touchmove", draw, { passive: false });
+    canvas.addEventListener("touchend", stopDrawing);
+
+    return () => {
+      canvas.removeEventListener("mousedown", startDrawing);
+      canvas.removeEventListener("mousemove", draw);
+      canvas.removeEventListener("mouseup", stopDrawing);
+      canvas.removeEventListener("mouseleave", stopDrawing);
+      canvas.removeEventListener("touchstart", startDrawing);
+      canvas.removeEventListener("touchmove", draw);
+      canvas.removeEventListener("touchend", stopDrawing);
+    };
+  }, [selectedOrder]);
+
+  // Canvas drawing variables for delivery modal
+  useEffect(() => {
+    const canvas = document.getElementById("delivery-sig-canvas") as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    ctx.strokeStyle = "#18181b";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    let drawing = false;
+
+    const startDrawing = (e: MouseEvent | TouchEvent) => {
+      drawing = true;
+      const coords = getCoords(e);
+      ctx.beginPath();
+      ctx.moveTo(coords.x, coords.y);
+    };
+
+    const draw = (e: MouseEvent | TouchEvent) => {
+      if (!drawing) return;
+      e.preventDefault();
+      const coords = getCoords(e);
+      ctx.lineTo(coords.x, coords.y);
+      ctx.stroke();
+    };
+
+    const stopDrawing = () => {
+      drawing = false;
+      setDeliverySignatureData(canvas.toDataURL());
+    };
+
+    const getCoords = (e: MouseEvent | TouchEvent) => {
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const cRect = canvas.getBoundingClientRect();
+      return {
+        x: clientX - cRect.left,
+        y: clientY - cRect.top
+      };
+    };
+
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseleave", stopDrawing);
+
+    canvas.addEventListener("touchstart", startDrawing, { passive: false });
+    canvas.addEventListener("touchmove", draw, { passive: false });
+    canvas.addEventListener("touchend", stopDrawing);
+
+    return () => {
+      canvas.removeEventListener("mousedown", startDrawing);
+      canvas.removeEventListener("mousemove", draw);
+      canvas.removeEventListener("mouseup", stopDrawing);
+      canvas.removeEventListener("mouseleave", stopDrawing);
+      canvas.removeEventListener("touchstart", startDrawing);
+      canvas.removeEventListener("touchmove", draw);
+      canvas.removeEventListener("touchend", stopDrawing);
+    };
+  }, [deliveryOrder]);
+
+  const clearDetailsSignature = () => {
+    const canvas = document.getElementById("details-sig-canvas") as HTMLCanvasElement | null;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        setDetailsSignatureData("");
+      }
+    }
+  };
+
+  const clearDeliverySignature = () => {
+    const canvas = document.getElementById("delivery-sig-canvas") as HTMLCanvasElement | null;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        setDeliverySignatureData("");
+      }
+    }
+  };
+
+  const handleSaveDetailsSignature = async (orderId: number) => {
+    if (!detailsSignatureData) {
+      showToast("Por favor, dibuje la firma primero.", "warning");
+      return;
+    }
+
+    setIsSavingSignature(true);
+    try {
+      const res = await saveOrderSignatureAction(orderId, detailsSignatureData);
+      if (res.success) {
+        showToast("Firma registrada y entrega completada con éxito.", "success");
+        setSelectedOrder(null);
+        setDetailsSignatureData("");
+      } else {
+        showToast(res.error || "Error al guardar la firma.", "error");
+      }
+    } catch (err) {
+      console.error("Error saving signature:", err);
+      showToast("Error al conectar con el servidor.", "error");
+    } finally {
+      setIsSavingSignature(false);
+    }
+  };
+
+  const handleCompleteDelivery = async (orderId: number, withSignature: boolean) => {
+    setIsSavingDelivery(true);
+    try {
+      // 1. Change status to ENTREGADO
+      const res = await updateOrderStatusAction(orderId, "ENTREGADO");
+      if (!res.success) {
+        showToast(res.error || "Error al actualizar estado a Entregado", "error");
+        setIsSavingDelivery(false);
+        return;
+      }
+      
+      // 2. If withSignature is true, save signature
+      if (withSignature && deliverySignatureData) {
+        const sigRes = await saveOrderSignatureAction(orderId, deliverySignatureData);
+        if (!sigRes.success) {
+          showToast(`Vehículo entregado pero hubo un problema al guardar la firma: ${sigRes.error}`, "warning");
+        } else {
+          showToast("Vehículo entregado y firmado con éxito.", "success");
+        }
+      } else {
+        showToast("Vehículo entregado sin firma con éxito.", "success");
+      }
+      
+      setDeliveryOrder(null);
+      setDeliverySignatureData("");
+    } catch (err) {
+      console.error("Error in delivery workflow:", err);
+      showToast("Error en el proceso de entrega.", "error");
+    } finally {
+      setIsSavingDelivery(false);
+    }
+  };
 
   const handleDownloadPdf = async (orderId: number) => {
     setDownloadingPdfId(orderId);
@@ -239,31 +467,29 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
     });
   };
 
-  const getStatusStyles = (statusName: string) => {
+  const getStatusStyles = (statusName: string, hasSignature: boolean = false) => {
     switch (statusName) {
       case "RECIBIDO":
         return "bg-blue-50 text-blue-700 border-blue-200/60 before:bg-blue-500";
       case "EN_PROCESO":
         return "bg-orange-50 text-orange-700 border-orange-200/60 before:bg-orange-500";
-      case "LISTO":
-        return "bg-green-50 text-green-700 border-green-200/60 before:bg-green-500";
       case "ENTREGADO":
-        return "bg-zinc-100 text-zinc-600 border-zinc-200 before:bg-zinc-400";
+        return hasSignature
+          ? "bg-green-50 text-green-700 border-green-200/60 before:bg-green-500"
+          : "bg-zinc-100 text-zinc-600 border-zinc-200 before:bg-zinc-400";
       default:
         return "bg-zinc-100 text-zinc-600 border-zinc-200 before:bg-zinc-400";
     }
   };
 
-  const getStatusLabel = (statusName: string) => {
+  const getStatusLabel = (statusName: string, hasSignature: boolean = false) => {
     switch (statusName) {
       case "RECIBIDO":
         return "Recibido";
       case "EN_PROCESO":
         return "En proceso";
-      case "LISTO":
-        return "Listo para entrega";
       case "ENTREGADO":
-        return "Entregado";
+        return hasSignature ? "Entregado" : "Firma pendiente";
       default:
         return statusName;
     }
@@ -283,21 +509,22 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
     return matchesSearch && matchesStatus;
   });
 
-  // Sort logic: LISTO (0) -> RECIBIDO (1) -> EN_PROCESO (2) -> ENTREGADO (3)
-  const statusPriority: Record<string, number> = {
-    LISTO: 0,
-    RECIBIDO: 1,
-    EN_PROCESO: 2,
-    ENTREGADO: 3,
-  };
-
+  // Sort logic: RECIBIDO (0) -> EN_PROCESO (1) -> ENTREGADO sin firmar (2) -> ENTREGADO firmado (3)
   const sortedOrders = [...filteredOrders].sort((a, b) => {
-    const pA = statusPriority[a.status.name] ?? 99;
-    const pB = statusPriority[b.status.name] ?? 99;
+    const getPriority = (orderObj: any) => {
+      const name = orderObj.status.name;
+      if (name === "RECIBIDO") return 0;
+      if (name === "EN_PROCESO") return 1;
+      if (name === "ENTREGADO" && !orderObj.signatureUrl) return 2;
+      return 3;
+    };
+
+    const pA = getPriority(a);
+    const pB = getPriority(b);
     if (pA !== pB) {
       return pA - pB;
     }
-    // Newest first if status is the same
+    // Newest first if status priority is the same
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
@@ -328,7 +555,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
 
           {/* Status filter tabs */}
           <div className="flex bg-zinc-150/80 rounded-lg p-0.5 border border-zinc-200/30 select-none overflow-x-auto max-w-full">
-            {["TODOS", "RECIBIDO", "EN_PROCESO", "LISTO", "ENTREGADO"].map(
+            {["TODOS", "RECIBIDO", "EN_PROCESO", "ENTREGADO"].map(
               (status) => (
                 <button
                   key={status}
@@ -338,7 +565,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                     : "text-zinc-500 hover:text-zinc-900"
                     }`}
                 >
-                  {status === "TODOS" ? "Todos" : getStatusLabel(status)}
+                  {status === "TODOS" ? "Todos" : getStatusLabel(status, status === "ENTREGADO")}
                 </button>
               )
             )}
@@ -394,12 +621,18 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        {statusName === "ENTREGADO" && !order.signatureUrl && (Date.now() - new Date(order.createdAt).getTime()) / (1000 * 60 * 60) > 12 && (
+                          <span className="inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 animate-pulse select-none">
+                            ⚠️ Falta firma (&gt;12h)
+                          </span>
+                        )}
                         <span
                           className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full border before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${getStatusStyles(
-                            statusName
+                            statusName,
+                            !!order.signatureUrl
                           )}`}
                         >
-                          {getStatusLabel(statusName)}
+                          {getStatusLabel(statusName, !!order.signatureUrl)}
                         </span>
                         <ChevronDown className={`h-4 w-4 text-zinc-400 transition-transform duration-300 ${isCollapsed ? "" : "rotate-180"}`} />
                       </div>
@@ -504,40 +737,36 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                           </button>
                         </div>
 
-                        {/* Empezar Trabajo (RECIBIDO -> EN_PROCESO) */}
+                        {/* Empezar Trabajo (RECIBIDO -> EN_PROCESO) y Editar */}
                         {statusName === "RECIBIDO" && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleStatusChange(order.id, "EN_PROCESO")
-                            }
-                            className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-orange-500 hover:bg-orange-600 text-xs font-bold text-white transition-all shadow-xs cursor-pointer select-none"
-                          >
-                            <Clock className="h-4 w-4" />
-                            Iniciar
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => router.push(`/recepcion?edit=${order.id}`)}
+                              className="inline-flex items-center gap-1.5 h-9 rounded-lg border border-zinc-200/85 hover:bg-[#FBF5E6]/40 hover:border-[#C9A84C]/50 text-[#9A7A28] text-xs font-bold px-3 transition-all cursor-pointer select-none shadow-2xs"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleStatusChange(order.id, "EN_PROCESO")
+                              }
+                              className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-orange-500 hover:bg-orange-600 text-xs font-bold text-white transition-all shadow-xs cursor-pointer select-none"
+                            >
+                              <Clock className="h-4 w-4" />
+                              Iniciar
+                            </button>
+                          </>
                         )}
 
-                        {/* Listo para Entrega (EN_PROCESO -> LISTO) */}
+                        {/* Entregar Vehículo (EN_PROCESO -> ENTREGADO) */}
                         {statusName === "EN_PROCESO" && (
                           <button
                             type="button"
-                            onClick={() => handleStatusChange(order.id, "LISTO")}
-                            className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-green-600 hover:bg-green-700 text-xs font-bold text-white transition-all shadow-xs cursor-pointer select-none"
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                            Listo
-                          </button>
-                        )}
-
-                        {/* Entregar Vehículo (LISTO -> ENTREGADO) */}
-                        {statusName === "LISTO" && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleStatusChange(order.id, "ENTREGADO")
-                            }
-                            className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] text-xs font-bold text-[#0A0A0C] transition-all shadow-xs cursor-pointer select-none"
+                            onClick={() => setDeliveryOrder(order)}
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-[#C9A84C] hover:bg-[#b0903c] text-xs font-bold text-[#0A0A0C] transition-all shadow-xs cursor-pointer select-none"
                           >
                             <ArrowDownLeft className="h-4 w-4" />
                             Entregar
@@ -546,15 +775,18 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
 
                         {/* Entregado (ENTREGADO) */}
                         {statusName === "ENTREGADO" && (
-                          <div className="flex-1 text-center h-9 text-xs font-bold text-zinc-400 flex items-center justify-center gap-1.5 bg-zinc-50 rounded-lg border border-zinc-200/70 select-none">
-                            <CheckCircle2 className="h-4 w-4 text-zinc-400" />
-                            Entregado
+                          <div className={`flex-1 text-center h-9 text-xs font-bold flex items-center justify-center gap-1.5 rounded-lg border select-none ${order.signatureUrl
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : "bg-zinc-50 text-zinc-400 border-zinc-200/70"
+                            }`}>
+                            <CheckCircle2 className={`h-4 w-4 ${order.signatureUrl ? "text-green-600" : "text-zinc-400"}`} />
+                            {order.signatureUrl ? "Entregado y Firmado" : "Entregado sin firmar"}
                           </div>
                         )}
                       </div>
 
-                      {/* Carga y visualización de PDF de entrega (Para LISTO y ENTREGADO con PDF cargado) */}
-                      {(statusName === "LISTO" || (statusName === "ENTREGADO" && order.deliveryPdfUrl)) && (
+                      {/* Carga y visualización de PDF de entrega (Para órdenes en ENTREGADO) */}
+                      {statusName === "ENTREGADO" && (
                         <div className="mt-4 pt-3 border-t border-zinc-150 flex flex-col gap-2">
                           <div className="flex items-center justify-between text-[9px] font-extrabold uppercase tracking-wider text-zinc-400">
                             <span>Factura Electrónica</span>
@@ -573,10 +805,10 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                           ) : order.deliveryPdfUrl ? (
                             <div className="bg-zinc-50 border border-zinc-200 hover:border-[#C9A84C]/35 rounded-xl p-2 flex items-center justify-between gap-3 group transition-all duration-200 animate-[scaleIn_0.15s_ease-out]">
                               <a
-                                href={order.deliveryPdfUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2.5 min-w-0 flex-1 hover:text-[#9A7A28] transition-colors"
+                                  href={order.deliveryPdfUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2.5 min-w-0 flex-1 hover:text-[#9A7A28] transition-colors"
                               >
                                 <div className="h-9 w-9 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
                                   <FileText className="h-4.5 w-4.5" />
@@ -586,16 +818,14 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                                   <p className="text-[9px] text-zinc-400 font-semibold mt-0.5">Ver / Descargar archivo</p>
                                 </div>
                               </a>
-                              {statusName === "LISTO" && (
-                                <button
-                                  type="button"
-                                  onClick={() => handlePdfDelete(order.id)}
-                                  className="h-8.5 w-8.5 rounded-lg flex items-center justify-center text-zinc-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 border border-transparent transition-all cursor-pointer"
-                                  title="Eliminar documento"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              )}
+                              <button
+                                type="button"
+                                onClick={() => handlePdfDelete(order.id)}
+                                className="h-8.5 w-8.5 rounded-lg flex items-center justify-center text-zinc-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 border border-transparent transition-all cursor-pointer"
+                                title="Eliminar documento"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
                             </div>
                           ) : (
                             <label className="border border-dashed border-zinc-200/80 hover:border-[#C9A84C]/50 hover:bg-[#FBF5E6]/10 rounded-xl p-4 text-center cursor-pointer transition-all flex items-center justify-center gap-2 select-none group animate-[scaleIn_0.15s_ease-out]">
@@ -761,6 +991,18 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                 </div>
               </div>
 
+              {/* Detalles / Especificaciones de Servicios (NUEVO) */}
+              {selectedOrder.serviceDescription && (
+                <div className="space-y-2 pt-2 animate-[scaleIn_0.15s_ease-out]">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                    Detalles / Especificaciones de Servicios
+                  </h4>
+                  <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 text-xs text-zinc-750 whitespace-pre-wrap leading-relaxed font-medium">
+                    {selectedOrder.serviceDescription}
+                  </div>
+                </div>
+              )}
+
               {/* Checklist Section */}
               {selectedOrder.checklist && (
                 <div className="space-y-3 pt-2">
@@ -896,8 +1138,8 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                 </div>
               )}
 
-              {/* Signature display */}
-              {selectedOrder.signatureUrl && (
+              {/* Signature display / canvas draw pad */}
+              {selectedOrder.signatureUrl ? (
                 <div className="pt-4 border-t border-zinc-150 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
                     Firma de Conformidad del Cliente
@@ -915,11 +1157,50 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                           errorLabel.className = 'text-xs text-zinc-400 italic font-semibold signature-fallback-msg';
                           errorLabel.innerText = 'Firma digital registrada';
                           parent.appendChild(errorLabel);
-                        }
+                         }
                       }}
                     />
                   </div>
                 </div>
+              ) : (
+                selectedOrder.status.name === "ENTREGADO" && (
+                  <div className="pt-4 border-t border-zinc-150 space-y-3">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                      Registrar Firma de Conformidad (Firma Pendiente)
+                    </span>
+                    <p className="text-xs text-zinc-500">
+                      Por favor, registre la firma del cliente sobre el lienzo para completar formalmente la entrega.
+                    </p>
+                    <div className="border border-zinc-250 rounded-xl bg-white overflow-hidden relative h-28 w-full max-w-xs shadow-[inset_0_1px_3px_rgba(0,0,0,0.06)]">
+                      <canvas
+                        id="details-sig-canvas"
+                        className="w-full h-full cursor-crosshair touch-none"
+                      />
+                      {detailsSignatureData && (
+                        <div className="absolute top-2 right-2 bg-green-100 text-green-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-green-200">
+                          Dibujado ✓
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2 max-w-xs pt-1">
+                      <button
+                        type="button"
+                        onClick={clearDetailsSignature}
+                        className="flex-1 h-8 px-3 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 transition-colors cursor-pointer"
+                      >
+                        Limpiar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSaveDetailsSignature(selectedOrder.id)}
+                        disabled={isSavingSignature}
+                        className="flex-1 h-8 px-3 rounded-lg bg-[#C9A84C] hover:bg-[#b0903c] text-xs font-bold text-[#0A0A0C] transition-colors disabled:opacity-50 cursor-pointer shadow-2xs active:scale-98"
+                      >
+                        {isSavingSignature ? "Guardando..." : "Guardar Firma"}
+                      </button>
+                    </div>
+                  </div>
+                )
               )}
 
               {/* Delivery PDF URL display inside the technical sheet */}
@@ -1005,8 +1286,8 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                   </div>
                 )}
 
-                {/* Comment Form (Only for active states: EN_PROCESO or LISTO) */}
-                {(selectedOrder.status.name === "EN_PROCESO" || selectedOrder.status.name === "LISTO") ? (
+                {/* Comment Form (Only for active states: RECIBIDO, EN_PROCESO or ENTREGADO unsigned) */}
+                {(selectedOrder.status.name === "RECIBIDO" || selectedOrder.status.name === "EN_PROCESO" || (selectedOrder.status.name === "ENTREGADO" && !selectedOrder.signatureUrl)) ? (
                   <form
                     onSubmit={(e) => handleAddComment(e, selectedOrder.id)}
                     className="space-y-3 pt-2"
@@ -1037,7 +1318,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                 ) : (
                   <div className="bg-zinc-50 border border-zinc-150 rounded-xl p-3 text-[10px] text-zinc-400 font-semibold flex items-center gap-1.5 select-none">
                     <span className="w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
-                    <span>El registro de comentarios está deshabilitado porque el servicio está {selectedOrder.status.name === "RECIBIDO" ? "en estado Recibido" : "Entregado"}.</span>
+                    <span>El registro de comentarios está deshabilitado porque el servicio ha sido completamente entregado y firmado.</span>
                   </div>
                 )}
               </div>
@@ -1127,6 +1408,108 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
               alt="Visualización de Evidencia"
               className="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl animate-[scaleIn_0.15s_ease-out]"
             />
+          </div>
+        </div>
+      )}
+
+      {/* DELIVERY MODAL (NUEVO) */}
+      {deliveryOrder && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div
+            className="bg-white border border-zinc-200 rounded-2xl w-full max-w-md overflow-hidden flex flex-col shadow-2xl animate-[scaleIn_0.2s_ease-out]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-zinc-150 flex items-center justify-between bg-zinc-50 shrink-0">
+              <div>
+                <span className="font-mono font-bold text-xs text-[#9A7A28] uppercase tracking-wider block">
+                  Confirmar Entrega de Vehículo
+                </span>
+                <h3 className="text-base font-extrabold text-zinc-900 mt-0.5">
+                  Orden {deliveryOrder.code}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDeliveryOrder(null);
+                  setDeliverySignatureData("");
+                }}
+                className="h-9 w-9 rounded-lg border border-zinc-200 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-100 flex items-center justify-center text-sm font-bold transition-colors cursor-pointer select-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4 overflow-y-auto">
+              <div className="bg-zinc-50 border border-zinc-150 rounded-xl p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-zinc-450">Vehículo:</span>
+                  <strong className="text-zinc-800">{deliveryOrder.car.brand.name} {deliveryOrder.car.model}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-450">Placa:</span>
+                  <strong className="font-mono text-zinc-800">{deliveryOrder.car.plate}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-450">Cliente:</span>
+                  <strong className="text-zinc-800">{deliveryOrder.client.name}</strong>
+                </div>
+              </div>
+
+              {/* Canvas draw area */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    Firma del Cliente (Opcional)
+                  </span>
+                  {deliverySignatureData && (
+                    <span className="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">
+                      Dibujado ✓
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-normal">
+                  Si el cliente está presente, dibuje su firma sobre el lienzo para dejar constancia de la entrega de conformidad.
+                </p>
+                <div className="border border-zinc-250 rounded-xl bg-white overflow-hidden relative h-28 w-full shadow-[inset_0_1px_3px_rgba(0,0,0,0.06)]">
+                  <canvas
+                    id="delivery-sig-canvas"
+                    className="w-full h-full cursor-crosshair touch-none"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={clearDeliverySignature}
+                    className="h-8 px-3 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 transition-colors cursor-pointer"
+                  >
+                    Limpiar firma
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-zinc-150 bg-zinc-50 flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => handleCompleteDelivery(deliveryOrder.id, false)}
+                disabled={isSavingDelivery}
+                className="h-10 px-4 rounded-lg border border-zinc-300 hover:bg-zinc-100 text-xs font-bold text-zinc-700 transition-colors cursor-pointer select-none disabled:opacity-50"
+              >
+                Entregar sin firmar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCompleteDelivery(deliveryOrder.id, true)}
+                disabled={isSavingDelivery || !deliverySignatureData}
+                className="h-10 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#b0903c] text-xs font-bold text-[#0A0A0C] transition-colors cursor-pointer select-none disabled:opacity-50 shadow-sm shadow-[#C9A84C]/25 animate-colors"
+              >
+                {isSavingDelivery ? "Entregando..." : "Guardar y Entregar"}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1814,6 +1814,7 @@ export const OrderScalarFieldEnum = {
   mileage: 'mileage',
   signatureUrl: 'signatureUrl',
   observations: 'observations',
+  serviceDescription: 'serviceDescription',
   checklist: 'checklist',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

@@ -401,3 +401,57 @@ export async function sendWhatsAppPromotionAction(promotionId: number, clientId:
   }
 }
 
+/**
+ * Envía una notificación de WhatsApp simple avisando que el vehículo está listo para retiro
+ */
+export async function sendWhatsAppReadyAction(orderId: number): Promise<boolean> {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        client: true,
+        car: {
+          include: { brand: true }
+        }
+      }
+    });
+
+    if (!order || !order.client.phone) {
+      console.warn(`[WhatsApp Kapso] No se pudo enviar aviso de listo: Orden ${orderId} no encontrada o sin celular.`);
+      return false;
+    }
+
+    const customerName = order.client.name;
+    const vehicleName = `${order.car.brand.name} ${order.car.model}`;
+    const plate = order.car.plate;
+    const recipientPhone = formatearTelefono(order.client.phone);
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: recipientPhone,
+      type: "text",
+      text: {
+        body: `Hola ${customerName}, te informamos que tu vehículo ${vehicleName} con placas ${plate} ya está listo para retiro en Casa Tuning. ¡Te esperamos!`
+      }
+    };
+
+    console.log(`[WhatsApp Kapso] Enviando mensaje de vehículo listo para orden ${order.code} a ${recipientPhone}`);
+    const success = await enviarMensajeKapso(payload);
+
+    if (success) {
+      await prisma.orderNotification.create({
+        data: {
+          orderId: order.id,
+          platform: "WHATSAPP",
+          notificationType: "VEHICULO_LISTO"
+        }
+      });
+    }
+
+    return success;
+  } catch (error) {
+    console.error(`[WhatsApp Kapso] Error en sendWhatsAppReadyAction para la orden ${orderId}:`, error);
+    return false;
+  }
+}
+

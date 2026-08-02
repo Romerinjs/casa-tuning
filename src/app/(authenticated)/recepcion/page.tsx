@@ -3,9 +3,48 @@ import { verifySession } from "@/lib/auth-helpers";
 import RecepcionForm from "@/components/RecepcionForm";
 import { decryptDocument } from "@/lib/security";
 
-export default async function RecepcionPage() {
+interface PageProps {
+  searchParams: Promise<{ edit?: string }>;
+}
+
+export default async function RecepcionPage({ searchParams }: PageProps) {
   // Verify user session
   await verifySession();
+
+  const params = await searchParams;
+  const editIdStr = params.edit;
+  let orderToEdit: any = null;
+
+  if (editIdStr) {
+    const editId = parseInt(editIdStr, 10);
+    if (!isNaN(editId)) {
+      const order = await prisma.order.findUnique({
+        where: { id: editId },
+        include: {
+          client: {
+            include: { documentType: true },
+          },
+          car: {
+            include: { brand: true },
+          },
+          services: {
+            include: { service: true },
+          },
+          status: true,
+        },
+      });
+
+      if (order && order.status.name === "RECIBIDO") {
+        orderToEdit = {
+          ...order,
+          client: {
+            ...order.client,
+            documentNumber: order.client.documentNumber ? decryptDocument(order.client.documentNumber) : null,
+          },
+        };
+      }
+    }
+  }
 
   // Fetch brands catalog, active services, existing clients, cars, and document types in parallel
   const [brands, services, clientsData, carsData, documentTypes] = await Promise.all([
@@ -66,6 +105,7 @@ export default async function RecepcionPage() {
       existingClients={clients}
       existingCars={cars}
       documentTypes={documentTypes}
+      initialOrder={orderToEdit}
     />
   );
 }
