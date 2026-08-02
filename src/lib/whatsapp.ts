@@ -259,7 +259,7 @@ export async function sendWhatsAppDeliveryAction(orderId: number): Promise<boole
 
     console.log(`[WhatsApp Kapso] Enviando plantilla 'vehiculo_entregado' para orden ${order.code} a ${recipientPhone}`);
     const successB = await enviarMensajeKapso(payloadB);
- 
+
     if (successB) {
       await prisma.orderNotification.create({
         data: {

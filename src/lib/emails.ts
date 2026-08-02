@@ -539,7 +539,7 @@ export async function sendDeliveryEmail(
       html,
       attachments,
     },
-    { idempotencyKey: `delivery-email-${order.id}-${order.signatureUrl ? "sig" : "nosig"}-${order.deliveryPdfUrl ? "inv" : "noinv"}` }
+    { idempotencyKey: `delivery-email-${order.id}` }
   );
 
   if (error) {
