@@ -184,6 +184,16 @@ export async function generateOrderPdf(orderId: number): Promise<Buffer> {
 
       y += 48;
 
+      if (order.serviceDescription) {
+        doc.fillColor(darkColor).font("Helvetica-Bold").fontSize(10).text("DETALLES / ESPECIFICACIONES DE SERVICIOS", 40, y);
+        y += 15;
+        doc.strokeColor(lightGreyColor).lineWidth(1).moveTo(40, y).lineTo(572, y).stroke();
+        y += 10;
+        doc.fillColor(textColor).font("Helvetica").fontSize(8.5).text(order.serviceDescription, 45, y, { width: 512, lineGap: 2.5 });
+        const descHeight = doc.heightOfString(order.serviceDescription, { width: 512, lineGap: 2.5 });
+        y += descHeight + 20;
+      }
+
       // -----------------------------------------------------------------
       // CHECKLIST INSPECTION (2 COLUMNS)
       // -----------------------------------------------------------------
