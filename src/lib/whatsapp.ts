@@ -525,10 +525,10 @@ export async function sendWhatsAppReservationConfirmationAction(reservationId: n
           {
             type: "body",
             parameters: [
-              { type: "text", parameter_name: "customer_name", text: customerName },
-              { type: "text", parameter_name: "date_time", text: dateTimeStr },
-              { type: "text", parameter_name: "vehicle_info", text: vehicleInfo },
-              { type: "text", parameter_name: "services_list", text: servicesList }
+              { type: "text", text: customerName }, // {{1}}
+              { type: "text", text: dateTimeStr },   // {{2}}
+              { type: "text", text: vehicleInfo },   // {{3}}
+              { type: "text", text: servicesList }   // {{4}}
             ]
           }
         ]
@@ -591,10 +591,10 @@ export async function sendWhatsAppReservationReminderAction(reservationId: numbe
           {
             type: "body",
             parameters: [
-              { type: "text", parameter_name: "customer_name", text: customerName },
-              { type: "text", parameter_name: "date_time", text: dateTimeStr },
-              { type: "text", parameter_name: "vehicle_info", text: vehicleInfo },
-              { type: "text", parameter_name: "services_list", text: servicesList }
+              { type: "text", text: customerName }, // {{1}}
+              { type: "text", text: dateTimeStr },   // {{2}}
+              { type: "text", text: vehicleInfo },   // {{3}}
+              { type: "text", text: servicesList }   // {{4}}
             ]
           }
         ]

@@ -17,21 +17,21 @@ Esta plantilla se envía de manera automática en segundo plano inmediatamente c
 * **Header (Encabezado):** Ninguno
 * **Body (Cuerpo del mensaje):**
 ```text
-Hola {{customer_name}}, tu cita en Casa Tuning ha sido confirmada con éxito.
+Hola {{1}}, tu cita en Casa Tuning ha sido confirmada con éxito.
 
-Fecha y Hora: {{date_time}}
-Vehículo: {{vehicle_info}}
-Servicios: {{services_list}}
+Fecha y Hora: {{2}}
+Vehículo: {{3}}
+Servicios: {{4}}
 
 Si necesitas realizar algún cambio en tu agendamiento, por favor responde a este mensaje. ¡Te esperamos!
 ```
 * **Footer (Pie de página):** Ninguno
 
 ### Mapeo de Variables (Parámetros):
-1. **`customer_name`:** Nombre completo del cliente (Ej: `Carlos Pérez`).
-2. **`date_time`:** Fecha y hora de la cita en formato legible (Ej: `Lunes 10 de Agosto a las 09:30 AM`).
-3. **`vehicle_info`:** Marca, modelo y placa del vehículo (Ej: `Toyota Corolla - ABC123`).
-4. **`services_list`:** Nombres de los servicios contratados separados por coma (Ej: `Polarizado Cerámico, PPF Capó`).
+1. **`{{1}}` (customer_name):** Nombre completo del cliente (Ej: `Carlos Pérez`).
+2. **`{{2}}` (date_time):** Fecha y hora de la cita en formato legible (Ej: `Lunes 10 de Agosto a las 09:30 AM`).
+3. **`{{3}}` (vehicle_info):** Marca, modelo y placa del vehículo (Ej: `Toyota Corolla - ABC123`).
+4. **`{{4}}` (services_list):** Nombres de los servicios contratados separados por coma (Ej: `Polarizado Cerámico, PPF Capó`).
 
 ---
 
@@ -48,21 +48,21 @@ Esta plantilla se envía de manera programada (Job automático de cron 24h antes
 * **Header (Encabezado):** Ninguno
 * **Body (Cuerpo del mensaje):**
 ```text
-Hola {{customer_name}}, te recordamos que tienes una cita programada en Casa Tuning.
+Hola {{1}}, te recordamos que tienes una cita programada en Casa Tuning.
 
-Fecha y Hora: {{date_time}}
-Vehículo: {{vehicle_info}}
-Servicios: {{services_list}}
+Fecha y Hora: {{2}}
+Vehículo: {{3}}
+Servicios: {{4}}
 
 Te esperamos en nuestras instalaciones. Gracias por confiar en Casa Tuning.
 ```
 * **Footer (Pie de página):** Ninguno
 
 ### Mapeo de Variables (Parámetros):
-1. **`customer_name`:** Nombre del cliente (Ej: `Carlos Pérez`).
-2. **`date_time`:** Fecha y hora de la cita (Ej: `Mañana a las 09:30 AM`).
-3. **`vehicle_info`:** Información del vehículo (Ej: `Toyota Corolla - ABC123`).
-4. **`services_list`:** Lista de servicios (Ej: `Polarizado Cerámico`).
+1. **`{{1}}` (customer_name):** Nombre del cliente (Ej: `Carlos Pérez`).
+2. **`{{2}}` (date_time):** Fecha y hora de la cita (Ej: `Mañana a las 09:30 AM`).
+3. **`{{3}}` (vehicle_info):** Información del vehículo (Ej: `Toyota Corolla - ABC123`).
+4. **`{{4}}` (services_list):** Lista de servicios (Ej: `Polarizado Cerámico`).
 
 
 ---
@@ -83,10 +83,10 @@ En el código del sistema (`src/lib/whatsapp.ts`), el payload enviado a la API d
       {
         "type": "body",
         "parameters": [
-          { "type": "text", "parameter_name": "customer_name", "text": "Carlos Pérez" },
-          { "type": "text", "parameter_name": "date_time", "text": "Lunes 10 de Agosto a las 09:30 AM" },
-          { "type": "text", "parameter_name": "vehicle_info", "text": "Toyota Corolla - ABC123" },
-          { "type": "text", "parameter_name": "services_list", "text": "Polarizado Cerámico, PPF Capó" }
+          { "type": "text", "text": "Carlos Pérez" },
+          { "type": "text", "text": "Lunes 10 de Agosto a las 09:30 AM" },
+          { "type": "text", "text": "Toyota Corolla - ABC123" },
+          { "type": "text", "text": "Polarizado Cerámico, PPF Capó" }
         ]
       }
     ]
