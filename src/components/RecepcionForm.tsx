@@ -239,10 +239,12 @@ export default function RecepcionForm({
       initialReservation?.services?.map((s: any) => s.serviceId) ||
       []
   );
-  const [serviceDescription, setServiceDescription] = useState(initialOrder?.serviceDescription || "");
+  const [serviceDescription, setServiceDescription] = useState(
+    initialOrder?.serviceDescription || initialReservation?.notes || ""
+  );
 
   const [observations, setObservations] = useState(
-    initialOrder?.observations || initialReservation?.notes || ""
+    initialOrder?.observations || ""
   );
 
   // Extract initial checklist values and images
