@@ -454,7 +454,7 @@ export async function sendDeliveryEmail(
     });
   }
 
-  if (order.deliveryPdfUrl) {
+  if (order.deliveryPdfUrl && order.deliveryPdfUrl.startsWith("http")) {
     try {
       const res = await fetch(order.deliveryPdfUrl);
       if (res.ok) {
