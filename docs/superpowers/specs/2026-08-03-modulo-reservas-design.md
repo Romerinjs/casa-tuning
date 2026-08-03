@@ -140,22 +140,36 @@ Se añadirán dos nuevas funciones para el envío de plantillas WhatsApp vía Ka
 
 ---
 
-## 5. Guía de Documentación para el Agente / Administrador de Kapso
+## 5. Guía de Diseño UI e Integración Estética
 
-Se creará la documentación completa en `docs/kapso-templates-reservas.md` para ser entregada al administrador o agente de Kapso con los datos exactos requeridos por Meta.
+Para mantener la armonía y elegancia visual de Casa Tuning:
+
+1. **Paleta de Colores y Tokens UI del Sistema:**
+   - **Fondo de Página:** `#F7F7F8` con contenedor principal `bg-white` o `bg-zinc-50`.
+   - **Sidebar / Headers Operativos:** `#111113` (Oscuro premium).
+   - **Acentos Dorados:** `#C9A84C` para botones primarios (`bg-[#C9A84C] hover:bg-[#b0903c] text-[#0A0A0C] font-bold`).
+   - **Badges Doradas de Servicio/Código:** `bg-[#FBF5E6]/90 text-[#9A7A28] border border-[#C9A84C]/25`.
+   - **Iconografía:** Uso exclusivo de iconos de `lucide-react` (`CalendarClock`, `Search`, `User`, `Phone`, `Clock`, `Plus`, `Send`, `Edit`, `CheckCircle2`, `Trash2`, `ArrowRight`).
+   - **Sin Emojis en la Interfaz:** Se prohíbe el uso de emojis en la interfaz web; las métricas, botones y tablas usarán únicamente tipografía limpia e iconos SVG minimalistas.
+
+---
+
+## 6. Guía de Documentación para el Agente / Administrador de Kapso
+
+Se creará la documentación completa en `docs/kapso-templates-reservas.md` para ser entregada al administrador o agente de Kapso con el formato sobrio y profesional requerido por WhatsApp Business.
 
 ### Plantilla 1: `reserva_confirmada`
 * **Nombre de la plantilla:** `reserva_confirmada`
 * **Categoría:** `UTILITY`
 * **Idioma:** `es_MX`
 * **Cuerpo del mensaje (Body):**
-  > ¡Hola {{customer_name}}! 🚗✨ Tu cita en **Casa Tuning** ha sido confirmada con éxito.
+  > Hola {{customer_name}}, tu cita en Casa Tuning ha sido confirmada con éxito.
   > 
-  > 📅 **Fecha y Hora:** {{date_time}}
-  > 🚘 **Vehículo:** {{vehicle_info}}
-  > 🛠️ **Servicios:** {{services_list}}
+  > Fecha y Hora: {{date_time}}
+  > Vehículo: {{vehicle_info}}
+  > Servicios: {{services_list}}
   > 
-  > Nos vemos pronto para darle el mejor cuidado a tu vehículo. Si necesitas reprogramar, comunícate con nosotros.
+  > Si necesitas realizar algún cambio en tu agendamiento, por favor responde a este mensaje. ¡Te esperamos!
 * **Variables:**
   1. `customer_name` (ej: `Carlos Pérez`)
   2. `date_time` (ej: `Lunes 10 de Agosto a las 09:30 AM`)
@@ -169,13 +183,13 @@ Se creará la documentación completa en `docs/kapso-templates-reservas.md` para
 * **Categoría:** `UTILITY`
 * **Idioma:** `es_MX`
 * **Cuerpo del mensaje (Body):**
-  > Hola {{customer_name}}, te recordamos que tienes una cita programada en **Casa Tuning** 🏁.
+  > Hola {{customer_name}}, te recordamos que tienes una cita programada en Casa Tuning.
   > 
-  > 📅 **Fecha y Hora:** {{date_time}}
-  > 🚘 **Vehículo:** {{vehicle_info}}
-  > 🛠️ **Servicios:** {{services_list}}
+  > Fecha y Hora: {{date_time}}
+  > Vehículo: {{vehicle_info}}
+  > Servicios: {{services_list}}
   > 
-  > Te esperamos en nuestras instalaciones. ¡Gracias por confiar en nosotros!
+  > Te esperamos en nuestras instalaciones. Gracias por confiar en Casa Tuning.
 * **Variables:**
   1. `customer_name` (ej: `Carlos Pérez`)
   2. `date_time` (ej: `Mañana a las 09:30 AM`)
