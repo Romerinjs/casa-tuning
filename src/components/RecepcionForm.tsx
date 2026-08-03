@@ -184,8 +184,12 @@ export default function RecepcionForm({
   const [clientPhone, setClientPhone] = useState(
     initialOrder?.client?.phone || initialReservation?.client?.phone || ""
   );
-  const [clientPhone2, setClientPhone2] = useState(initialOrder?.client?.phone2 || "");
-  const [showPhone2, setShowPhone2] = useState(!!initialOrder?.client?.phone2);
+  const [clientPhone2, setClientPhone2] = useState(
+    initialOrder?.client?.phone2 || initialReservation?.client?.phone2 || ""
+  );
+  const [showPhone2, setShowPhone2] = useState(
+    !!(initialOrder?.client?.phone2 || initialReservation?.client?.phone2)
+  );
   const [clientDocumentTypeId, setClientDocumentTypeId] = useState(
     initialOrder?.client?.documentTypeId
       ? initialOrder.client.documentTypeId.toString()
@@ -222,9 +226,13 @@ export default function RecepcionForm({
   const [model, setModel] = useState(
     initialOrder?.car?.model || initialReservation?.car?.model || initialReservation?.vehicleModel || ""
   );
-  const [color, setColor] = useState(initialOrder?.car?.color || "");
+  const [color, setColor] = useState(
+    initialOrder?.car?.color || initialReservation?.car?.color || ""
+  );
   const [mileage, setMileage] = useState(initialOrder?.mileage || "");
-  const [vehicleType, setVehicleType] = useState(initialOrder?.car?.type || "Automóvil");
+  const [vehicleType, setVehicleType] = useState(
+    initialOrder?.car?.type || initialReservation?.car?.type || "Automóvil"
+  );
 
   const [selectedServices, setSelectedServices] = useState<number[]>(
     initialOrder?.services?.map((s: any) => s.serviceId) ||
@@ -325,9 +333,23 @@ export default function RecepcionForm({
   const [clientMode, setClientMode] = useState<"registered" | "new">(initialOrder ? "new" : "registered");
   const [clientSearchQuery, setClientSearchQuery] = useState("");
   const [isClientSearchOpen, setIsClientSearchOpen] = useState(false);
-  const [selectedClientObj, setSelectedClientObj] = useState<ClientData | null>(null);
+  const [selectedClientObj, setSelectedClientObj] = useState<ClientData | null>(() => {
+    if (initialOrder?.client) {
+      return existingClients.find((c) => c.id === initialOrder.client.id) || null;
+    }
+    if (initialReservation?.client) {
+      return existingClients.find((c) => c.id === initialReservation.client.id) || null;
+    }
+    return null;
+  });
 
-  const [carMode, setCarMode] = useState<"registered" | "new">(initialOrder ? "new" : "registered");
+  const [carMode, setCarMode] = useState<"registered" | "new">(
+    initialOrder
+      ? "new"
+      : initialReservation
+      ? (initialReservation.carId ? "registered" : "new")
+      : "registered"
+  );
   const [carSearchQuery, setCarSearchQuery] = useState("");
   const [isCarSearchOpen, setIsCarSearchOpen] = useState(false);
 
