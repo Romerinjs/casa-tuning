@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { X, Search, CalendarClock, User, Car, Wrench, Check, Plus, AlertCircle } from "lucide-react";
+import { X, Search, CalendarClock, User, Car, Wrench, Check, AlertCircle, Clock } from "lucide-react";
 import { createReservationAction, updateReservationAction } from "@/app/(authenticated)/reservas/actions";
 import { useToast } from "@/components/ui/Toast";
 
@@ -37,6 +37,56 @@ interface ReservaFormModalProps {
   initialData?: any | null;
 }
 
+/** Obtiene la fecha actual en Colombia en formato YYYY-MM-DD */
+const getTodayColombiaStr = () => {
+  const now = new Date();
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+};
+
+/** Genera las franjas de horario laboral de Casa Tuning para un día dado */
+function getBusinessTimeSlots(dateStr: string): { value: string; label: string }[] {
+  if (!dateStr) return [];
+
+  // Parse date in Colombia timezone
+  const dateObj = new Date(`${dateStr}T12:00:00-05:00`);
+  const dayOfWeek = dateObj.getDay(); // 0 = Dom, 1 = Lun, ... 6 = Sáb
+
+  if (dayOfWeek === 0) {
+    return []; // Domingo cerrado
+  }
+
+  const slots: { value: string; label: string }[] = [];
+  const startHour = dayOfWeek === 6 ? 8 : 8;
+  const startMinute = dayOfWeek === 6 ? 0 : 30;
+  const endHour = 18;
+  const endMinute = 30;
+
+  let currentMinutes = startHour * 60 + startMinute;
+  const totalEndMinutes = endHour * 60 + endMinute;
+
+  while (currentMinutes <= totalEndMinutes) {
+    const h = Math.floor(currentMinutes / 60);
+    const m = currentMinutes % 60;
+    const hStr = String(h).padStart(2, "0");
+    const mStr = String(m).padStart(2, "0");
+    const timeVal = `${hStr}:${mStr}`;
+
+    const period = h >= 12 ? "p. m." : "a. m.";
+    const displayH = h % 12 === 0 ? 12 : h % 12;
+    const displayLabel = `${displayH}:${mStr} ${period}`;
+
+    slots.push({ value: timeVal, label: displayLabel });
+    currentMinutes += 30;
+  }
+
+  return slots;
+}
+
 export default function ReservaFormModal({
   isOpen,
   onClose,
@@ -61,8 +111,10 @@ export default function ReservaFormModal({
   const [vehicleModel, setVehicleModel] = useState("");
   const [selectedBrandId, setSelectedBrandId] = useState<number | "">("");
 
-  // Date & Time
-  const [scheduledAt, setScheduledAt] = useState("");
+  // Date & Time state (Separate date and time to enforce business hours and Colombia timezone)
+  const todayColombia = getTodayColombiaStr();
+  const [scheduledDate, setScheduledDate] = useState(todayColombia);
+  const [scheduledTime, setScheduledTime] = useState("09:00");
 
   // Services
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
@@ -85,10 +137,21 @@ export default function ReservaFormModal({
 
       if (initialData.scheduledAt) {
         const d = new Date(initialData.scheduledAt);
-        const isoStr = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-          .toISOString()
-          .slice(0, 16);
-        setScheduledAt(isoStr);
+        const dateStr = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "America/Bogota",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(d);
+        const timeStr = new Intl.DateTimeFormat("en-GB", {
+          timeZone: "America/Bogota",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }).format(d);
+
+        setScheduledDate(dateStr);
+        setScheduledTime(timeStr);
       }
 
       if (initialData.services && Array.isArray(initialData.services)) {
@@ -96,15 +159,10 @@ export default function ReservaFormModal({
       }
       setNotes(initialData.notes || "");
     } else {
-      // Default: Tomorrow at 09:00 AM
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(9, 0, 0, 0);
-      const isoStr = new Date(tomorrow.getTime() - tomorrow.getTimezoneOffset() * 60000)
-        .toISOString()
-        .slice(0, 16);
-      setScheduledAt(isoStr);
-
+      // Default: Tomorrow or Today at 09:00 AM
+      const nextDate = getTodayColombiaStr();
+      setScheduledDate(nextDate);
+      setScheduledTime("09:00");
       resetForm();
     }
   }, [initialData, isOpen]);
@@ -125,6 +183,9 @@ export default function ReservaFormModal({
   };
 
   if (!isOpen) return null;
+
+  const timeSlots = getBusinessTimeSlots(scheduledDate);
+  const isSundaySelected = new Date(`${scheduledDate}T12:00:00-05:00`).getDay() === 0;
 
   const filteredClients = clientSearchTerm.trim().length >= 2
     ? clients.filter(
@@ -174,12 +235,22 @@ export default function ReservaFormModal({
 
     const cleanPhone = clientPhone.replace(/\D/g, "");
     if (cleanPhone.length !== 10) {
-      setErrorMsg("El número de celular debe contener exactamente 10 dígitos.");
+      setErrorMsg("El celular debe contener exactamente 10 dígitos.");
       return;
     }
 
-    if (!scheduledAt) {
-      setErrorMsg("Debes seleccionar la fecha y hora de la cita.");
+    if (!scheduledDate || !scheduledTime) {
+      setErrorMsg("Debes seleccionar fecha y hora válida para la cita.");
+      return;
+    }
+
+    if (scheduledDate < todayColombia) {
+      setErrorMsg("No se pueden agendar citas en fechas anteriores a hoy.");
+      return;
+    }
+
+    if (isSundaySelected) {
+      setErrorMsg("Casa Tuning no atiende los domingos. Elige un día entre Lunes y Sábado.");
       return;
     }
 
@@ -188,11 +259,14 @@ export default function ReservaFormModal({
       return;
     }
 
+    // Submit with explicit America/Bogota (-05:00) ISO string to avoid 5-hour shift bug
+    const fullIsoString = `${scheduledDate}T${scheduledTime}:00-05:00`;
+
     const formData = new FormData();
     formData.append("clientName", clientName);
     formData.append("clientPhone", cleanPhone);
     if (clientEmail) formData.append("clientEmail", clientEmail);
-    formData.append("scheduledAt", scheduledAt);
+    formData.append("scheduledAt", fullIsoString);
     if (selectedCarId) formData.append("carId", selectedCarId.toString());
     if (vehiclePlate) formData.append("vehiclePlate", vehiclePlate);
     if (vehicleModel) formData.append("vehicleModel", vehicleModel);
@@ -241,7 +315,7 @@ export default function ReservaFormModal({
                 {initialData ? `Editar Reserva ${initialData.code}` : "Agendar Nueva Reserva"}
               </h3>
               <p className="text-xs text-white/50">
-                Registra la cita y notifica al cliente vía WhatsApp
+                Horario de atención: Lun-Vie 8:30 a.m. - 6:30 p.m. | Sáb 8:00 a.m. - 6:30 p.m.
               </p>
             </div>
           </div>
@@ -437,23 +511,66 @@ export default function ReservaFormModal({
             </div>
           </div>
 
-          {/* SECTION 3: FECHA Y HORA DE LA CITA */}
+          {/* SECTION 3: FECHA Y HORA DE LA CITA CON RESTRICCIÓN DE HORARIO Y DÍAS PASADOS */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center gap-2 border-b border-zinc-150 pb-2">
               <CalendarClock className="h-4 w-4 text-[#9A7A28]" />
               <h4 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900">
-                Fecha y Hora Agendada <span className="text-red-500">*</span>
+                Fecha y Hora de la Cita <span className="text-red-500">*</span>
               </h4>
             </div>
 
-            <div>
-              <input
-                type="datetime-local"
-                required
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-                className="w-full sm:w-auto px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-bold text-zinc-900 focus:border-[#C9A84C] focus:bg-white focus:outline-none shadow-2xs"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-bold text-zinc-700 block mb-1">
+                  Fecha de Agendamiento
+                </label>
+                <input
+                  type="date"
+                  required
+                  min={todayColombia}
+                  value={scheduledDate}
+                  onChange={(e) => {
+                    const newDate = e.target.value;
+                    setScheduledDate(newDate);
+                    // Adjust default time if Sunday
+                    const isSun = new Date(`${newDate}T12:00:00-05:00`).getDay() === 0;
+                    if (!isSun && timeSlots.length > 0 && !timeSlots.some(s => s.value === scheduledTime)) {
+                      setScheduledTime(timeSlots[0].value);
+                    }
+                  }}
+                  className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-bold text-zinc-900 focus:border-[#C9A84C] focus:bg-white focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-zinc-700 block mb-1">
+                  Hora de Atencion (Horario Empresa)
+                </label>
+                {isSundaySelected ? (
+                  <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] font-semibold text-amber-800 flex items-center gap-1.5">
+                    <Clock className="h-4 w-4 text-amber-600 shrink-0" />
+                    <span>Cerrado los domingos</span>
+                  </div>
+                ) : (
+                  <select
+                    required
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-bold text-zinc-900 focus:border-[#C9A84C] focus:bg-white focus:outline-none"
+                  >
+                    {timeSlots.map((slot) => (
+                      <option key={slot.value} value={slot.value}>
+                        {slot.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-200/80 text-[11px] text-zinc-500 flex items-center justify-between">
+              <span><strong>Horarios permitidos:</strong> Lun-Vie: 8:30 AM - 6:30 PM | Sáb: 8:00 AM - 6:30 PM</span>
             </div>
           </div>
 
@@ -521,7 +638,7 @@ export default function ReservaFormModal({
             </button>
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || isSundaySelected}
               className="px-6 py-2.5 rounded-xl bg-[#C9A84C] hover:bg-[#b0903c] text-xs font-bold text-[#0A0A0C] transition-all cursor-pointer shadow-xs disabled:opacity-50 flex items-center gap-2"
             >
               {isPending ? (

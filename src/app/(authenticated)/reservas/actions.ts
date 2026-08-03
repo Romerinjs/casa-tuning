@@ -9,6 +9,80 @@ import {
 } from "@/lib/whatsapp";
 import { after } from "next/server";
 
+/**
+ * Valida y parsea la fecha/hora de reserva asegurando la zona horaria de Colombia (-05:00)
+ * y verificando las reglas de negocio (sin días pasados, sin domingos, dentro del horario comercial).
+ */
+function parseAndValidateScheduledAt(scheduledAtStr: string): { date?: Date; error?: string } {
+  if (!scheduledAtStr) {
+    return { error: "La fecha y hora de la cita son requeridas." };
+  }
+
+  let dateToParse = scheduledAtStr;
+  if (!dateToParse.includes("Z") && !dateToParse.includes("-05:00") && !dateToParse.includes("+")) {
+    if (dateToParse.length === 16) {
+      dateToParse = `${scheduledAtStr}:00-05:00`;
+    } else {
+      dateToParse = `${scheduledAtStr}-05:00`;
+    }
+  }
+
+  const scheduledAt = new Date(dateToParse);
+  if (isNaN(scheduledAt.getTime())) {
+    return { error: "Fecha y hora de la cita no son válidas." };
+  }
+
+  // Check date in Colombia timezone (YYYY-MM-DD)
+  const dateInCol = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(scheduledAt);
+
+  const todayInCol = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+  if (dateInCol < todayInCol) {
+    return { error: "No se pueden agendar citas para días anteriores a hoy." };
+  }
+
+  // Check day of week (Sunday check)
+  const dayStr = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Bogota",
+    weekday: "short",
+  }).format(scheduledAt);
+
+  if (dayStr === "Sun") {
+    return { error: "Casa Tuning no atiende los domingos. Elige un día de Lunes a Sábado." };
+  }
+
+  // Check business hours: Mon-Fri 8:30 AM - 6:30 PM | Sat 8:00 AM - 6:30 PM
+  const hourStr = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Bogota",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(scheduledAt);
+
+  const [h, m] = hourStr.split(":").map(Number);
+  const minutesFromMidnight = h * 60 + m;
+
+  const minAllowed = dayStr === "Sat" ? 8 * 60 : 8 * 60 + 30; // 8:00 AM Sáb, 8:30 AM Lun-Vie
+  const maxAllowed = 18 * 60 + 30; // 6:30 PM (18:30)
+
+  if (minutesFromMidnight < minAllowed || minutesFromMidnight > maxAllowed) {
+    const minText = dayStr === "Sat" ? "8:00 a.m." : "8:30 a.m.";
+    return { error: `El horario de atención para ese día es de ${minText} a 6:30 p.m.` };
+  }
+
+  return { date: scheduledAt };
+}
+
 export async function createReservationAction(
   prevState: { success: boolean; error?: string } | null,
   formData: FormData
@@ -32,13 +106,11 @@ export async function createReservationAction(
 
     // 2. Extract & validate date & time
     const scheduledAtStr = formData.get("scheduledAt") as string;
-    if (!scheduledAtStr) {
-      return { success: false, error: "La fecha y hora de la cita son requeridas." };
+    const dateValidation = parseAndValidateScheduledAt(scheduledAtStr);
+    if (dateValidation.error || !dateValidation.date) {
+      return { success: false, error: dateValidation.error || "Fecha y hora no válidas." };
     }
-    const scheduledAt = new Date(scheduledAtStr);
-    if (isNaN(scheduledAt.getTime())) {
-      return { success: false, error: "Fecha y hora de cita no válidas." };
-    }
+    const scheduledAt = dateValidation.date;
 
     // 3. Extract & validate services
     const selectedServiceIds = formData.getAll("services").map((id) => parseInt(id as string, 10));
@@ -149,13 +221,11 @@ export async function updateReservationAction(
     await verifySession();
 
     const scheduledAtStr = formData.get("scheduledAt") as string;
-    if (!scheduledAtStr) {
-      return { success: false, error: "La fecha y hora de la cita son requeridas." };
+    const dateValidation = parseAndValidateScheduledAt(scheduledAtStr);
+    if (dateValidation.error || !dateValidation.date) {
+      return { success: false, error: dateValidation.error || "Fecha y hora no válidas." };
     }
-    const scheduledAt = new Date(scheduledAtStr);
-    if (isNaN(scheduledAt.getTime())) {
-      return { success: false, error: "Fecha y hora no válidas." };
-    }
+    const scheduledAt = dateValidation.date;
 
     const selectedServiceIds = formData.getAll("services").map((id) => parseInt(id as string, 10));
     if (selectedServiceIds.length === 0) {

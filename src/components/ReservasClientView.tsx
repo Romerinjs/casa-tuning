@@ -341,14 +341,17 @@ export default function ReservasClientView({
             {sortedReservations.map((res) => {
               const isPendingAction = actionPendingId === res.id;
               const dateObj = new Date(res.scheduledAt);
-              const formattedDate = dateObj.toLocaleDateString("es-ES", {
+              const formattedDate = dateObj.toLocaleDateString("es-CO", {
                 weekday: "short",
                 day: "numeric",
                 month: "short",
+                timeZone: "America/Bogota",
               });
-              const formattedTime = dateObj.toLocaleTimeString("es-ES", {
+              const formattedTime = dateObj.toLocaleTimeString("es-CO", {
                 hour: "2-digit",
                 minute: "2-digit",
+                hour12: true,
+                timeZone: "America/Bogota",
               });
 
               // Vehicle resolution
