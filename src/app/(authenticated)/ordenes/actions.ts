@@ -89,10 +89,7 @@ export async function updateOrderStatusAction(
                   await sendWhatsAppDeliveryAction(orderId);
                 }
               } else {
-                // Send ready email and WhatsApp in background if unsigned
-                if (completeOrder.client.email) {
-                  await sendReadyEmail(completeOrder.client.email, completeOrder);
-                }
+                // Send WhatsApp in background if unsigned (skip email as requested)
                 if (completeOrder.client.phone) {
                   await sendWhatsAppReadyAction(orderId);
                 }

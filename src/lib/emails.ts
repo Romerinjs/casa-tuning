@@ -429,9 +429,10 @@ export async function sendDeliveryEmail(
   const subject = `Tu vehículo está listo para entrega - Orden ${order.code}`;
 
   // 1. Generate Technical Sheet PDF on the fly and upload to Cloudflare R2
+  let pdfBuffer: Buffer | null = null;
   let techSheetUrl = "";
   try {
-    const pdfBuffer = await generateOrderPdf(order.id);
+    pdfBuffer = await generateOrderPdf(order.id);
     techSheetUrl = await uploadBuffer(
       pdfBuffer,
       `technical-sheets/sheet-${order.code}.pdf`,
@@ -444,20 +445,31 @@ export async function sendDeliveryEmail(
   }
 
   // 2. Prepare attachments array
-  const attachments = [];
+  const attachments: any[] = [];
   
-  if (techSheetUrl) {
+  if (pdfBuffer) {
     attachments.push({
       filename: `Ficha_Tecnica_${order.code}.pdf`,
-      path: techSheetUrl,
+      content: pdfBuffer,
     });
   }
 
   if (order.deliveryPdfUrl) {
-    attachments.push({
-      filename: `Factura_Elec_${order.code}.pdf`,
-      path: order.deliveryPdfUrl,
-    });
+    try {
+      const res = await fetch(order.deliveryPdfUrl);
+      if (res.ok) {
+        const arrayBuffer = await res.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        attachments.push({
+          filename: `Factura_Elec_${order.code}.pdf`,
+          content: buffer,
+        });
+      } else {
+        console.error(`[Resend Emails] Error downloading delivery PDF invoice: HTTP ${res.status}`);
+      }
+    } catch (fetchErr) {
+      console.error("[Resend Emails] Error fetching delivery PDF invoice from R2:", fetchErr);
+    }
   }
 
   const html = `
