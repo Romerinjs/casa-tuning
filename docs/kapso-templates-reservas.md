@@ -4,14 +4,14 @@ Esta guía detalla las dos plantillas de WhatsApp que el Administrador o Agente 
 
 ---
 
-## 1. Plantilla: Confirmación de Cita (`reserva_confirmada`)
+## 1. Plantilla: Confirmación de Cita (`reserva_confirmada_2`)
 
 Esta plantilla se envía de manera automática en segundo plano inmediatamente cuando un operador o administrador registra una nueva cita en el portal.
 
 ### Especificaciones Meta / Kapso:
-* **ID de Kapso:** `f38ae4a0-528a-4a28-beea-a39ec5ef45da`
-* **Estado:** `draft` (verificado)
-* **Nombre de la plantilla:** `reserva_confirmada`
+* **ID de Kapso:** `1ec2cb52` (ID Externo: `1588166089632974`)
+* **Estado:** `Approved`
+* **Nombre de la plantilla:** `reserva_confirmada_2`
 * **Categoría:** `UTILITY` (Utilidad)
 * **Idioma:** `es_MX` (Español - México)
 * **Header (Encabezado):** Ninguno
@@ -35,14 +35,14 @@ Si necesitas realizar algún cambio en tu agendamiento, por favor responde a est
 
 ---
 
-## 2. Plantilla: Recordatorio de Cita (`recordatorio_cita`)
+## 2. Plantilla: Recordatorio de Cita (`recordatorio_cita_2`)
 
 Esta plantilla se envía de manera programada (Job automático de cron 24h antes) o manual cuando el operador presiona el botón **"Enviar Recordatorio"** en la reserva.
 
 ### Especificaciones Meta / Kapso:
-* **ID de Kapso:** `36ab0198-6edb-41b8-9d56-7b27a9a95031`
-* **Estado:** `draft` (verificado)
-* **Nombre de la plantilla:** `recordatorio_cita`
+* **ID de Kapso:** `aa5d1ed3` (ID Externo: `1037912662538792`)
+* **Estado:** `Approved`
+* **Nombre de la plantilla:** `recordatorio_cita_2`
 * **Categoría:** `UTILITY` (Utilidad)
 * **Idioma:** `es_MX` (Español - México)
 * **Header (Encabezado):** Ninguno
@@ -77,7 +77,7 @@ En el código del sistema (`src/lib/whatsapp.ts`), el payload enviado a la API d
   "to": "+573001234567",
   "type": "template",
   "template": {
-    "name": "reserva_confirmada",
+    "name": "reserva_confirmada_2",
     "language": { "code": "es_MX" },
     "components": [
       {

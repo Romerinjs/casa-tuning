@@ -477,7 +477,7 @@ function formatearFechaHoraReserva(date: Date): string {
 }
 
 /**
- * Envía la plantilla de confirmación de reserva por WhatsApp (reserva_confirmada)
+ * Envía la plantilla de confirmación de reserva por WhatsApp (reserva_confirmada_2)
  */
 export async function sendWhatsAppReservationConfirmationAction(reservationId: number): Promise<boolean> {
   try {
@@ -519,7 +519,7 @@ export async function sendWhatsAppReservationConfirmationAction(reservationId: n
       to: recipientPhone,
       type: "template",
       template: {
-        name: "reserva_confirmada",
+        name: "reserva_confirmada_2",
         language: { code: "es_MX" },
         components: [
           {
@@ -535,7 +535,7 @@ export async function sendWhatsAppReservationConfirmationAction(reservationId: n
       }
     };
 
-    console.log(`[WhatsApp Kapso] Enviando plantilla 'reserva_confirmada' para reserva ${reservation.code} a ${recipientPhone}`);
+    console.log(`[WhatsApp Kapso] Enviando plantilla 'reserva_confirmada_2' para reserva ${reservation.code} a ${recipientPhone}`);
     return await enviarMensajeKapso(payload);
   } catch (error) {
     console.error(`[WhatsApp Kapso] Error en sendWhatsAppReservationConfirmationAction para la reserva ${reservationId}:`, error);
@@ -544,7 +544,7 @@ export async function sendWhatsAppReservationConfirmationAction(reservationId: n
 }
 
 /**
- * Envía la plantilla de recordatorio de cita por WhatsApp (recordatorio_cita)
+ * Envía la plantilla de recordatorio de cita por WhatsApp (recordatorio_cita_2)
  */
 export async function sendWhatsAppReservationReminderAction(reservationId: number): Promise<boolean> {
   try {
@@ -585,7 +585,7 @@ export async function sendWhatsAppReservationReminderAction(reservationId: numbe
       to: recipientPhone,
       type: "template",
       template: {
-        name: "recordatorio_cita",
+        name: "recordatorio_cita_2",
         language: { code: "es_MX" },
         components: [
           {
@@ -601,7 +601,7 @@ export async function sendWhatsAppReservationReminderAction(reservationId: numbe
       }
     };
 
-    console.log(`[WhatsApp Kapso] Enviando plantilla 'recordatorio_cita' para reserva ${reservation.code} a ${recipientPhone}`);
+    console.log(`[WhatsApp Kapso] Enviando plantilla 'recordatorio_cita_2' para reserva ${reservation.code} a ${recipientPhone}`);
     const success = await enviarMensajeKapso(payload);
 
     if (success) {
