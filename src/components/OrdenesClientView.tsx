@@ -304,7 +304,17 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
   const handleCompleteDelivery = async (orderId: number, withSignature: boolean) => {
     setIsSavingDelivery(true);
     try {
-      // 1. Change status to ENTREGADO
+      // 1. If withSignature is true, save signature first
+      if (withSignature && deliverySignatureData) {
+        const sigRes = await saveOrderSignatureAction(orderId, deliverySignatureData);
+        if (!sigRes.success) {
+          showToast(sigRes.error || "Error al guardar la firma.", "error");
+          setIsSavingDelivery(false);
+          return;
+        }
+      }
+
+      // 2. Change status to ENTREGADO
       const res = await updateOrderStatusAction(orderId, "ENTREGADO");
       if (!res.success) {
         showToast(res.error || "Error al actualizar estado a Entregado", "error");
@@ -312,14 +322,8 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
         return;
       }
       
-      // 2. If withSignature is true, save signature
       if (withSignature && deliverySignatureData) {
-        const sigRes = await saveOrderSignatureAction(orderId, deliverySignatureData);
-        if (!sigRes.success) {
-          showToast(`Vehículo entregado pero hubo un problema al guardar la firma: ${sigRes.error}`, "warning");
-        } else {
-          showToast("Vehículo entregado y firmado con éxito.", "success");
-        }
+        showToast("Vehículo entregado y firmado con éxito.", "success");
       } else {
         showToast("Vehículo entregado sin firma con éxito.", "success");
       }
