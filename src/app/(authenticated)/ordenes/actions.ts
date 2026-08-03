@@ -7,6 +7,7 @@ import { uploadBase64, deleteFile, uploadBuffer } from "@/lib/storage";
 import { sendDeliveryEmail, sendReadyEmail } from "@/lib/emails";
 import { generateOrderPdf } from "@/lib/pdf-generator";
 import { sendWhatsAppDeliveryAction, sendWhatsAppReadyAction } from "@/lib/whatsapp";
+import { after } from "next/server";
 
 export async function updateOrderStatusAction(
   orderId: number,
@@ -77,27 +78,29 @@ export async function updateOrderStatusAction(
         });
 
         if (completeOrder) {
-          if (completeOrder.signatureUrl) {
-            // Send delivery email and WhatsApp in background if signed
-            if (completeOrder.client.email) {
-              await sendDeliveryEmail(completeOrder.client.email, completeOrder);
+          after(async () => {
+            try {
+              if (completeOrder.signatureUrl) {
+                // Send delivery email and WhatsApp in background if signed
+                if (completeOrder.client.email) {
+                  await sendDeliveryEmail(completeOrder.client.email, completeOrder);
+                }
+                if (completeOrder.client.phone) {
+                  await sendWhatsAppDeliveryAction(orderId);
+                }
+              } else {
+                // Send ready email and WhatsApp in background if unsigned
+                if (completeOrder.client.email) {
+                  await sendReadyEmail(completeOrder.client.email, completeOrder);
+                }
+                if (completeOrder.client.phone) {
+                  await sendWhatsAppReadyAction(orderId);
+                }
+              }
+            } catch (bgErr) {
+              console.error("Error in background delivery notifications:", bgErr);
             }
-            if (completeOrder.client.phone) {
-              sendWhatsAppDeliveryAction(orderId).catch((err) => {
-                console.error("Error in background sendWhatsAppDeliveryAction:", err);
-              });
-            }
-          } else {
-            // Send ready email and WhatsApp in background if unsigned
-            if (completeOrder.client.email) {
-              await sendReadyEmail(completeOrder.client.email, completeOrder);
-            }
-            if (completeOrder.client.phone) {
-              sendWhatsAppReadyAction(orderId).catch((err) => {
-                console.error("Error in background sendWhatsAppReadyAction:", err);
-              });
-            }
-          }
+          });
         }
       } catch (emailError) {
         console.error("Error sending delivery notifications to client:", emailError);
@@ -189,16 +192,18 @@ export async function uploadDeliveryPdfAction(formData: FormData) {
     });
  
     if (completeOrder && completeOrder.signatureUrl) {
-      if (completeOrder.client.email) {
-        sendDeliveryEmail(completeOrder.client.email, completeOrder).catch(err => {
-          console.error("Error in background sendDeliveryEmail on PDF upload:", err);
-        });
-      }
-      if (completeOrder.client.phone) {
-        sendWhatsAppDeliveryAction(orderId).catch(err => {
-          console.error("Error in background sendWhatsAppDeliveryAction on PDF upload:", err);
-        });
-      }
+      after(async () => {
+        try {
+          if (completeOrder.client.email) {
+            await sendDeliveryEmail(completeOrder.client.email, completeOrder);
+          }
+          if (completeOrder.client.phone) {
+            await sendWhatsAppDeliveryAction(orderId);
+          }
+        } catch (bgErr) {
+          console.error("Error in background delivery notifications on PDF upload:", bgErr);
+        }
+      });
     }
 
     revalidatePath("/dashboard");
@@ -415,16 +420,18 @@ export async function saveOrderSignatureAction(orderId: number, signatureData: s
       });
 
       if (updatedOrder) {
-        if (updatedOrder.client.email) {
-          sendDeliveryEmail(updatedOrder.client.email, updatedOrder).catch(err => {
-            console.error("Error sending delivery email in background:", err);
-          });
-        }
-        if (updatedOrder.client.phone) {
-          sendWhatsAppDeliveryAction(orderId).catch(err => {
-            console.error("Error sending WhatsApp delivery action in background:", err);
-          });
-        }
+        after(async () => {
+          try {
+            if (updatedOrder.client.email) {
+              await sendDeliveryEmail(updatedOrder.client.email, updatedOrder);
+            }
+            if (updatedOrder.client.phone) {
+              await sendWhatsAppDeliveryAction(orderId);
+            }
+          } catch (bgErr) {
+            console.error("Error sending delivery notifications in background:", bgErr);
+          }
+        });
       }
     }
 
