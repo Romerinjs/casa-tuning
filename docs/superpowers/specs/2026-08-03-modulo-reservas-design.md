@@ -151,6 +151,10 @@ Para mantener la armonía y elegancia visual de Casa Tuning:
    - **Badges Doradas de Servicio/Código:** `bg-[#FBF5E6]/90 text-[#9A7A28] border border-[#C9A84C]/25`.
    - **Iconografía:** Uso exclusivo de iconos de `lucide-react` (`CalendarClock`, `Search`, `User`, `Phone`, `Clock`, `Plus`, `Send`, `Edit`, `CheckCircle2`, `Trash2`, `ArrowRight`).
    - **Sin Emojis en la Interfaz:** Se prohíbe el uso de emojis en la interfaz web; las métricas, botones y tablas usarán únicamente tipografía limpia e iconos SVG minimalistas.
+2. **Diseño Adaptativo Móvil y Tablet (Responsive 100%):**
+   - **Móviles (`<768px`):** Layouts en 1 sola columna, tarjetas adaptables de reservas en lugar de tablas horizontales rígidas, botones de acción de toque cómodo (`h-10`/`h-11`), modal de reserva a pantalla completa o bottom sheet táctil.
+   - **Tablets (`768px - 1024px`):** Grid de 2 columnas para tarjetas de métricas, navegación horizontal deslizable para filtros y tablas adaptables.
+   - **Desktops (`>1024px`):** Vista enriquecida con tabla y tarjetas estructuradas de alto rendimiento visual.
 
 ---
 
