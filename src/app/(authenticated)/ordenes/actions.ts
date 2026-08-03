@@ -395,8 +395,13 @@ export async function saveOrderSignatureAction(orderId: number, signatureData: s
     // 4. Re-generate Ficha Técnica PDF (which now includes the signature)
     try {
       const pdfBuffer = await generateOrderPdf(orderId);
-      const r2FileName = `fichas-tecnicas/ficha-${order.code}.pdf`;
-      await uploadBuffer(pdfBuffer, r2FileName, "application/pdf");
+      const r2FileName = `technical-sheets/sheet-${order.code}.pdf`;
+      await uploadBuffer(
+        pdfBuffer,
+        r2FileName,
+        "application/pdf",
+        "public, max-age=60"
+      );
       console.log(`[saveOrderSignatureAction] Ficha técnica PDF re-generada y subida a R2: ${r2FileName}`);
     } catch (pdfError) {
       console.error("Error re-generating PDF after signature:", pdfError);

@@ -662,8 +662,13 @@ async function updateOrderActionInternal(
           // 3. Re-generate Ficha Técnica PDF and save to R2
           try {
             const pdfBuffer = await generateOrderPdf(updatedOrder.id);
-            const r2FileName = `fichas-tecnicas/ficha-${updatedOrder.code}.pdf`;
-            const uploadedUrl = await uploadBuffer(pdfBuffer, r2FileName, "application/pdf");
+            const r2FileName = `technical-sheets/sheet-${updatedOrder.code}.pdf`;
+            const uploadedUrl = await uploadBuffer(
+              pdfBuffer,
+              r2FileName,
+              "application/pdf",
+              "public, max-age=60"
+            );
             console.log(`[updateOrderActionInternal] Ficha técnica PDF re-generada y subida a R2: ${uploadedUrl}`);
           } catch (pdfError) {
             console.error("Error generating or uploading PDF in background:", pdfError);
