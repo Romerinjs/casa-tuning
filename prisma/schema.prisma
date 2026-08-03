@@ -36,6 +36,7 @@ model Brand {
 
   cars       Car[]
   promotions Promotion[]
+  reservations Reservation[]
 
   @@map("brands")
 }
@@ -47,8 +48,9 @@ model ServiceCatalog {
   icon         String?        @db.VarChar(50)
   isTopSelling Boolean        @default(false) @map("is_top_selling")
 
-  orderItems   OrderService[]
-  promotions   Promotion[]
+  orderItems       OrderService[]
+  promotions       Promotion[]
+  reservationItems ReservationService[]
 
   @@map("service_catalog")
 }
@@ -76,9 +78,10 @@ model User {
   roleId Int  @map("role_id")
   role   Role @relation(fields: [roleId], references: [id])
 
-  ordersCreated Order[]       @relation("OrderCreator")
-  activities    ActivityLog[]
-  comments      OrderComment[]
+  ordersCreated       Order[]       @relation("OrderCreator")
+  reservationsCreated Reservation[] @relation("ReservationCreator")
+  activities          ActivityLog[]
+  comments            OrderComment[]
 
   @@index([roleId])
   @@map("users")
@@ -97,9 +100,10 @@ model Client {
   photoUrl           String?       @db.Text @map("photo_url")
   createdAt          DateTime      @default(now()) @map("created_at")
 
-  cars       Car[]
-  orders     Order[]
-  promotions PromotionClient[]
+  cars         Car[]
+  orders       Order[]
+  promotions   PromotionClient[]
+  reservations Reservation[]
 
   @@map("clients")
 }
@@ -118,7 +122,8 @@ model Car {
   brandId  Int    @map("brand_id")
   brand    Brand  @relation(fields: [brandId], references: [id])
 
-  orders Order[]
+  orders       Order[]
+  reservations Reservation[]
 
   @@unique([plate, clientId])
   @@index([clientId])
@@ -271,4 +276,51 @@ model PromotionClient {
 
   @@id([promotionId, clientId])
   @@map("promotion_clients")
+}
+
+// --- MÓDULO DE RESERVAS Y CITAS ---
+
+model Reservation {
+  id             Int       @id @default(autoincrement())
+  code           String    @unique @db.VarChar(20)
+  scheduledAt    DateTime  @map("scheduled_at")
+  status         String    @default("PENDIENTE") @db.VarChar(20)
+  notes          String?   @db.Text
+  reminderSent   Boolean   @default(false) @map("reminder_sent")
+  reminderSentAt DateTime? @map("reminder_sent_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  clientId       Int       @map("client_id")
+  client         Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  carId          Int?      @map("car_id")
+  car            Car?      @relation(fields: [carId], references: [id], onDelete: SetNull)
+
+  vehiclePlate   String?   @map("vehicle_plate") @db.VarChar(10)
+  vehicleModel   String?   @map("vehicle_model") @db.VarChar(100)
+  brandId        Int?      @map("brand_id")
+  brand          Brand?    @relation(fields: [brandId], references: [id])
+
+  creatorId      Int       @map("creator_id")
+  creator        User      @relation("ReservationCreator", fields: [creatorId], references: [id])
+
+  services       ReservationService[]
+
+  @@index([scheduledAt])
+  @@index([clientId])
+  @@index([status])
+  @@map("reservations")
+}
+
+model ReservationService {
+  reservationId Int @map("reservation_id")
+  serviceId     Int @map("service_id")
+
+  reservation   Reservation    @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  service       ServiceCatalog @relation(fields: [serviceId], references: [id])
+
+  @@id([reservationId, serviceId])
+  @@index([serviceId])
+  @@map("reservation_services")
 }

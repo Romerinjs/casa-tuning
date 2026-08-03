@@ -273,6 +273,18 @@ export async function createOrderAction(
         },
       });
 
+      // Mark linked reservation as ATENDIDA if converting from a reservation
+      const reservationIdStr = formData.get("reservationId") as string;
+      if (reservationIdStr) {
+        const reservationId = parseInt(reservationIdStr, 10);
+        if (!isNaN(reservationId)) {
+          await tx.reservation.update({
+            where: { id: reservationId },
+            data: { status: "ATENDIDA" },
+          });
+        }
+      }
+
       return newOrder;
     });
 

@@ -15,6 +15,7 @@ import {
   X,
   Car,
   Megaphone,
+  CalendarClock,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -46,6 +47,11 @@ export default function Sidebar({ user }: SidebarProps) {
           href: "/dashboard",
           label: "Dashboard",
           icon: LayoutDashboard,
+        },
+        {
+          href: "/reservas",
+          label: "Reservas",
+          icon: CalendarClock,
         },
         {
           href: "/recepcion",

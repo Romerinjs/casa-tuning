@@ -4,7 +4,7 @@ import RecepcionForm from "@/components/RecepcionForm";
 import { decryptDocument } from "@/lib/security";
 
 interface PageProps {
-  searchParams: Promise<{ edit?: string }>;
+  searchParams: Promise<{ edit?: string; reservationId?: string }>;
 }
 
 export default async function RecepcionPage({ searchParams }: PageProps) {
@@ -13,7 +13,9 @@ export default async function RecepcionPage({ searchParams }: PageProps) {
 
   const params = await searchParams;
   const editIdStr = params.edit;
+  const reservationIdStr = params.reservationId;
   let orderToEdit: any = null;
+  let reservationToPreFill: any = null;
 
   if (editIdStr) {
     const editId = parseInt(editIdStr, 10);
@@ -40,6 +42,29 @@ export default async function RecepcionPage({ searchParams }: PageProps) {
           client: {
             ...order.client,
             documentNumber: order.client.documentNumber ? decryptDocument(order.client.documentNumber) : null,
+          },
+        };
+      }
+    }
+  } else if (reservationIdStr) {
+    const resId = parseInt(reservationIdStr, 10);
+    if (!isNaN(resId)) {
+      const resObj = await prisma.reservation.findUnique({
+        where: { id: resId },
+        include: {
+          client: { include: { documentType: true } },
+          car: { include: { brand: true } },
+          brand: true,
+          services: { include: { service: true } },
+        },
+      });
+
+      if (resObj && resObj.status === "PENDIENTE") {
+        reservationToPreFill = {
+          ...resObj,
+          client: {
+            ...resObj.client,
+            documentNumber: resObj.client.documentNumber ? decryptDocument(resObj.client.documentNumber) : null,
           },
         };
       }
@@ -106,6 +131,7 @@ export default async function RecepcionPage({ searchParams }: PageProps) {
       existingCars={cars}
       documentTypes={documentTypes}
       initialOrder={orderToEdit}
+      initialReservation={reservationToPreFill}
     />
   );
 }

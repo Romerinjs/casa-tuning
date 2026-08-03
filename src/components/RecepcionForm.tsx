@@ -107,6 +107,7 @@ interface RecepcionFormProps {
   existingCars?: CarData[];
   documentTypes: DocumentTypeData[];
   initialOrder?: any;
+  initialReservation?: any;
 }
 
 interface ObservationsTextareaProps {
@@ -168,6 +169,7 @@ export default function RecepcionForm({
   existingCars = [],
   documentTypes = [],
   initialOrder,
+  initialReservation,
 }: RecepcionFormProps) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -176,30 +178,64 @@ export default function RecepcionForm({
   const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   // 2. Real-time form input states
-  const [clientName, setClientName] = useState(initialOrder?.client?.name || "");
-  const [clientPhone, setClientPhone] = useState(initialOrder?.client?.phone || "");
+  const [clientName, setClientName] = useState(
+    initialOrder?.client?.name || initialReservation?.client?.name || ""
+  );
+  const [clientPhone, setClientPhone] = useState(
+    initialOrder?.client?.phone || initialReservation?.client?.phone || ""
+  );
   const [clientPhone2, setClientPhone2] = useState(initialOrder?.client?.phone2 || "");
   const [showPhone2, setShowPhone2] = useState(!!initialOrder?.client?.phone2);
   const [clientDocumentTypeId, setClientDocumentTypeId] = useState(
-    initialOrder?.client?.documentTypeId ? initialOrder.client.documentTypeId.toString() : ""
+    initialOrder?.client?.documentTypeId
+      ? initialOrder.client.documentTypeId.toString()
+      : initialReservation?.client?.documentTypeId
+      ? initialReservation.client.documentTypeId.toString()
+      : ""
   );
-  const [clientDocumentNumber, setClientDocumentNumber] = useState(initialOrder?.client?.documentNumber || "");
-  const [clientEmail, setClientEmail] = useState(initialOrder?.client?.email || "");
+  const [clientDocumentNumber, setClientDocumentNumber] = useState(
+    initialOrder?.client?.documentNumber || initialReservation?.client?.documentNumber || ""
+  );
+  const [clientEmail, setClientEmail] = useState(
+    initialOrder?.client?.email || initialReservation?.client?.email || ""
+  );
 
-  const [plate, setPlate] = useState(initialOrder?.car?.plate || "");
-  const [year, setYear] = useState(initialOrder?.car?.year ? initialOrder.car.year.toString() : "");
-  const [brandId, setBrandId] = useState(initialOrder?.car?.brandId ? initialOrder.car.brandId.toString() : "");
-  const [model, setModel] = useState(initialOrder?.car?.model || "");
+  const [plate, setPlate] = useState(
+    initialOrder?.car?.plate || initialReservation?.car?.plate || initialReservation?.vehiclePlate || ""
+  );
+  const [year, setYear] = useState(
+    initialOrder?.car?.year
+      ? initialOrder.car.year.toString()
+      : initialReservation?.car?.year
+      ? initialReservation.car.year.toString()
+      : ""
+  );
+  const [brandId, setBrandId] = useState(
+    initialOrder?.car?.brandId
+      ? initialOrder.car.brandId.toString()
+      : initialReservation?.car?.brandId
+      ? initialReservation.car.brandId.toString()
+      : initialReservation?.brandId
+      ? initialReservation.brandId.toString()
+      : ""
+  );
+  const [model, setModel] = useState(
+    initialOrder?.car?.model || initialReservation?.car?.model || initialReservation?.vehicleModel || ""
+  );
   const [color, setColor] = useState(initialOrder?.car?.color || "");
   const [mileage, setMileage] = useState(initialOrder?.mileage || "");
   const [vehicleType, setVehicleType] = useState(initialOrder?.car?.type || "Automóvil");
 
   const [selectedServices, setSelectedServices] = useState<number[]>(
-    initialOrder?.services?.map((s: any) => s.serviceId) || []
+    initialOrder?.services?.map((s: any) => s.serviceId) ||
+      initialReservation?.services?.map((s: any) => s.serviceId) ||
+      []
   );
   const [serviceDescription, setServiceDescription] = useState(initialOrder?.serviceDescription || "");
 
-  const [observations, setObservations] = useState(initialOrder?.observations || "");
+  const [observations, setObservations] = useState(
+    initialOrder?.observations || initialReservation?.notes || ""
+  );
 
   // Extract initial checklist values and images
   const initialChecklist: Record<string, string> = {
@@ -872,6 +908,9 @@ export default function RecepcionForm({
         const formData = new FormData();
         if (initialOrder) {
           formData.append("orderId", initialOrder.id.toString());
+        }
+        if (initialReservation) {
+          formData.append("reservationId", initialReservation.id.toString());
         }
         formData.append("clientName", clientName);
         formData.append("clientPhone", clientPhone);
