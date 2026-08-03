@@ -18,7 +18,8 @@ import {
   Car,
   Wrench,
   Calendar,
-  Send
+  Send,
+  AlertTriangle
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import ReservaFormModal from "./ReservaFormModal";
@@ -74,7 +75,9 @@ export default function ReservasClientView({
   const [dateFilter, setDateFilter] = useState("PROXIMAS");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState<ReservationData | null>(null);
+  const [deletingReservation, setDeletingReservation] = useState<ReservationData | null>(null);
   const [actionPendingId, setActionPendingId] = useState<number | null>(null);
+  const [isDeletingPending, setIsDeletingPending] = useState(false);
   const [, startTransition] = useTransition();
 
   // KPIs
@@ -144,21 +147,22 @@ export default function ReservasClientView({
     });
   };
 
-  const handleCancelReservation = (resId: number) => {
-    if (!confirm("¿Estás seguro de cancelar esta reserva?")) return;
-    setActionPendingId(resId);
+  const handleConfirmCancelReservation = () => {
+    if (!deletingReservation) return;
+    setIsDeletingPending(true);
     startTransition(async () => {
       try {
-        const res = await cancelReservationAction(resId);
+        const res = await cancelReservationAction(deletingReservation.id);
         if (res.success) {
-          showToast("Reserva cancelada.", "warning");
+          showToast(`Reserva ${deletingReservation.code} cancelada.`, "warning");
+          setDeletingReservation(null);
         } else {
           showToast(res.error || "Error al cancelar reserva.", "error");
         }
       } catch (err) {
-        showToast("Error de conexión.", "error");
+        showToast("Error de conexión al cancelar la reserva.", "error");
       } finally {
-        setActionPendingId(null);
+        setIsDeletingPending(false);
       }
     });
   };
@@ -492,7 +496,7 @@ export default function ReservasClientView({
                       {res.status !== "CANCELADA" && (
                         <button
                           type="button"
-                          onClick={() => handleCancelReservation(res.id)}
+                          onClick={() => setDeletingReservation(res)}
                           className="h-8 w-8 rounded-lg border border-red-200 hover:bg-red-50 text-red-600 flex items-center justify-center transition-all cursor-pointer shrink-0"
                           title="Cancelar Cita"
                         >
@@ -520,6 +524,52 @@ export default function ReservasClientView({
         services={services}
         initialData={editingReservation}
       />
+
+      {/* Custom Danger Confirmation Modal for Cancellation */}
+      {deletingReservation && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-zinc-200 rounded-2xl w-full max-w-md p-6 shadow-2xl animate-page-entry text-center space-y-4">
+            <div className="h-12 w-12 rounded-2xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center mx-auto shrink-0 shadow-2xs">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+
+            <div>
+              <h3 className="text-base font-extrabold text-zinc-900">
+                ¿Cancelar la cita {deletingReservation.code}?
+              </h3>
+              <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">
+                Estás a punto de cancelar la reserva de <strong className="text-zinc-800">{deletingReservation.client.name}</strong>. Esta acción cambiará el estado de la cita a <strong className="text-red-600 font-bold">CANCELADA</strong>.
+              </p>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeletingReservation(null)}
+                disabled={isDeletingPending}
+                className="flex-1 py-2.5 rounded-xl border border-zinc-200 hover:bg-zinc-50 text-xs font-bold text-zinc-700 transition-all cursor-pointer"
+              >
+                Volver atrás
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCancelReservation}
+                disabled={isDeletingPending}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-xs font-bold text-white transition-all shadow-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {isDeletingPending ? (
+                  <>
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>Cancelando...</span>
+                  </>
+                ) : (
+                  <span>Sí, Cancelar Cita</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
