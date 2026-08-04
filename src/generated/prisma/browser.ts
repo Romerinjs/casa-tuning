@@ -102,3 +102,13 @@ export type Promotion = Prisma.PromotionModel
  * 
  */
 export type PromotionClient = Prisma.PromotionClientModel
+/**
+ * Model Reservation
+ * 
+ */
+export type Reservation = Prisma.ReservationModel
+/**
+ * Model ReservationService
+ * 
+ */
+export type ReservationService = Prisma.ReservationServiceModel

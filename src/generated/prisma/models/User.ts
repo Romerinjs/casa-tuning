@@ -238,6 +238,7 @@ export type UserWhereInput = {
   roleId?: Prisma.IntFilter<"User"> | number
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
   ordersCreated?: Prisma.OrderListRelationFilter
+  reservationsCreated?: Prisma.ReservationListRelationFilter
   activities?: Prisma.ActivityLogListRelationFilter
   comments?: Prisma.OrderCommentListRelationFilter
 }
@@ -252,6 +253,7 @@ export type UserOrderByWithRelationInput = {
   roleId?: Prisma.SortOrder
   role?: Prisma.RoleOrderByWithRelationInput
   ordersCreated?: Prisma.OrderOrderByRelationAggregateInput
+  reservationsCreated?: Prisma.ReservationOrderByRelationAggregateInput
   activities?: Prisma.ActivityLogOrderByRelationAggregateInput
   comments?: Prisma.OrderCommentOrderByRelationAggregateInput
 }
@@ -269,6 +271,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   roleId?: Prisma.IntFilter<"User"> | number
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
   ordersCreated?: Prisma.OrderListRelationFilter
+  reservationsCreated?: Prisma.ReservationListRelationFilter
   activities?: Prisma.ActivityLogListRelationFilter
   comments?: Prisma.OrderCommentListRelationFilter
 }, "id" | "email">
@@ -309,6 +312,7 @@ export type UserCreateInput = {
   createdAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
   ordersCreated?: Prisma.OrderCreateNestedManyWithoutCreatorInput
+  reservationsCreated?: Prisma.ReservationCreateNestedManyWithoutCreatorInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
   comments?: Prisma.OrderCommentCreateNestedManyWithoutUserInput
 }
@@ -322,6 +326,7 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   roleId: number
   ordersCreated?: Prisma.OrderUncheckedCreateNestedManyWithoutCreatorInput
+  reservationsCreated?: Prisma.ReservationUncheckedCreateNestedManyWithoutCreatorInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
   comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutUserInput
 }
@@ -334,6 +339,7 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
   ordersCreated?: Prisma.OrderUpdateManyWithoutCreatorNestedInput
+  reservationsCreated?: Prisma.ReservationUpdateManyWithoutCreatorNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
   comments?: Prisma.OrderCommentUpdateManyWithoutUserNestedInput
 }
@@ -347,6 +353,7 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
   ordersCreated?: Prisma.OrderUncheckedUpdateManyWithoutCreatorNestedInput
+  reservationsCreated?: Prisma.ReservationUncheckedUpdateManyWithoutCreatorNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -529,6 +536,20 @@ export type UserUpdateOneRequiredWithoutCommentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCommentsInput, Prisma.UserUpdateWithoutCommentsInput>, Prisma.UserUncheckedUpdateWithoutCommentsInput>
 }
 
+export type UserCreateNestedOneWithoutReservationsCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReservationsCreatedInput, Prisma.UserUncheckedCreateWithoutReservationsCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReservationsCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutReservationsCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReservationsCreatedInput, Prisma.UserUncheckedCreateWithoutReservationsCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReservationsCreatedInput
+  upsert?: Prisma.UserUpsertWithoutReservationsCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReservationsCreatedInput, Prisma.UserUpdateWithoutReservationsCreatedInput>, Prisma.UserUncheckedUpdateWithoutReservationsCreatedInput>
+}
+
 export type UserCreateWithoutRoleInput = {
   name: string
   email: string
@@ -536,6 +557,7 @@ export type UserCreateWithoutRoleInput = {
   isActive?: boolean
   createdAt?: Date | string
   ordersCreated?: Prisma.OrderCreateNestedManyWithoutCreatorInput
+  reservationsCreated?: Prisma.ReservationCreateNestedManyWithoutCreatorInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
   comments?: Prisma.OrderCommentCreateNestedManyWithoutUserInput
 }
@@ -548,6 +570,7 @@ export type UserUncheckedCreateWithoutRoleInput = {
   isActive?: boolean
   createdAt?: Date | string
   ordersCreated?: Prisma.OrderUncheckedCreateNestedManyWithoutCreatorInput
+  reservationsCreated?: Prisma.ReservationUncheckedCreateNestedManyWithoutCreatorInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
   comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutUserInput
 }
@@ -598,6 +621,7 @@ export type UserCreateWithoutOrdersCreatedInput = {
   isActive?: boolean
   createdAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
+  reservationsCreated?: Prisma.ReservationCreateNestedManyWithoutCreatorInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
   comments?: Prisma.OrderCommentCreateNestedManyWithoutUserInput
 }
@@ -610,6 +634,7 @@ export type UserUncheckedCreateWithoutOrdersCreatedInput = {
   isActive?: boolean
   createdAt?: Date | string
   roleId: number
+  reservationsCreated?: Prisma.ReservationUncheckedCreateNestedManyWithoutCreatorInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
   comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutUserInput
 }
@@ -637,6 +662,7 @@ export type UserUpdateWithoutOrdersCreatedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+  reservationsCreated?: Prisma.ReservationUpdateManyWithoutCreatorNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
   comments?: Prisma.OrderCommentUpdateManyWithoutUserNestedInput
 }
@@ -649,6 +675,7 @@ export type UserUncheckedUpdateWithoutOrdersCreatedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
+  reservationsCreated?: Prisma.ReservationUncheckedUpdateManyWithoutCreatorNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -661,6 +688,7 @@ export type UserCreateWithoutActivitiesInput = {
   createdAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
   ordersCreated?: Prisma.OrderCreateNestedManyWithoutCreatorInput
+  reservationsCreated?: Prisma.ReservationCreateNestedManyWithoutCreatorInput
   comments?: Prisma.OrderCommentCreateNestedManyWithoutUserInput
 }
 
@@ -673,6 +701,7 @@ export type UserUncheckedCreateWithoutActivitiesInput = {
   createdAt?: Date | string
   roleId: number
   ordersCreated?: Prisma.OrderUncheckedCreateNestedManyWithoutCreatorInput
+  reservationsCreated?: Prisma.ReservationUncheckedCreateNestedManyWithoutCreatorInput
   comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -700,6 +729,7 @@ export type UserUpdateWithoutActivitiesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
   ordersCreated?: Prisma.OrderUpdateManyWithoutCreatorNestedInput
+  reservationsCreated?: Prisma.ReservationUpdateManyWithoutCreatorNestedInput
   comments?: Prisma.OrderCommentUpdateManyWithoutUserNestedInput
 }
 
@@ -712,6 +742,7 @@ export type UserUncheckedUpdateWithoutActivitiesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
   ordersCreated?: Prisma.OrderUncheckedUpdateManyWithoutCreatorNestedInput
+  reservationsCreated?: Prisma.ReservationUncheckedUpdateManyWithoutCreatorNestedInput
   comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -723,6 +754,7 @@ export type UserCreateWithoutCommentsInput = {
   createdAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
   ordersCreated?: Prisma.OrderCreateNestedManyWithoutCreatorInput
+  reservationsCreated?: Prisma.ReservationCreateNestedManyWithoutCreatorInput
   activities?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
 }
 
@@ -735,6 +767,7 @@ export type UserUncheckedCreateWithoutCommentsInput = {
   createdAt?: Date | string
   roleId: number
   ordersCreated?: Prisma.OrderUncheckedCreateNestedManyWithoutCreatorInput
+  reservationsCreated?: Prisma.ReservationUncheckedCreateNestedManyWithoutCreatorInput
   activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -762,6 +795,7 @@ export type UserUpdateWithoutCommentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
   ordersCreated?: Prisma.OrderUpdateManyWithoutCreatorNestedInput
+  reservationsCreated?: Prisma.ReservationUpdateManyWithoutCreatorNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
 }
 
@@ -774,7 +808,74 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
   ordersCreated?: Prisma.OrderUncheckedUpdateManyWithoutCreatorNestedInput
+  reservationsCreated?: Prisma.ReservationUncheckedUpdateManyWithoutCreatorNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutReservationsCreatedInput = {
+  name: string
+  email: string
+  passwordHash: string
+  isActive?: boolean
+  createdAt?: Date | string
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+  ordersCreated?: Prisma.OrderCreateNestedManyWithoutCreatorInput
+  activities?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  comments?: Prisma.OrderCommentCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutReservationsCreatedInput = {
+  id?: number
+  name: string
+  email: string
+  passwordHash: string
+  isActive?: boolean
+  createdAt?: Date | string
+  roleId: number
+  ordersCreated?: Prisma.OrderUncheckedCreateNestedManyWithoutCreatorInput
+  activities?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  comments?: Prisma.OrderCommentUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutReservationsCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReservationsCreatedInput, Prisma.UserUncheckedCreateWithoutReservationsCreatedInput>
+}
+
+export type UserUpsertWithoutReservationsCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReservationsCreatedInput, Prisma.UserUncheckedUpdateWithoutReservationsCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReservationsCreatedInput, Prisma.UserUncheckedCreateWithoutReservationsCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReservationsCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReservationsCreatedInput, Prisma.UserUncheckedUpdateWithoutReservationsCreatedInput>
+}
+
+export type UserUpdateWithoutReservationsCreatedInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+  ordersCreated?: Prisma.OrderUpdateManyWithoutCreatorNestedInput
+  activities?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  comments?: Prisma.OrderCommentUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReservationsCreatedInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roleId?: Prisma.IntFieldUpdateOperationsInput | number
+  ordersCreated?: Prisma.OrderUncheckedUpdateManyWithoutCreatorNestedInput
+  activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyRoleInput = {
@@ -793,6 +894,7 @@ export type UserUpdateWithoutRoleInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ordersCreated?: Prisma.OrderUpdateManyWithoutCreatorNestedInput
+  reservationsCreated?: Prisma.ReservationUpdateManyWithoutCreatorNestedInput
   activities?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
   comments?: Prisma.OrderCommentUpdateManyWithoutUserNestedInput
 }
@@ -805,6 +907,7 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ordersCreated?: Prisma.OrderUncheckedUpdateManyWithoutCreatorNestedInput
+  reservationsCreated?: Prisma.ReservationUncheckedUpdateManyWithoutCreatorNestedInput
   activities?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   comments?: Prisma.OrderCommentUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -825,12 +928,14 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
 
 export type UserCountOutputType = {
   ordersCreated: number
+  reservationsCreated: number
   activities: number
   comments: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ordersCreated?: boolean | UserCountOutputTypeCountOrdersCreatedArgs
+  reservationsCreated?: boolean | UserCountOutputTypeCountReservationsCreatedArgs
   activities?: boolean | UserCountOutputTypeCountActivitiesArgs
   comments?: boolean | UserCountOutputTypeCountCommentsArgs
 }
@@ -850,6 +955,13 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type UserCountOutputTypeCountOrdersCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.OrderWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountReservationsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ReservationWhereInput
 }
 
 /**
@@ -877,6 +989,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   roleId?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   ordersCreated?: boolean | Prisma.User$ordersCreatedArgs<ExtArgs>
+  reservationsCreated?: boolean | Prisma.User$reservationsCreatedArgs<ExtArgs>
   activities?: boolean | Prisma.User$activitiesArgs<ExtArgs>
   comments?: boolean | Prisma.User$commentsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -918,6 +1031,7 @@ export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   ordersCreated?: boolean | Prisma.User$ordersCreatedArgs<ExtArgs>
+  reservationsCreated?: boolean | Prisma.User$reservationsCreatedArgs<ExtArgs>
   activities?: boolean | Prisma.User$activitiesArgs<ExtArgs>
   comments?: boolean | Prisma.User$commentsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -934,6 +1048,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     role: Prisma.$RolePayload<ExtArgs>
     ordersCreated: Prisma.$OrderPayload<ExtArgs>[]
+    reservationsCreated: Prisma.$ReservationPayload<ExtArgs>[]
     activities: Prisma.$ActivityLogPayload<ExtArgs>[]
     comments: Prisma.$OrderCommentPayload<ExtArgs>[]
   }
@@ -1341,6 +1456,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   ordersCreated<T extends Prisma.User$ordersCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ordersCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  reservationsCreated<T extends Prisma.User$reservationsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reservationsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   activities<T extends Prisma.User$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   comments<T extends Prisma.User$commentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$commentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderCommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1801,6 +1917,30 @@ export type User$ordersCreatedArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
+}
+
+/**
+ * User.reservationsCreated
+ */
+export type User$reservationsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Reservation
+   */
+  select?: Prisma.ReservationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Reservation
+   */
+  omit?: Prisma.ReservationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReservationInclude<ExtArgs> | null
+  where?: Prisma.ReservationWhereInput
+  orderBy?: Prisma.ReservationOrderByWithRelationInput | Prisma.ReservationOrderByWithRelationInput[]
+  cursor?: Prisma.ReservationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ReservationScalarFieldEnum | Prisma.ReservationScalarFieldEnum[]
 }
 
 /**

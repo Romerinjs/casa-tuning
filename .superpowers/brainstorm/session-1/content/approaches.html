@@ -1,0 +1,48 @@
+<h2>Propuestas de Enfoque para el Modal de Reservas</h2>
+<p class="subtitle">Selecciona la opción que consideres más adecuada para mejorar la UI y la adaptabilidad móvil:</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Paso a Paso Lineal (Header Indicator)</h3>
+      <p>Muestra un indicador de pasos horizontal en la cabecera (1. Datos -> 2. Agenda). Los campos se dividen limpiamente y se navega mediante botones "Siguiente" y "Atrás" de tamaño cómodo en la parte inferior. Muy estructurado y limpio.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Acordeón Colapsable (Estilo Recepción)</h3>
+      <p>Adapta el mismo diseño de acordeón de la pantalla de Recepción en miniatura dentro del modal (Paso 1: Cliente/Vehículo, Paso 2: Agenda/Servicios). Al dar "Siguiente" se colapsa la sección anterior y se abre la siguiente. Permite hacer clic en los encabezados para navegar libremente.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Carrusel de Pasos (Deslizamiento Móvil)</h3>
+      <p>Las pantallas de cada paso se deslizan lateralmente. Utiliza puntos indicadores de progreso en la parte inferior y gestos de transición rápidos. Da una sensación sumamente moderna, parecida a una app móvil nativa.</p>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons" style="margin-top: 1.5rem;">
+  <div class="pros">
+    <h4>Beneficios del Rediseño</h4>
+    <ul>
+      <li>Optimización móvil: Inputs amplios y áreas táctiles de 44x44px</li>
+      <li>Estética Premium: Colores de Casa Tuning (Header oscuro #111113 y dorados #C9A84C)</li>
+      <li>Menos Ruido: Remoción de textos informativos redundantes o repetidos</li>
+      <li>Campos inteligentes: El listado de servicios se adapta a 1 columna en móvil y 2 en desktop</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Desventajas / Trade-offs</h4>
+    <ul>
+      <li>El acordeón (Opción B) requiere mayor altura vertical dentro del modal</li>
+      <li>El carrusel (Opción C) añade código JavaScript adicional para manejar la transición deslizable</li>
+      <li>La opción A es la más simple y compatible con navegadores antiguos</li>
+    </ul>
+  </div>
+</div>

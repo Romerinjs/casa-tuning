@@ -67,7 +67,9 @@ export const ModelName = {
   OrderNotification: 'OrderNotification',
   OrderComment: 'OrderComment',
   Promotion: 'Promotion',
-  PromotionClient: 'PromotionClient'
+  PromotionClient: 'PromotionClient',
+  Reservation: 'Reservation',
+  ReservationService: 'ReservationService'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -183,6 +185,7 @@ export const OrderScalarFieldEnum = {
   mileage: 'mileage',
   signatureUrl: 'signatureUrl',
   observations: 'observations',
+  serviceDescription: 'serviceDescription',
   checklist: 'checklist',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -277,6 +280,35 @@ export const PromotionClientScalarFieldEnum = {
 } as const
 
 export type PromotionClientScalarFieldEnum = (typeof PromotionClientScalarFieldEnum)[keyof typeof PromotionClientScalarFieldEnum]
+
+
+export const ReservationScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  scheduledAt: 'scheduledAt',
+  status: 'status',
+  notes: 'notes',
+  reminderSent: 'reminderSent',
+  reminderSentAt: 'reminderSentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  clientId: 'clientId',
+  carId: 'carId',
+  vehiclePlate: 'vehiclePlate',
+  vehicleModel: 'vehicleModel',
+  brandId: 'brandId',
+  creatorId: 'creatorId'
+} as const
+
+export type ReservationScalarFieldEnum = (typeof ReservationScalarFieldEnum)[keyof typeof ReservationScalarFieldEnum]
+
+
+export const ReservationServiceScalarFieldEnum = {
+  reservationId: 'reservationId',
+  serviceId: 'serviceId'
+} as const
+
+export type ReservationServiceScalarFieldEnum = (typeof ReservationServiceScalarFieldEnum)[keyof typeof ReservationServiceScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -48,6 +48,7 @@ export type OrderMinAggregateOutputType = {
   mileage: string | null
   signatureUrl: string | null
   observations: string | null
+  serviceDescription: string | null
   createdAt: Date | null
   updatedAt: Date | null
   statusId: number | null
@@ -63,6 +64,7 @@ export type OrderMaxAggregateOutputType = {
   mileage: string | null
   signatureUrl: string | null
   observations: string | null
+  serviceDescription: string | null
   createdAt: Date | null
   updatedAt: Date | null
   statusId: number | null
@@ -78,6 +80,7 @@ export type OrderCountAggregateOutputType = {
   mileage: number
   signatureUrl: number
   observations: number
+  serviceDescription: number
   checklist: number
   createdAt: number
   updatedAt: number
@@ -112,6 +115,7 @@ export type OrderMinAggregateInputType = {
   mileage?: true
   signatureUrl?: true
   observations?: true
+  serviceDescription?: true
   createdAt?: true
   updatedAt?: true
   statusId?: true
@@ -127,6 +131,7 @@ export type OrderMaxAggregateInputType = {
   mileage?: true
   signatureUrl?: true
   observations?: true
+  serviceDescription?: true
   createdAt?: true
   updatedAt?: true
   statusId?: true
@@ -142,6 +147,7 @@ export type OrderCountAggregateInputType = {
   mileage?: true
   signatureUrl?: true
   observations?: true
+  serviceDescription?: true
   checklist?: true
   createdAt?: true
   updatedAt?: true
@@ -245,6 +251,7 @@ export type OrderGroupByOutputType = {
   mileage: string | null
   signatureUrl: string | null
   observations: string | null
+  serviceDescription: string | null
   checklist: runtime.JsonValue | null
   createdAt: Date
   updatedAt: Date
@@ -284,6 +291,7 @@ export type OrderWhereInput = {
   mileage?: Prisma.StringNullableFilter<"Order"> | string | null
   signatureUrl?: Prisma.StringNullableFilter<"Order"> | string | null
   observations?: Prisma.StringNullableFilter<"Order"> | string | null
+  serviceDescription?: Prisma.StringNullableFilter<"Order"> | string | null
   checklist?: Prisma.JsonNullableFilter<"Order">
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
@@ -310,6 +318,7 @@ export type OrderOrderByWithRelationInput = {
   mileage?: Prisma.SortOrderInput | Prisma.SortOrder
   signatureUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   observations?: Prisma.SortOrderInput | Prisma.SortOrder
+  serviceDescription?: Prisma.SortOrderInput | Prisma.SortOrder
   checklist?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -339,6 +348,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   mileage?: Prisma.StringNullableFilter<"Order"> | string | null
   signatureUrl?: Prisma.StringNullableFilter<"Order"> | string | null
   observations?: Prisma.StringNullableFilter<"Order"> | string | null
+  serviceDescription?: Prisma.StringNullableFilter<"Order"> | string | null
   checklist?: Prisma.JsonNullableFilter<"Order">
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
@@ -365,6 +375,7 @@ export type OrderOrderByWithAggregationInput = {
   mileage?: Prisma.SortOrderInput | Prisma.SortOrder
   signatureUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   observations?: Prisma.SortOrderInput | Prisma.SortOrder
+  serviceDescription?: Prisma.SortOrderInput | Prisma.SortOrder
   checklist?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -389,6 +400,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   mileage?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   signatureUrl?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   observations?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
+  serviceDescription?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   checklist?: Prisma.JsonNullableWithAggregatesFilter<"Order">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
@@ -404,6 +416,7 @@ export type OrderCreateInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -426,6 +439,7 @@ export type OrderUncheckedCreateInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -447,6 +461,7 @@ export type OrderUpdateInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -469,6 +484,7 @@ export type OrderUncheckedUpdateInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -491,6 +507,7 @@ export type OrderCreateManyInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -506,6 +523,7 @@ export type OrderUpdateManyMutationInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -518,6 +536,7 @@ export type OrderUncheckedUpdateManyInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -544,6 +563,7 @@ export type OrderCountOrderByAggregateInput = {
   mileage?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrder
   observations?: Prisma.SortOrder
+  serviceDescription?: Prisma.SortOrder
   checklist?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -568,6 +588,7 @@ export type OrderMaxOrderByAggregateInput = {
   mileage?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrder
   observations?: Prisma.SortOrder
+  serviceDescription?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   statusId?: Prisma.SortOrder
@@ -583,6 +604,7 @@ export type OrderMinOrderByAggregateInput = {
   mileage?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrder
   observations?: Prisma.SortOrder
+  serviceDescription?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   statusId?: Prisma.SortOrder
@@ -862,6 +884,7 @@ export type OrderCreateWithoutStatusInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -883,6 +906,7 @@ export type OrderUncheckedCreateWithoutStatusInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -933,6 +957,7 @@ export type OrderScalarWhereInput = {
   mileage?: Prisma.StringNullableFilter<"Order"> | string | null
   signatureUrl?: Prisma.StringNullableFilter<"Order"> | string | null
   observations?: Prisma.StringNullableFilter<"Order"> | string | null
+  serviceDescription?: Prisma.StringNullableFilter<"Order"> | string | null
   checklist?: Prisma.JsonNullableFilter<"Order">
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
@@ -948,6 +973,7 @@ export type OrderCreateWithoutCreatorInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -969,6 +995,7 @@ export type OrderUncheckedCreateWithoutCreatorInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1015,6 +1042,7 @@ export type OrderCreateWithoutClientInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1036,6 +1064,7 @@ export type OrderUncheckedCreateWithoutClientInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1082,6 +1111,7 @@ export type OrderCreateWithoutCarInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1103,6 +1133,7 @@ export type OrderUncheckedCreateWithoutCarInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1149,6 +1180,7 @@ export type OrderCreateWithoutServicesInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1170,6 +1202,7 @@ export type OrderUncheckedCreateWithoutServicesInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1206,6 +1239,7 @@ export type OrderUpdateWithoutServicesInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1227,6 +1261,7 @@ export type OrderUncheckedUpdateWithoutServicesInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1247,6 +1282,7 @@ export type OrderCreateWithoutInspectionsInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1268,6 +1304,7 @@ export type OrderUncheckedCreateWithoutInspectionsInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1304,6 +1341,7 @@ export type OrderUpdateWithoutInspectionsInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1325,6 +1363,7 @@ export type OrderUncheckedUpdateWithoutInspectionsInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1345,6 +1384,7 @@ export type OrderCreateWithoutPhotosInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1366,6 +1406,7 @@ export type OrderUncheckedCreateWithoutPhotosInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1402,6 +1443,7 @@ export type OrderUpdateWithoutPhotosInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1423,6 +1465,7 @@ export type OrderUncheckedUpdateWithoutPhotosInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1443,6 +1486,7 @@ export type OrderCreateWithoutActivitiesInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1464,6 +1508,7 @@ export type OrderUncheckedCreateWithoutActivitiesInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1500,6 +1545,7 @@ export type OrderUpdateWithoutActivitiesInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1521,6 +1567,7 @@ export type OrderUncheckedUpdateWithoutActivitiesInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1541,6 +1588,7 @@ export type OrderCreateWithoutNotificationsInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1562,6 +1610,7 @@ export type OrderUncheckedCreateWithoutNotificationsInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1598,6 +1647,7 @@ export type OrderUpdateWithoutNotificationsInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1619,6 +1669,7 @@ export type OrderUncheckedUpdateWithoutNotificationsInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1639,6 +1690,7 @@ export type OrderCreateWithoutCommentsInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1660,6 +1712,7 @@ export type OrderUncheckedCreateWithoutCommentsInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1696,6 +1749,7 @@ export type OrderUpdateWithoutCommentsInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1717,6 +1771,7 @@ export type OrderUncheckedUpdateWithoutCommentsInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1738,6 +1793,7 @@ export type OrderCreateManyStatusInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1752,6 +1808,7 @@ export type OrderUpdateWithoutStatusInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1773,6 +1830,7 @@ export type OrderUncheckedUpdateWithoutStatusInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1794,6 +1852,7 @@ export type OrderUncheckedUpdateManyWithoutStatusInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1809,6 +1868,7 @@ export type OrderCreateManyCreatorInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1823,6 +1883,7 @@ export type OrderUpdateWithoutCreatorInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1844,6 +1905,7 @@ export type OrderUncheckedUpdateWithoutCreatorInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1865,6 +1927,7 @@ export type OrderUncheckedUpdateManyWithoutCreatorInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1880,6 +1943,7 @@ export type OrderCreateManyClientInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1894,6 +1958,7 @@ export type OrderUpdateWithoutClientInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1915,6 +1980,7 @@ export type OrderUncheckedUpdateWithoutClientInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1936,6 +2002,7 @@ export type OrderUncheckedUpdateManyWithoutClientInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1951,6 +2018,7 @@ export type OrderCreateManyCarInput = {
   mileage?: string | null
   signatureUrl?: string | null
   observations?: string | null
+  serviceDescription?: string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1965,6 +2033,7 @@ export type OrderUpdateWithoutCarInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1986,6 +2055,7 @@ export type OrderUncheckedUpdateWithoutCarInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2007,6 +2077,7 @@ export type OrderUncheckedUpdateManyWithoutCarInput = {
   mileage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checklist?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2098,6 +2169,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   mileage?: boolean
   signatureUrl?: boolean
   observations?: boolean
+  serviceDescription?: boolean
   checklist?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2125,6 +2197,7 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   mileage?: boolean
   signatureUrl?: boolean
   observations?: boolean
+  serviceDescription?: boolean
   checklist?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2145,6 +2218,7 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   mileage?: boolean
   signatureUrl?: boolean
   observations?: boolean
+  serviceDescription?: boolean
   checklist?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2165,6 +2239,7 @@ export type OrderSelectScalar = {
   mileage?: boolean
   signatureUrl?: boolean
   observations?: boolean
+  serviceDescription?: boolean
   checklist?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2175,7 +2250,7 @@ export type OrderSelectScalar = {
   deliveryPdfUrl?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "mileage" | "signatureUrl" | "observations" | "checklist" | "createdAt" | "updatedAt" | "statusId" | "clientId" | "carId" | "creatorId" | "deliveryPdfUrl", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "mileage" | "signatureUrl" | "observations" | "serviceDescription" | "checklist" | "createdAt" | "updatedAt" | "statusId" | "clientId" | "carId" | "creatorId" | "deliveryPdfUrl", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   status?: boolean | Prisma.OrderStatusDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -2222,6 +2297,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     mileage: string | null
     signatureUrl: string | null
     observations: string | null
+    serviceDescription: string | null
     checklist: runtime.JsonValue | null
     createdAt: Date
     updatedAt: Date
@@ -2668,6 +2744,7 @@ export interface OrderFieldRefs {
   readonly mileage: Prisma.FieldRef<"Order", 'String'>
   readonly signatureUrl: Prisma.FieldRef<"Order", 'String'>
   readonly observations: Prisma.FieldRef<"Order", 'String'>
+  readonly serviceDescription: Prisma.FieldRef<"Order", 'String'>
   readonly checklist: Prisma.FieldRef<"Order", 'Json'>
   readonly createdAt: Prisma.FieldRef<"Order", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Order", 'DateTime'>
