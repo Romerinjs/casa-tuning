@@ -342,6 +342,14 @@ export async function sendReceptionEmail(
                     <strong style="font-size: 14px; color: #0a0a0c;">${servicesList}</strong>
                   </div>
 
+                  <!-- Service Description (if any) -->
+                  ${order.serviceDescription ? `
+                    <div style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;">
+                      <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #71717a; display: block; margin-bottom: 4px;">Detalles/Especificaciones de Servicios</span>
+                      <div style="font-size: 13px; color: #27272a; line-height: 1.5; white-space: pre-wrap;">${order.serviceDescription}</div>
+                    </div>
+                  ` : ""}
+
                   <!-- Checklist Box -->
                   <div style="border: 1px solid #e4e4e7; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
                     <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #0a0a0c; display: block; margin-bottom: 8px; border-bottom: 1px solid #e4e4e7; padding-bottom: 8px;">Estado del Checklist</span>
@@ -421,9 +429,10 @@ export async function sendDeliveryEmail(
   const subject = `Tu vehículo está listo para entrega - Orden ${order.code}`;
 
   // 1. Generate Technical Sheet PDF on the fly and upload to Cloudflare R2
+  let pdfBuffer: Buffer | null = null;
   let techSheetUrl = "";
   try {
-    const pdfBuffer = await generateOrderPdf(order.id);
+    pdfBuffer = await generateOrderPdf(order.id);
     techSheetUrl = await uploadBuffer(
       pdfBuffer,
       `technical-sheets/sheet-${order.code}.pdf`,
@@ -436,20 +445,31 @@ export async function sendDeliveryEmail(
   }
 
   // 2. Prepare attachments array
-  const attachments = [];
+  const attachments: any[] = [];
   
-  if (techSheetUrl) {
+  if (pdfBuffer) {
     attachments.push({
       filename: `Ficha_Tecnica_${order.code}.pdf`,
-      path: techSheetUrl,
+      content: pdfBuffer,
     });
   }
 
-  if (order.deliveryPdfUrl) {
-    attachments.push({
-      filename: `Factura_Elec_${order.code}.pdf`,
-      path: order.deliveryPdfUrl,
-    });
+  if (order.deliveryPdfUrl && order.deliveryPdfUrl.startsWith("http")) {
+    try {
+      const res = await fetch(order.deliveryPdfUrl);
+      if (res.ok) {
+        const arrayBuffer = await res.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        attachments.push({
+          filename: `Factura_Elec_${order.code}.pdf`,
+          content: buffer,
+        });
+      } else {
+        console.error(`[Resend Emails] Error downloading delivery PDF invoice: HTTP ${res.status}`);
+      }
+    } catch (fetchErr) {
+      console.error("[Resend Emails] Error fetching delivery PDF invoice from R2:", fetchErr);
+    }
   }
 
   const html = `
@@ -478,6 +498,14 @@ export async function sendDeliveryEmail(
                   <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #52525b;">Hola, <strong>${clientName}</strong>. Nos complace informarte que los servicios solicitados para tu vehículo <strong>${carName}</strong> (Placa: <strong style="font-family: monospace;">${carPlate}</strong>) bajo la orden <strong>${order.code}</strong> han sido finalizados con éxito.</p>
                   
                   <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #52525b;">Ya puedes pasar por él a nuestras instalaciones. Adjunto a este correo encontrarás el documento formal de entrega de la ficha técnica final (incluyendo todas las notas de servicio) y la factura correspondiente en formato PDF:</p>
+
+                  <!-- Service Description (if any) -->
+                  ${order.serviceDescription ? `
+                    <div style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;">
+                      <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #71717a; display: block; margin-bottom: 4px;">Detalles/Especificaciones de Servicios</span>
+                      <div style="font-size: 13px; color: #27272a; line-height: 1.5; white-space: pre-wrap;">${order.serviceDescription}</div>
+                    </div>
+                  ` : ""}
 
                   <!-- Attachments Box -->
                   ${attachments.length > 0 ? `
@@ -528,6 +556,93 @@ export async function sendDeliveryEmail(
 
   if (error) {
     console.error(`[Resend] Error enviando correo de entrega a ${toEmail}:`, error.message);
+    return { success: false, error: error.message };
+  }
+  return { success: true, id: data?.id };
+}
+
+/**
+ * Sends a notification email stating the vehicle is ready for pickup, without documents.
+ */
+export async function sendReadyEmail(
+  toEmail: string,
+  order: any
+) {
+  if (!apiKey || apiKey === "your_resend_api_key_here") {
+    console.warn("[Resend] API Key no configurada. Saltando envío de correo de vehículo listo.");
+    return { success: false, error: "Resend API Key is not configured." };
+  }
+
+  const logoUrl = await getOrUploadLogoUrl();
+  const clientName = order.client.name;
+  const carName = `${order.car.brand.name} ${order.car.model}`;
+  const carPlate = order.car.plate;
+
+  const subject = `Tu vehículo está listo para retiro - Orden ${order.code}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>${subject}</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; color: #18181b;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5; padding: 40px 20px;">
+        <tr>
+          <td align="center">
+            <table width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e4e4e7; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border-collapse: collapse;">
+              <!-- Header with Centered Logo -->
+              <tr>
+                <td style="background-color: #0a0a0c; background: linear-gradient(135deg, #0a0a0c 0%, #1a1a20 100%); padding: 32px; text-align: center; border-bottom: 3px solid #C9A84C;">
+                  ${logoUrl ? `<img src="${logoUrl}" alt="Casa Tuning" height="50" style="height: 50px; display: block; margin: 0 auto 12px auto;" />` : `<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">CASA TUNING</h1>`}
+                  <p style="color: #C9A84C; margin: 4px 0 0 0; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">Vehículo Terminado</p>
+                </td>
+              </tr>
+              <!-- Body -->
+              <tr>
+                <td style="padding: 32px 32px 24px 32px;">
+                  <h2 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #0a0a0c; letter-spacing: -0.5px;">¡Trabajos Finalizados!</h2>
+                  <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #52525b;">Hola, <strong>${clientName}</strong>.</p>
+                  <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #52525b;">Te informamos que los servicios para tu vehículo <strong>${carName}</strong> (Placa: <strong style="font-family: monospace;">${carPlate}</strong>) bajo la orden <strong>${order.code}</strong> han finalizado con éxito.</p>
+                  <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #52525b;">Ya puedes pasar a recogerlo a nuestras instalaciones. Al momento de la entrega física, firmarás la conformidad del servicio y te enviaremos de forma automática la ficha técnica definitiva y la factura electrónica.</p>
+                  
+                  ${order.serviceDescription ? `
+                    <div style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;">
+                      <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #71717a; display: block; margin-bottom: 4px;">Detalles/Especificaciones de Servicios</span>
+                      <div style="font-size: 13px; color: #27272a; line-height: 1.5; white-space: pre-wrap;">${order.serviceDescription}</div>
+                    </div>
+                  ` : ""}
+
+                  <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #52525b;">¡Te esperamos en **Casa Tuning**!</p>
+                </td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #fafafa; padding: 24px 32px; border-top: 1px solid #f4f4f5; text-align: center;">
+                  <p style="margin: 0; font-size: 11px; color: #a1a1aa; line-height: 1.4;">Este es un correo automático de aviso de vehículo listo emitido por Casa Tuning.<br>&copy; 2026 Casa Tuning. Todos los derechos reservados.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  const { data, error } = await resend.emails.send(
+    {
+      from: fromEmail,
+      to: [toEmail],
+      subject,
+      html,
+    },
+    { idempotencyKey: `ready-email-${order.id}` }
+  );
+
+  if (error) {
+    console.error(`[Resend] Error enviando correo de vehículo listo a ${toEmail}:`, error.message);
     return { success: false, error: error.message };
   }
   return { success: true, id: data?.id };

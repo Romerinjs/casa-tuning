@@ -1,0 +1,94 @@
+<h2>Vista Previa del Diseño: Modal con Acordeones (Opción B)</h2>
+<p class="subtitle">Este mockup muestra la estructura de acordeones y el look and feel premium alineado con la Recepción:</p>
+
+<div class="mockup" style="max-width: 600px; margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border-radius: 16px; border: 1px solid #C9A84C;">
+  <!-- Mockup Header -->
+  <div class="mockup-header" style="background: #111113; color: white; padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08);">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <div style="background: linear-gradient(135deg, #C9A84C, #9A7A28); width: 2.25rem; height: 2.25rem; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #0A0A0C; font-weight: bold;">
+        📅
+      </div>
+      <div>
+        <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #ffffff;">Agendar Nueva Reserva</h4>
+        <span style="font-size: 0.75rem; color: rgba(255,255,255,0.5);">Casa Tuning Premium Services</span>
+      </div>
+    </div>
+    <span style="font-size: 1.25rem; color: rgba(255,255,255,0.5); cursor: pointer;">✕</span>
+  </div>
+
+  <div class="mockup-body" style="background: #ffffff; padding: 1.5rem; color: #1d1d1f; display: flex; flex-direction: column; gap: 1rem;">
+    
+    <!-- STEP 1 ACCORDION (ACTIVE) -->
+    <div style="border: 1px solid #d1d1d6; border-radius: 12px; overflow: hidden; background: #fafafa;">
+      <!-- Header -->
+      <div style="background: #111113; color: #ffffff; padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+          <span style="color: #C9A84C;">Paso 1.</span> Cliente y Vehículo
+        </div>
+        <span style="color: #C9A84C; font-size: 0.75rem;">▼ Abierto</span>
+      </div>
+      <!-- Content -->
+      <div style="padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid #e5e5e7; background: #ffffff;">
+        <!-- Search bar -->
+        <div>
+          <div style="position: relative; display: flex; align-items: center;">
+            <span style="position: absolute; left: 0.75rem; color: #86868b;">🔍</span>
+            <input type="text" placeholder="Buscar cliente por celular o nombre..." disabled style="width: 100%; padding: 0.65rem 0.65rem 0.65rem 2.2rem; border-radius: 10px; border: 1px solid #d1d1d6; font-size: 0.8rem; background: #f5f5f7;" />
+          </div>
+        </div>
+
+        <!-- Grid inputs -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div>
+            <label style="font-size: 0.7rem; font-weight: 700; color: #424245; display: block; margin-bottom: 0.25rem;">Nombre Completo *</label>
+            <input type="text" value="Juan Pérez" disabled style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #d1d1d6; font-size: 0.8rem; background: #ffffff;" />
+          </div>
+          <div>
+            <label style="font-size: 0.7rem; font-weight: 700; color: #424245; display: block; margin-bottom: 0.25rem;">Celular WhatsApp *</label>
+            <input type="text" value="3001234567" disabled style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #d1d1d6; font-size: 0.8rem; background: #ffffff;" />
+          </div>
+        </div>
+
+        <!-- Vehicle grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+          <div>
+            <label style="font-size: 0.7rem; font-weight: 700; color: #424245; display: block; margin-bottom: 0.25rem;">Placa</label>
+            <input type="text" value="KLO987" disabled style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #d1d1d6; font-size: 0.8rem; font-weight: bold; font-family: monospace; background: #ffffff; text-align: center; border-left: 3px solid #C9A84C;" />
+          </div>
+          <div>
+            <label style="font-size: 0.7rem; font-weight: 700; color: #424245; display: block; margin-bottom: 0.25rem;">Marca</label>
+            <select disabled style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #d1d1d6; font-size: 0.8rem; background: #ffffff;"><option>Toyota</option></select>
+          </div>
+          <div>
+            <label style="font-size: 0.7rem; font-weight: 700; color: #424245; display: block; margin-bottom: 0.25rem;">Modelo/Línea</label>
+            <input type="text" value="Prado" disabled style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #d1d1d6; font-size: 0.8rem; background: #ffffff;" />
+          </div>
+        </div>
+
+        <!-- Button to go next -->
+        <button type="button" class="mock-button" style="background: #C9A84C; color: #0A0A0C; font-weight: 800; border-radius: 10px; padding: 0.65rem; border: none; font-size: 0.8rem; width: 100%; cursor: pointer;">
+          Siguiente: Fecha y Servicios ➜
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2 ACCORDION (INACTIVE/CLOSED) -->
+    <div style="border: 1px solid #d1d1d6; border-radius: 12px; overflow: hidden; background: #fafafa; opacity: 0.7;">
+      <!-- Header -->
+      <div style="background: #e5e5e7; color: #636366; padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+          <span>Paso 2.</span> Fecha, Hora y Servicios
+        </div>
+        <span style="font-size: 0.75rem;">▲ Cerrado</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<h3 style="margin-top: 2rem;">Puntos clave del rediseño:</h3>
+<ul>
+  <li><strong>Colores y Tipografía Coherentes:</strong> Cabeceras de los pasos con el mismo color oscuro (#111113) y acento dorado (#C9A84C) que el menú y sidebar principal.</li>
+  <li><strong>Reducción de Textos:</strong> Eliminamos banners redundantes como el de "Horarios permitidos: Lun-Vie: ...". En su lugar, el selector de horas solo mostrará horas válidas y correspondientes al día seleccionado (cerrando los domingos), de forma limpia e inteligente.</li>
+  <li><strong>Responsive Total:</strong> En móviles el modal se adaptará a pantalla completa o un bottom sheet bien estructurado, impidiendo el desbordamiento horizontal y permitiendo taps fluidos en cada botón.</li>
+</ul>

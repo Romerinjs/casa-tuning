@@ -401,3 +401,224 @@ export async function sendWhatsAppPromotionAction(promotionId: number, clientId:
   }
 }
 
+/**
+ * Envía una notificación de WhatsApp simple avisando que el vehículo está listo para retiro
+ */
+export async function sendWhatsAppReadyAction(orderId: number): Promise<boolean> {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        client: true,
+        car: {
+          include: { brand: true }
+        }
+      }
+    });
+
+    if (!order || !order.client.phone) {
+      console.warn(`[WhatsApp Kapso] No se pudo enviar aviso de listo: Orden ${orderId} no encontrada o sin celular.`);
+      return false;
+    }
+
+    const customerName = order.client.name;
+    const vehicleName = `${order.car.brand.name} ${order.car.model}`;
+    const plate = order.car.plate;
+    const recipientPhone = formatearTelefono(order.client.phone);
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: recipientPhone,
+      type: "text",
+      text: {
+        body: `Hola ${customerName}, te informamos que tu vehículo ${vehicleName} con placas ${plate} ya está listo para retiro en Casa Tuning. ¡Te esperamos!`
+      }
+    };
+
+    console.log(`[WhatsApp Kapso] Enviando mensaje de vehículo listo para orden ${order.code} a ${recipientPhone}`);
+    const success = await enviarMensajeKapso(payload);
+
+    if (success) {
+      await prisma.orderNotification.create({
+        data: {
+          orderId: order.id,
+          platform: "WHATSAPP",
+          notificationType: "VEHICULO_LISTO"
+        }
+      });
+    }
+
+    return success;
+  } catch (error) {
+    console.error(`[WhatsApp Kapso] Error en sendWhatsAppReadyAction para la orden ${orderId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Formatea fecha y hora de reserva en español (Ej: Lunes 10 de Agosto, 09:30 a. m.)
+ */
+function formatearFechaHoraReserva(date: Date): string {
+  try {
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "America/Bogota"
+    };
+    const formatted = new Intl.DateTimeFormat("es-CO", options).format(new Date(date));
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  } catch (e) {
+    return new Date(date).toLocaleString("es-CO");
+  }
+}
+
+/**
+ * Envía la plantilla de confirmación de reserva por WhatsApp (reserva_confirmada_2)
+ */
+export async function sendWhatsAppReservationConfirmationAction(reservationId: number): Promise<boolean> {
+  try {
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+      include: {
+        client: true,
+        car: { include: { brand: true } },
+        brand: true,
+        services: { include: { service: true } }
+      }
+    });
+
+    if (!reservation || !reservation.client.phone) {
+      console.warn(`[WhatsApp Kapso] No se pudo enviar confirmación: Reserva ${reservationId} no encontrada o sin celular.`);
+      return false;
+    }
+
+    const customerName = reservation.client.name;
+    const recipientPhone = formatearTelefono(reservation.client.phone);
+    const dateTimeStr = formatearFechaHoraReserva(reservation.scheduledAt);
+    
+    // Vehicle info resolution
+    let vehicleInfo = "";
+    if (reservation.car) {
+      vehicleInfo = `${reservation.car.brand.name} ${reservation.car.model} (${reservation.car.plate})`;
+    } else if (reservation.brand && reservation.vehicleModel) {
+      vehicleInfo = `${reservation.brand.name} ${reservation.vehicleModel}${reservation.vehiclePlate ? ` (${reservation.vehiclePlate})` : ""}`;
+    } else if (reservation.vehiclePlate) {
+      vehicleInfo = `Vehículo Placa ${reservation.vehiclePlate}`;
+    } else {
+      vehicleInfo = "Vehículo";
+    }
+
+    const servicesList = reservation.services.map(s => s.service.name).join(", ") || "Servicio General";
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: recipientPhone,
+      type: "template",
+      template: {
+        name: "reserva_confirmada_2",
+        language: { code: "es_MX" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: customerName }, // {{1}}
+              { type: "text", text: dateTimeStr },   // {{2}}
+              { type: "text", text: vehicleInfo },   // {{3}}
+              { type: "text", text: servicesList }   // {{4}}
+            ]
+          }
+        ]
+      }
+    };
+
+    console.log(`[WhatsApp Kapso] Enviando plantilla 'reserva_confirmada_2' para reserva ${reservation.code} a ${recipientPhone}`);
+    return await enviarMensajeKapso(payload);
+  } catch (error) {
+    console.error(`[WhatsApp Kapso] Error en sendWhatsAppReservationConfirmationAction para la reserva ${reservationId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Envía la plantilla de recordatorio de cita por WhatsApp (recordatorio_cita_2)
+ */
+export async function sendWhatsAppReservationReminderAction(reservationId: number): Promise<boolean> {
+  try {
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+      include: {
+        client: true,
+        car: { include: { brand: true } },
+        brand: true,
+        services: { include: { service: true } }
+      }
+    });
+
+    if (!reservation || !reservation.client.phone) {
+      console.warn(`[WhatsApp Kapso] No se pudo enviar recordatorio: Reserva ${reservationId} no encontrada o sin celular.`);
+      return false;
+    }
+
+    const customerName = reservation.client.name;
+    const recipientPhone = formatearTelefono(reservation.client.phone);
+    const dateTimeStr = formatearFechaHoraReserva(reservation.scheduledAt);
+
+    let vehicleInfo = "";
+    if (reservation.car) {
+      vehicleInfo = `${reservation.car.brand.name} ${reservation.car.model} (${reservation.car.plate})`;
+    } else if (reservation.brand && reservation.vehicleModel) {
+      vehicleInfo = `${reservation.brand.name} ${reservation.vehicleModel}${reservation.vehiclePlate ? ` (${reservation.vehiclePlate})` : ""}`;
+    } else if (reservation.vehiclePlate) {
+      vehicleInfo = `Vehículo Placa ${reservation.vehiclePlate}`;
+    } else {
+      vehicleInfo = "Vehículo";
+    }
+
+    const servicesList = reservation.services.map(s => s.service.name).join(", ") || "Servicio General";
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: recipientPhone,
+      type: "template",
+      template: {
+        name: "recordatorio_cita_2",
+        language: { code: "es_MX" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: customerName }, // {{1}}
+              { type: "text", text: dateTimeStr },   // {{2}}
+              { type: "text", text: vehicleInfo },   // {{3}}
+              { type: "text", text: servicesList }   // {{4}}
+            ]
+          }
+        ]
+      }
+    };
+
+    console.log(`[WhatsApp Kapso] Enviando plantilla 'recordatorio_cita_2' para reserva ${reservation.code} a ${recipientPhone}`);
+    const success = await enviarMensajeKapso(payload);
+
+    if (success) {
+      await prisma.reservation.update({
+        where: { id: reservationId },
+        data: {
+          reminderSent: true,
+          reminderSentAt: new Date()
+        }
+      });
+    }
+
+    return success;
+  } catch (error) {
+    console.error(`[WhatsApp Kapso] Error en sendWhatsAppReservationReminderAction para la reserva ${reservationId}:`, error);
+    return false;
+  }
+}
+
+

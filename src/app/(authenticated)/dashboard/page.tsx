@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   // 2. Fetch stats from database in parallel
   const [
     inProgressCount,
-    readyCount,
+    deliveredUnsignedCount,
     receivedTodayCount,
     totalTodayCount,
     activeOrders,
@@ -31,9 +31,12 @@ export default async function DashboardPage() {
     prisma.order.count({
       where: { status: { name: "EN_PROCESO" } },
     }),
-    // Listos para entrega
+    // Entregados sin firmar (ENTREGADO con signatureUrl null)
     prisma.order.count({
-      where: { status: { name: "LISTO" } },
+      where: {
+        status: { name: "ENTREGADO" },
+        signatureUrl: null,
+      },
     }),
     // Recibidos hoy
     prisma.order.count({
@@ -46,12 +49,20 @@ export default async function DashboardPage() {
     prisma.order.count({
       where: { createdAt: { gte: startOfToday } },
     }),
-    // Active orders (not delivered yet)
+    // Active orders (not delivered yet, or delivered but unsigned)
     prisma.order.findMany({
       where: {
-        status: {
-          name: { not: "ENTREGADO" },
-        },
+        OR: [
+          {
+            status: {
+              name: { not: "ENTREGADO" },
+            },
+          },
+          {
+            status: { name: "ENTREGADO" },
+            signatureUrl: null,
+          },
+        ],
       },
       include: {
         client: {
@@ -94,27 +105,29 @@ export default async function DashboardPage() {
   };
 
   // Status badge styles mapping
-  const getStatusStyles = (statusName: string) => {
+  const getStatusStyles = (statusName: string, hasSignature: boolean = false) => {
     switch (statusName) {
       case "RECIBIDO":
         return "bg-blue-50 text-blue-700 border-blue-200/60 before:bg-blue-500";
       case "EN_PROCESO":
         return "bg-orange-50 text-orange-700 border-orange-200/60 before:bg-orange-500";
-      case "LISTO":
-        return "bg-green-50 text-green-700 border-green-200/60 before:bg-green-500";
+      case "ENTREGADO":
+        return hasSignature
+          ? "bg-green-50 text-green-700 border-green-200/60 before:bg-green-500"
+          : "bg-zinc-100 text-zinc-600 border-zinc-200 before:bg-zinc-400";
       default:
         return "bg-zinc-100 text-zinc-600 border-zinc-200 before:bg-zinc-400";
     }
   };
 
-  const getStatusLabel = (statusName: string) => {
+  const getStatusLabel = (statusName: string, hasSignature: boolean = false) => {
     switch (statusName) {
       case "RECIBIDO":
         return "Recibido";
       case "EN_PROCESO":
         return "En proceso";
-      case "LISTO":
-        return "Listo ✓";
+      case "ENTREGADO":
+        return hasSignature ? "Entregado" : "Firma pendiente";
       default:
         return statusName;
     }
@@ -155,20 +168,20 @@ export default async function DashboardPage() {
             </span>
           </div>
 
-          {/* Listos para entrega */}
+          {/* Entregados sin firmar */}
           <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-xs relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-green-500" />
+            <div className="absolute top-0 left-0 w-1 h-full bg-rose-500" />
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
-              Listos para entrega
+              Entregas sin firmar
             </span>
             <div className="mt-2 flex items-baseline justify-between">
               <span className="text-3xl font-extrabold tracking-tight text-zinc-900">
-                {readyCount}
+                {deliveredUnsignedCount}
               </span>
-              <CheckCircle className="h-6 w-6 text-green-500/80" />
+              <CheckCircle className="h-6 w-6 text-rose-500/80" />
             </div>
             <span className="text-xs text-zinc-400 mt-1 block">
-              Pendientes de retiro
+              Firma digital pendiente
             </span>
           </div>
 
@@ -278,10 +291,11 @@ export default async function DashboardPage() {
                             <td className="py-3.5 px-5">
                               <span
                                 className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${getStatusStyles(
-                                  order.status.name
+                                  order.status.name,
+                                  !!order.signatureUrl
                                 )}`}
                               >
-                                {getStatusLabel(order.status.name)}
+                                {getStatusLabel(order.status.name, !!order.signatureUrl)}
                               </span>
                             </td>
                             <td className="py-3.5 px-5 text-xs text-zinc-400">
@@ -308,10 +322,11 @@ export default async function DashboardPage() {
                           </span>
                           <span
                             className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${getStatusStyles(
-                              order.status.name
+                              order.status.name,
+                              !!order.signatureUrl
                             )}`}
                           >
-                            {getStatusLabel(order.status.name)}
+                            {getStatusLabel(order.status.name, !!order.signatureUrl)}
                           </span>
                         </div>
 
