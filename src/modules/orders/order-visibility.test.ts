@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
 
+import type { Order } from "@/generated/prisma/client";
+
 import { evaluateOrderHideEligibility } from "./order-visibility";
 
 describe("evaluateOrderHideEligibility", () => {
+  it("the generated order model exposes the visibility marker", () => {
+    const field: keyof Order = "hiddenFromOrdersAt";
+
+    expect(field).toBe("hiddenFromOrdersAt");
+  });
+
   it("marks a delivered signed visible order as eligible", () => {
     expect(
       evaluateOrderHideEligibility({

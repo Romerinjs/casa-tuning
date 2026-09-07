@@ -788,10 +788,6 @@ export type ReservationUncheckedUpdateManyWithoutCarNestedInput = {
   deleteMany?: Prisma.ReservationScalarWhereInput | Prisma.ReservationScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type ReservationCreateNestedOneWithoutServicesInput = {
   create?: Prisma.XOR<Prisma.ReservationCreateWithoutServicesInput, Prisma.ReservationUncheckedCreateWithoutServicesInput>
   connectOrCreate?: Prisma.ReservationCreateOrConnectWithoutServicesInput

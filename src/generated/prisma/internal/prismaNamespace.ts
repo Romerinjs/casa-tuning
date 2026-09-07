@@ -1968,6 +1968,7 @@ export const OrderScalarFieldEnum = {
   checklist: 'checklist',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  hiddenFromOrdersAt: 'hiddenFromOrdersAt',
   statusId: 'statusId',
   clientId: 'clientId',
   carId: 'carId',
