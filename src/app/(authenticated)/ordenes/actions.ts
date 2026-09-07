@@ -12,6 +12,7 @@ import {
   type HideOrderDependencies,
   type HideOrderResult,
 } from "@/modules/orders/hide-order";
+import { evaluateOrderHideEligibility } from "@/modules/orders/order-visibility";
 import { after } from "next/server";
 
 const hideOrderDependencies: HideOrderDependencies = {
@@ -38,24 +39,53 @@ const hideOrderDependencies: HideOrderDependencies = {
     };
   },
   async hideAndLog({ orderId, userId, hiddenAt, description }) {
-    await prisma.$transaction(async (transaction) => {
+    return prisma.$transaction(async (transaction) => {
       const { count } = await transaction.order.updateMany({
         where: {
           id: orderId,
           hiddenFromOrdersAt: null,
+          status: { name: "ENTREGADO" },
+          signatureUrl: { not: null },
         },
         data: { hiddenFromOrdersAt: hiddenAt },
       });
 
-      if (count !== 1) return;
+      if (count === 1) {
+        await transaction.activityLog.create({
+          data: {
+            orderId,
+            userId,
+            description,
+          },
+        });
 
-      await transaction.activityLog.create({
-        data: {
-          orderId,
-          userId,
-          description,
+        return { kind: "hidden" } as const;
+      }
+
+      const currentOrder = await transaction.order.findUnique({
+        where: { id: orderId },
+        select: {
+          status: {
+            select: { name: true },
+          },
+          signatureUrl: true,
+          hiddenFromOrdersAt: true,
         },
       });
+
+      if (!currentOrder) return { kind: "not-found" } as const;
+
+      const currentEligibility = evaluateOrderHideEligibility({
+        statusName: currentOrder.status.name,
+        signatureUrl: currentOrder.signatureUrl,
+        hiddenFromOrdersAt: currentOrder.hiddenFromOrdersAt,
+      });
+
+      if (currentEligibility.kind === "eligible") {
+        throw new Error("Hide guard rejected an eligible order");
+      }
+
+      return currentEligibility;
     });
   },
   now() {

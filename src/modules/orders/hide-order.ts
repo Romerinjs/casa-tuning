@@ -1,4 +1,5 @@
 import { evaluateOrderHideEligibility } from "./order-visibility";
+import type { HideEligibility } from "./order-visibility";
 
 const HIDE_DESCRIPTION = "Orden ocultada del panel de órdenes" as const;
 
@@ -14,9 +15,14 @@ export interface HideOrderDependencies {
     userId: number;
     hiddenAt: Date;
     description: typeof HIDE_DESCRIPTION;
-  }): Promise<void>;
+  }): Promise<HideAndLogResult>;
   now(): Date;
 }
+
+export type HideAndLogResult =
+  | { kind: "hidden" }
+  | { kind: "not-found" }
+  | Exclude<HideEligibility, { kind: "eligible" }>;
 
 export type HideOrderResult =
   | { success: true }
@@ -64,12 +70,35 @@ export async function hideOrderWithAudit(
         error: "La orden debe tener una firma antes de ocultarse.",
       };
     case "eligible":
-      await dependencies.hideAndLog({
+      const writeResult = await dependencies.hideAndLog({
         orderId: order.id,
         userId,
         hiddenAt: dependencies.now(),
         description: HIDE_DESCRIPTION,
       });
-      return { success: true };
+
+      switch (writeResult.kind) {
+        case "hidden":
+        case "already-hidden":
+          return { success: true };
+        case "not-found":
+          return {
+            success: false,
+            reason: "not-found",
+            error: "La orden no existe.",
+          };
+        case "wrong-status":
+          return {
+            success: false,
+            reason: "wrong-status",
+            error: "Solo se pueden ocultar órdenes entregadas.",
+          };
+        case "unsigned":
+          return {
+            success: false,
+            reason: "unsigned",
+            error: "La orden debe tener una firma antes de ocultarse.",
+          };
+      }
   }
 }

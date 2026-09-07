@@ -10,7 +10,10 @@ const DESCRIPTION = "Orden ocultada del panel de órdenes";
 
 type OrderRecord = Awaited<ReturnType<HideOrderDependencies["findOrder"]>>;
 
-function createDependencies(initialOrder: OrderRecord) {
+function createDependencies(
+  initialOrder: OrderRecord,
+  beforeHideAndLog?: (order: NonNullable<OrderRecord>) => void,
+) {
   const order = initialOrder ? { ...initialOrder } : null;
   const hiddenOrders: Array<{ orderId: number; hiddenAt: Date }> = [];
   const activities: Array<{
@@ -24,8 +27,22 @@ function createDependencies(initialOrder: OrderRecord) {
       return order?.id === orderId ? { ...order } : null;
     },
     async hideAndLog(input) {
-      if (!order || order.id !== input.orderId || order.hiddenFromOrdersAt) {
-        return;
+      if (order) beforeHideAndLog?.(order);
+
+      if (!order || order.id !== input.orderId) {
+        return { kind: "not-found" } as const;
+      }
+
+      if (order.hiddenFromOrdersAt) {
+        return { kind: "already-hidden" } as const;
+      }
+
+      if (order.statusName !== "ENTREGADO") {
+        return { kind: "wrong-status" } as const;
+      }
+
+      if (!order.signatureUrl?.trim()) {
+        return { kind: "unsigned" } as const;
       }
 
       order.hiddenFromOrdersAt = input.hiddenAt;
@@ -35,6 +52,7 @@ function createDependencies(initialOrder: OrderRecord) {
         userId: input.userId,
         description: input.description,
       });
+      return { kind: "hidden" } as const;
     },
     now() {
       return HIDDEN_AT;
@@ -141,6 +159,44 @@ describe("hideOrderWithAudit", () => {
     expect(repeatedResult).toEqual({ success: true });
     expect(hiddenOrders).toHaveLength(1);
     expect(activities).toHaveLength(1);
+  });
+
+  it("rejects hiding when the status changes after the eligibility read", async () => {
+    const { activities, dependencies, hiddenOrders } = createDependencies(
+      visibleOrder(),
+      (order) => {
+        order.statusName = "EN_PROCESO";
+      },
+    );
+
+    const result = await hideOrderWithAudit(dependencies, 42, 7);
+
+    expect(result).toEqual({
+      success: false,
+      reason: "wrong-status",
+      error: "Solo se pueden ocultar órdenes entregadas.",
+    });
+    expect(hiddenOrders).toHaveLength(0);
+    expect(activities).toHaveLength(0);
+  });
+
+  it("rejects hiding when the signature is removed after the eligibility read", async () => {
+    const { activities, dependencies, hiddenOrders } = createDependencies(
+      visibleOrder(),
+      (order) => {
+        order.signatureUrl = null;
+      },
+    );
+
+    const result = await hideOrderWithAudit(dependencies, 42, 7);
+
+    expect(result).toEqual({
+      success: false,
+      reason: "unsigned",
+      error: "La orden debe tener una firma antes de ocultarse.",
+    });
+    expect(hiddenOrders).toHaveLength(0);
+    expect(activities).toHaveLength(0);
   });
 
   it("records one movement when eligible requests race", async () => {
