@@ -10,13 +10,15 @@ export interface HideOrderDependencies {
     signatureUrl: string | null;
     hiddenFromOrdersAt: Date | null;
   } | null>;
-  hideAndLog(input: {
-    orderId: number;
-    userId: number;
-    hiddenAt: Date;
-    description: typeof HIDE_DESCRIPTION;
-  }): Promise<HideAndLogResult>;
+  hideAndLog(input: HideAndLogInput): Promise<HideAndLogResult>;
   now(): Date;
+}
+
+export interface HideAndLogInput {
+  orderId: number;
+  userId: number;
+  hiddenAt: Date;
+  description: typeof HIDE_DESCRIPTION;
 }
 
 export type HideAndLogResult =

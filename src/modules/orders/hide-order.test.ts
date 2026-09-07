@@ -199,6 +199,31 @@ describe("hideOrderWithAudit", () => {
     expect(activities).toHaveLength(0);
   });
 
+  it.each([
+    ["an empty string", ""],
+    ["only whitespace", "   \t"],
+  ])(
+    "rejects hiding when the signature changes to %s after the eligibility read",
+    async (_label, signatureUrl) => {
+      const { activities, dependencies, hiddenOrders } = createDependencies(
+        visibleOrder(),
+        (order) => {
+          order.signatureUrl = signatureUrl;
+        },
+      );
+
+      const result = await hideOrderWithAudit(dependencies, 42, 7);
+
+      expect(result).toEqual({
+        success: false,
+        reason: "unsigned",
+        error: "La orden debe tener una firma antes de ocultarse.",
+      });
+      expect(hiddenOrders).toHaveLength(0);
+      expect(activities).toHaveLength(0);
+    },
+  );
+
   it("records one movement when eligible requests race", async () => {
     const { activities, dependencies, hiddenOrders } = createDependencies(
       visibleOrder(),
