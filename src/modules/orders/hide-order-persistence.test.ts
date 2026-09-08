@@ -5,10 +5,12 @@ import type { Prisma } from "@/generated/prisma/client";
 import { hideAndLogEligibleOrder } from "./hide-order-persistence";
 
 const HIDDEN_AT = new Date("2026-09-07T18:00:00.000Z");
-const TRIMMED_SIGNATURE_GUARD =
+const SPACE_ONLY_SIGNATURE_GUARD =
   /NULLIF\(BTRIM\([^)]*signature_url[^)]*\),\s*''\)\s+IS\s+NOT\s+NULL/i;
+const POSIX_WHITESPACE_SIGNATURE_GUARD =
+  /NULLIF\(\s*REGEXP_REPLACE\(\s*[^,]*signature_url[^,]*,\s*'\^\[\[:space:\]\]\+\|\[\[:space:\]\]\+\$',\s*'',\s*'g'\s*\),\s*''\s*\)\s+IS\s+NOT\s+NULL/i;
 
-function createTransaction(signatureUrl: string) {
+function createTransaction(signatureUrl: string | null) {
   let activityCount = 0;
   let emittedQuery: { text: string; values: unknown[] } | null = null;
 
@@ -16,9 +18,16 @@ function createTransaction(signatureUrl: string) {
     async $queryRaw(strings: TemplateStringsArray, ...values: unknown[]) {
       const text = strings.join("?");
       emittedQuery = { text, values };
-      const signatureAccepted = TRIMMED_SIGNATURE_GUARD.test(text)
-        ? Boolean(signatureUrl.trim())
-        : true;
+      const signatureAccepted = (() => {
+        if (signatureUrl === null) return false;
+        if (POSIX_WHITESPACE_SIGNATURE_GUARD.test(text)) {
+          return Boolean(signatureUrl.trim());
+        }
+        if (SPACE_ONLY_SIGNATURE_GUARD.test(text)) {
+          return Boolean(signatureUrl.replace(/^ +| +$/g, ""));
+        }
+        return true;
+      })();
 
       return signatureAccepted ? [{ id: 42 }] : [];
     },
@@ -48,8 +57,12 @@ function createTransaction(signatureUrl: string) {
 
 describe("hideAndLogEligibleOrder", () => {
   it.each([
+    ["null", null],
     ["an empty string", ""],
-    ["only whitespace", "   \t"],
+    ["spaces", "   "],
+    ["a tab", "\t"],
+    ["a newline", "\n"],
+    ["mixed whitespace", " \t\n "],
   ])("guards against a signature changed to %s", async (_label, signatureUrl) => {
     const { getActivityCount, getEmittedQuery, transaction } =
       createTransaction(signatureUrl);
@@ -66,7 +79,9 @@ describe("hideAndLogEligibleOrder", () => {
 
     const query = getEmittedQuery();
     expect(query).not.toBeNull();
-    expect(query && TRIMMED_SIGNATURE_GUARD.test(query.text)).toBe(true);
+    expect(
+      query && POSIX_WHITESPACE_SIGNATURE_GUARD.test(query.text),
+    ).toBe(true);
     expect(query?.values).toContain(42);
     expect(query?.text).not.toContain("42");
   });

@@ -14,7 +14,15 @@ export async function hideAndLogEligibleOrder(
       "updated_at" = ${input.hiddenAt}
     WHERE "candidate"."id" = ${input.orderId}
       AND "candidate"."hidden_from_orders_at" IS NULL
-      AND NULLIF(BTRIM("candidate"."signature_url"), '') IS NOT NULL
+      AND NULLIF(
+        REGEXP_REPLACE(
+          "candidate"."signature_url",
+          '^[[:space:]]+|[[:space:]]+$',
+          '',
+          'g'
+        ),
+        ''
+      ) IS NOT NULL
       AND EXISTS (
         SELECT 1
         FROM "order_statuses" AS "status"
