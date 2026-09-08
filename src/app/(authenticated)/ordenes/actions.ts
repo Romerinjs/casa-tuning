@@ -7,7 +7,81 @@ import { uploadBase64, deleteFile, uploadBuffer } from "@/lib/storage";
 import { sendDeliveryEmail, sendReadyEmail } from "@/lib/emails";
 import { generateOrderPdf } from "@/lib/pdf-generator";
 import { sendWhatsAppDeliveryAction, sendWhatsAppReadyAction } from "@/lib/whatsapp";
+import {
+  hideOrderWithAudit,
+  type HideOrderDependencies,
+  type HideOrderResult,
+} from "@/modules/orders/hide-order";
+import { hideAndLogEligibleOrder } from "@/modules/orders/hide-order-persistence";
 import { after } from "next/server";
+
+const hideOrderDependencies: HideOrderDependencies = {
+  async findOrder(orderId) {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        id: true,
+        signatureUrl: true,
+        hiddenFromOrdersAt: true,
+        status: {
+          select: { name: true },
+        },
+      },
+    });
+
+    if (!order) return null;
+
+    return {
+      id: order.id,
+      statusName: order.status.name,
+      signatureUrl: order.signatureUrl,
+      hiddenFromOrdersAt: order.hiddenFromOrdersAt,
+    };
+  },
+  async hideAndLog(input) {
+    return prisma.$transaction((transaction) =>
+      hideAndLogEligibleOrder(transaction, input),
+    );
+  },
+  now() {
+    return new Date();
+  },
+};
+
+export async function hideOrderFromOrdersPanelAction(
+  orderId: number,
+): Promise<HideOrderResult> {
+  try {
+    if (!Number.isInteger(orderId) || orderId <= 0) {
+      return {
+        success: false,
+        reason: "invalid-id",
+        error: "ID de orden inválido.",
+      };
+    }
+
+    const user = await verifySession();
+    const result = await hideOrderWithAudit(
+      hideOrderDependencies,
+      orderId,
+      user.id,
+    );
+
+    if (result.success) {
+      revalidatePath("/ordenes");
+      revalidatePath("/dashboard");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error hiding order from orders panel:", error);
+    return {
+      success: false,
+      reason: "internal-error",
+      error: "Ocurrió un error al ocultar la orden.",
+    };
+  }
+}
 
 export async function updateOrderStatusAction(
   orderId: number,
