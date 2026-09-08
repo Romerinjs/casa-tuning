@@ -281,6 +281,16 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
     }
   };
 
+  const handleOpenSelectedOrder = (order: OrderData) => {
+    setDetailsSignatureData("");
+    setSelectedOrder(order);
+  };
+
+  const handleCloseSelectedOrder = () => {
+    setDetailsSignatureData("");
+    setSelectedOrder(null);
+  };
+
   const handleSaveDetailsSignature = async (orderId: number) => {
     if (!detailsSignatureData) {
       showToast("Por favor, dibuje la firma primero.", "warning");
@@ -292,8 +302,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
       const res = await saveOrderSignatureAction(orderId, detailsSignatureData);
       if (res.success) {
         showToast("Firma registrada y entrega completada con éxito.", "success");
-        setSelectedOrder(null);
-        setDetailsSignatureData("");
+        handleCloseSelectedOrder();
       } else {
         showToast(res.error || "Error al guardar la firma.", "error");
       }
@@ -375,7 +384,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
     const order = hideOrderTarget;
     setHideOrderError(null);
     setHideOrderTarget(null);
-    setSelectedOrder(order);
+    handleOpenSelectedOrder(order);
   };
 
   const handleConfirmHideOrder = () => {
@@ -770,7 +779,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => setSelectedOrder(order)}
+                            onClick={() => handleOpenSelectedOrder(order)}
                             className="inline-flex items-center gap-1.5 h-9 rounded-lg border border-zinc-200/80 hover:bg-zinc-50 hover:border-zinc-300 px-4 text-xs font-bold text-zinc-700 transition-all cursor-pointer select-none shadow-2xs"
                           >
                             Ver Ficha
@@ -947,7 +956,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedOrder(null)}
+                onClick={handleCloseSelectedOrder}
                 className="h-9 w-9 rounded-lg border border-zinc-200 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-100 flex items-center justify-center text-sm font-bold transition-colors cursor-pointer select-none"
               >
                 ✕
@@ -1417,7 +1426,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedOrder(null)}
+                onClick={handleCloseSelectedOrder}
                 className="h-10 px-5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-white transition-colors cursor-pointer select-none"
               >
                 Cerrar Ficha
