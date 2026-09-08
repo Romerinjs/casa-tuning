@@ -8,8 +8,10 @@ import {
   deleteDeliveryPdfAction,
   addOrderCommentAction,
   downloadOrderPdfAction,
+  hideOrderFromOrdersPanelAction,
   saveOrderSignatureAction,
 } from "@/app/(authenticated)/ordenes/actions";
+import HideOrderModal from "@/components/HideOrderModal";
 import { useToast } from "@/components/ui/Toast";
 import {
   Search,
@@ -105,7 +107,9 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
   const [activeGalleryKey, setActiveGalleryKey] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
+  const [hideOrderTarget, setHideOrderTarget] = useState<OrderData | null>(null);
+  const [hideOrderError, setHideOrderError] = useState<string | null>(null);
 
   const [isUploadingPdf, setIsUploadingPdf] = useState<number | null>(null);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
@@ -353,6 +357,51 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
     } finally {
       setDownloadingPdfId(null);
     }
+  };
+
+  const handleOpenHideOrderModal = (order: OrderData) => {
+    setHideOrderError(null);
+    setHideOrderTarget(order);
+  };
+
+  const handleCloseHideOrderModal = () => {
+    setHideOrderError(null);
+    setHideOrderTarget(null);
+  };
+
+  const handleRequestSignature = () => {
+    if (!hideOrderTarget) return;
+
+    const order = hideOrderTarget;
+    setHideOrderError(null);
+    setHideOrderTarget(null);
+    setSelectedOrder(order);
+  };
+
+  const handleConfirmHideOrder = () => {
+    if (!hideOrderTarget) return;
+
+    const orderId = hideOrderTarget.id;
+    setHideOrderError(null);
+
+    startTransition(async () => {
+      try {
+        const result = await hideOrderFromOrdersPanelAction(orderId);
+
+        if (!result.success) {
+          setHideOrderError(
+            result.error || "No fue posible ocultar la orden.",
+          );
+          return;
+        }
+
+        setHideOrderTarget(null);
+        showToast("Orden ocultada del panel con éxito.", "success");
+      } catch (error) {
+        console.error("Error hiding order from orders panel:", error);
+        setHideOrderError("No fue posible ocultar la orden.");
+      }
+    });
   };
 
   const toggleCollapse = (orderId: number, currentCollapsed: boolean) => {
@@ -739,6 +788,16 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                               <Download className="h-4 w-4" />
                             )}
                           </button>
+                          {statusName === "ENTREGADO" ? (
+                            <button
+                              type="button"
+                              aria-label={`Ocultar orden ${order.code}`}
+                              onClick={() => handleOpenHideOrderModal(order)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200/80 text-zinc-500 shadow-2xs transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4" aria-hidden="true" />
+                            </button>
+                          ) : null}
                         </div>
 
                         {/* Empezar Trabajo (RECIBIDO -> EN_PROCESO) y Editar */}
@@ -856,6 +915,18 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
           </div>
         )}
       </div>
+
+      {hideOrderTarget ? (
+        <HideOrderModal
+          order={hideOrderTarget}
+          open
+          pending={isPending}
+          error={hideOrderError}
+          onClose={handleCloseHideOrderModal}
+          onRequestSignature={handleRequestSignature}
+          onConfirm={handleConfirmHideOrder}
+        />
+      ) : null}
 
       {/* DETAILS MODAL */}
       {selectedOrder && (

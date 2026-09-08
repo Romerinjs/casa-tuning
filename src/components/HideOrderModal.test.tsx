@@ -38,7 +38,9 @@ function renderModal(
 describe("HideOrderModal", () => {
   it("solicita la firma pendiente sin confirmar la ocultación", async () => {
     const user = userEvent.setup();
-    const { props } = renderModal({ order: unsignedOrder });
+    const onRequestSignature = vi.fn();
+    const onConfirm = vi.fn();
+    renderModal({ order: unsignedOrder, onRequestSignature, onConfirm });
 
     expect(
       screen.getByText(
@@ -48,8 +50,8 @@ describe("HideOrderModal", () => {
 
     await user.click(screen.getByRole("button", { name: "Firmar ahora" }));
 
-    expect(props.onRequestSignature).toHaveBeenCalledTimes(1);
-    expect(props.onConfirm).not.toHaveBeenCalled();
+    expect(onRequestSignature).toHaveBeenCalledTimes(1);
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it("empieza con la explicación y exige una segunda confirmación", async () => {
