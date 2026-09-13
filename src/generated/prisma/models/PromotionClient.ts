@@ -39,22 +39,25 @@ export type PromotionClientSumAggregateOutputType = {
 export type PromotionClientMinAggregateOutputType = {
   promotionId: number | null
   clientId: number | null
-  sentAt: Date | null
   status: string | null
+  errorMessage: string | null
+  sentAt: Date | null
 }
 
 export type PromotionClientMaxAggregateOutputType = {
   promotionId: number | null
   clientId: number | null
-  sentAt: Date | null
   status: string | null
+  errorMessage: string | null
+  sentAt: Date | null
 }
 
 export type PromotionClientCountAggregateOutputType = {
   promotionId: number
   clientId: number
-  sentAt: number
   status: number
+  errorMessage: number
+  sentAt: number
   _all: number
 }
 
@@ -72,22 +75,25 @@ export type PromotionClientSumAggregateInputType = {
 export type PromotionClientMinAggregateInputType = {
   promotionId?: true
   clientId?: true
-  sentAt?: true
   status?: true
+  errorMessage?: true
+  sentAt?: true
 }
 
 export type PromotionClientMaxAggregateInputType = {
   promotionId?: true
   clientId?: true
-  sentAt?: true
   status?: true
+  errorMessage?: true
+  sentAt?: true
 }
 
 export type PromotionClientCountAggregateInputType = {
   promotionId?: true
   clientId?: true
-  sentAt?: true
   status?: true
+  errorMessage?: true
+  sentAt?: true
   _all?: true
 }
 
@@ -180,8 +186,9 @@ export type PromotionClientGroupByArgs<ExtArgs extends runtime.Types.Extensions.
 export type PromotionClientGroupByOutputType = {
   promotionId: number
   clientId: number
-  sentAt: Date
   status: string
+  errorMessage: string | null
+  sentAt: Date | null
   _count: PromotionClientCountAggregateOutputType | null
   _avg: PromotionClientAvgAggregateOutputType | null
   _sum: PromotionClientSumAggregateOutputType | null
@@ -210,8 +217,9 @@ export type PromotionClientWhereInput = {
   NOT?: Prisma.PromotionClientWhereInput | Prisma.PromotionClientWhereInput[]
   promotionId?: Prisma.IntFilter<"PromotionClient"> | number
   clientId?: Prisma.IntFilter<"PromotionClient"> | number
-  sentAt?: Prisma.DateTimeFilter<"PromotionClient"> | Date | string
   status?: Prisma.StringFilter<"PromotionClient"> | string
+  errorMessage?: Prisma.StringNullableFilter<"PromotionClient"> | string | null
+  sentAt?: Prisma.DateTimeNullableFilter<"PromotionClient"> | Date | string | null
   promotion?: Prisma.XOR<Prisma.PromotionScalarRelationFilter, Prisma.PromotionWhereInput>
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
 }
@@ -219,8 +227,9 @@ export type PromotionClientWhereInput = {
 export type PromotionClientOrderByWithRelationInput = {
   promotionId?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   promotion?: Prisma.PromotionOrderByWithRelationInput
   client?: Prisma.ClientOrderByWithRelationInput
 }
@@ -232,8 +241,9 @@ export type PromotionClientWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PromotionClientWhereInput | Prisma.PromotionClientWhereInput[]
   promotionId?: Prisma.IntFilter<"PromotionClient"> | number
   clientId?: Prisma.IntFilter<"PromotionClient"> | number
-  sentAt?: Prisma.DateTimeFilter<"PromotionClient"> | Date | string
   status?: Prisma.StringFilter<"PromotionClient"> | string
+  errorMessage?: Prisma.StringNullableFilter<"PromotionClient"> | string | null
+  sentAt?: Prisma.DateTimeNullableFilter<"PromotionClient"> | Date | string | null
   promotion?: Prisma.XOR<Prisma.PromotionScalarRelationFilter, Prisma.PromotionWhereInput>
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
 }, "promotionId_clientId">
@@ -241,8 +251,9 @@ export type PromotionClientWhereUniqueInput = Prisma.AtLeast<{
 export type PromotionClientOrderByWithAggregationInput = {
   promotionId?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PromotionClientCountOrderByAggregateInput
   _avg?: Prisma.PromotionClientAvgOrderByAggregateInput
   _max?: Prisma.PromotionClientMaxOrderByAggregateInput
@@ -256,13 +267,15 @@ export type PromotionClientScalarWhereWithAggregatesInput = {
   NOT?: Prisma.PromotionClientScalarWhereWithAggregatesInput | Prisma.PromotionClientScalarWhereWithAggregatesInput[]
   promotionId?: Prisma.IntWithAggregatesFilter<"PromotionClient"> | number
   clientId?: Prisma.IntWithAggregatesFilter<"PromotionClient"> | number
-  sentAt?: Prisma.DateTimeWithAggregatesFilter<"PromotionClient"> | Date | string
   status?: Prisma.StringWithAggregatesFilter<"PromotionClient"> | string
+  errorMessage?: Prisma.StringNullableWithAggregatesFilter<"PromotionClient"> | string | null
+  sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PromotionClient"> | Date | string | null
 }
 
 export type PromotionClientCreateInput = {
-  sentAt?: Date | string
   status?: string
+  errorMessage?: string | null
+  sentAt?: Date | string | null
   promotion: Prisma.PromotionCreateNestedOneWithoutClientsInput
   client: Prisma.ClientCreateNestedOneWithoutPromotionsInput
 }
@@ -270,13 +283,15 @@ export type PromotionClientCreateInput = {
 export type PromotionClientUncheckedCreateInput = {
   promotionId: number
   clientId: number
-  sentAt?: Date | string
   status?: string
+  errorMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type PromotionClientUpdateInput = {
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   promotion?: Prisma.PromotionUpdateOneRequiredWithoutClientsNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutPromotionsNestedInput
 }
@@ -284,27 +299,31 @@ export type PromotionClientUpdateInput = {
 export type PromotionClientUncheckedUpdateInput = {
   promotionId?: Prisma.IntFieldUpdateOperationsInput | number
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PromotionClientCreateManyInput = {
   promotionId: number
   clientId: number
-  sentAt?: Date | string
   status?: string
+  errorMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type PromotionClientUpdateManyMutationInput = {
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PromotionClientUncheckedUpdateManyInput = {
   promotionId?: Prisma.IntFieldUpdateOperationsInput | number
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PromotionClientListRelationFilter = {
@@ -325,8 +344,9 @@ export type PromotionClientPromotionIdClientIdCompoundUniqueInput = {
 export type PromotionClientCountOrderByAggregateInput = {
   promotionId?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  errorMessage?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
 }
 
 export type PromotionClientAvgOrderByAggregateInput = {
@@ -337,15 +357,17 @@ export type PromotionClientAvgOrderByAggregateInput = {
 export type PromotionClientMaxOrderByAggregateInput = {
   promotionId?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  errorMessage?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
 }
 
 export type PromotionClientMinOrderByAggregateInput = {
   promotionId?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  errorMessage?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
 }
 
 export type PromotionClientSumOrderByAggregateInput = {
@@ -438,15 +460,17 @@ export type PromotionClientUncheckedUpdateManyWithoutPromotionNestedInput = {
 }
 
 export type PromotionClientCreateWithoutClientInput = {
-  sentAt?: Date | string
   status?: string
+  errorMessage?: string | null
+  sentAt?: Date | string | null
   promotion: Prisma.PromotionCreateNestedOneWithoutClientsInput
 }
 
 export type PromotionClientUncheckedCreateWithoutClientInput = {
   promotionId: number
-  sentAt?: Date | string
   status?: string
+  errorMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type PromotionClientCreateOrConnectWithoutClientInput = {
@@ -481,20 +505,23 @@ export type PromotionClientScalarWhereInput = {
   NOT?: Prisma.PromotionClientScalarWhereInput | Prisma.PromotionClientScalarWhereInput[]
   promotionId?: Prisma.IntFilter<"PromotionClient"> | number
   clientId?: Prisma.IntFilter<"PromotionClient"> | number
-  sentAt?: Prisma.DateTimeFilter<"PromotionClient"> | Date | string
   status?: Prisma.StringFilter<"PromotionClient"> | string
+  errorMessage?: Prisma.StringNullableFilter<"PromotionClient"> | string | null
+  sentAt?: Prisma.DateTimeNullableFilter<"PromotionClient"> | Date | string | null
 }
 
 export type PromotionClientCreateWithoutPromotionInput = {
-  sentAt?: Date | string
   status?: string
+  errorMessage?: string | null
+  sentAt?: Date | string | null
   client: Prisma.ClientCreateNestedOneWithoutPromotionsInput
 }
 
 export type PromotionClientUncheckedCreateWithoutPromotionInput = {
   clientId: number
-  sentAt?: Date | string
   status?: string
+  errorMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type PromotionClientCreateOrConnectWithoutPromotionInput = {
@@ -525,50 +552,58 @@ export type PromotionClientUpdateManyWithWhereWithoutPromotionInput = {
 
 export type PromotionClientCreateManyClientInput = {
   promotionId: number
-  sentAt?: Date | string
   status?: string
+  errorMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type PromotionClientUpdateWithoutClientInput = {
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   promotion?: Prisma.PromotionUpdateOneRequiredWithoutClientsNestedInput
 }
 
 export type PromotionClientUncheckedUpdateWithoutClientInput = {
   promotionId?: Prisma.IntFieldUpdateOperationsInput | number
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PromotionClientUncheckedUpdateManyWithoutClientInput = {
   promotionId?: Prisma.IntFieldUpdateOperationsInput | number
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PromotionClientCreateManyPromotionInput = {
   clientId: number
-  sentAt?: Date | string
   status?: string
+  errorMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type PromotionClientUpdateWithoutPromotionInput = {
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   client?: Prisma.ClientUpdateOneRequiredWithoutPromotionsNestedInput
 }
 
 export type PromotionClientUncheckedUpdateWithoutPromotionInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PromotionClientUncheckedUpdateManyWithoutPromotionInput = {
   clientId?: Prisma.IntFieldUpdateOperationsInput | number
-  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -576,8 +611,9 @@ export type PromotionClientUncheckedUpdateManyWithoutPromotionInput = {
 export type PromotionClientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   promotionId?: boolean
   clientId?: boolean
-  sentAt?: boolean
   status?: boolean
+  errorMessage?: boolean
+  sentAt?: boolean
   promotion?: boolean | Prisma.PromotionDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["promotionClient"]>
@@ -585,8 +621,9 @@ export type PromotionClientSelect<ExtArgs extends runtime.Types.Extensions.Inter
 export type PromotionClientSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   promotionId?: boolean
   clientId?: boolean
-  sentAt?: boolean
   status?: boolean
+  errorMessage?: boolean
+  sentAt?: boolean
   promotion?: boolean | Prisma.PromotionDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["promotionClient"]>
@@ -594,8 +631,9 @@ export type PromotionClientSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
 export type PromotionClientSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   promotionId?: boolean
   clientId?: boolean
-  sentAt?: boolean
   status?: boolean
+  errorMessage?: boolean
+  sentAt?: boolean
   promotion?: boolean | Prisma.PromotionDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["promotionClient"]>
@@ -603,11 +641,12 @@ export type PromotionClientSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
 export type PromotionClientSelectScalar = {
   promotionId?: boolean
   clientId?: boolean
-  sentAt?: boolean
   status?: boolean
+  errorMessage?: boolean
+  sentAt?: boolean
 }
 
-export type PromotionClientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"promotionId" | "clientId" | "sentAt" | "status", ExtArgs["result"]["promotionClient"]>
+export type PromotionClientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"promotionId" | "clientId" | "status" | "errorMessage" | "sentAt", ExtArgs["result"]["promotionClient"]>
 export type PromotionClientInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   promotion?: boolean | Prisma.PromotionDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -630,8 +669,9 @@ export type $PromotionClientPayload<ExtArgs extends runtime.Types.Extensions.Int
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     promotionId: number
     clientId: number
-    sentAt: Date
     status: string
+    errorMessage: string | null
+    sentAt: Date | null
   }, ExtArgs["result"]["promotionClient"]>
   composites: {}
 }
@@ -1059,8 +1099,9 @@ export interface Prisma__PromotionClientClient<T, Null = never, ExtArgs extends 
 export interface PromotionClientFieldRefs {
   readonly promotionId: Prisma.FieldRef<"PromotionClient", 'Int'>
   readonly clientId: Prisma.FieldRef<"PromotionClient", 'Int'>
-  readonly sentAt: Prisma.FieldRef<"PromotionClient", 'DateTime'>
   readonly status: Prisma.FieldRef<"PromotionClient", 'String'>
+  readonly errorMessage: Prisma.FieldRef<"PromotionClient", 'String'>
+  readonly sentAt: Prisma.FieldRef<"PromotionClient", 'DateTime'>
 }
     
 

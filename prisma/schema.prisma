@@ -250,32 +250,44 @@ model OrderComment {
 }
 
 model Promotion {
-  id           Int               @id @default(autoincrement())
-  name         String            @db.VarChar(150)
-  templateName String            @map("template_name") @db.VarChar(100)
-  fileUrl      String?           @map("file_url") @db.Text
-  createdAt    DateTime          @default(now()) @map("created_at")
+  id                 Int               @id @default(autoincrement())
+  name               String            @db.VarChar(150)
+  templateName       String            @map("template_name") @db.VarChar(100)
+  whatsappTemplateId String?           @map("whatsapp_template_id") @db.VarChar(100)
+  kapsoBroadcastId   String?           @map("kapso_broadcast_id") @db.VarChar(100)
+  status             String            @default("DISPATCHING") @db.VarChar(30) // DISPATCHING | SENDING | COMPLETED | FAILED | PARTIAL
+  fileUrl            String?           @map("file_url") @db.Text
+  customParams       Json?             @map("custom_params") // { benefitDescription, validityDate }
+  totalRecipients    Int               @default(0) @map("total_recipients")
+  sentCount          Int               @default(0) @map("sent_count")
+  failedCount        Int               @default(0) @map("failed_count")
+  kapsoLastError     String?           @map("kapso_last_error") @db.Text
+  dispatchedAt       DateTime?         @map("dispatched_at")
+  completedAt        DateTime?         @map("completed_at")
+  createdAt          DateTime          @default(now()) @map("created_at")
   
-  serviceId    Int               @map("service_id")
-  service      ServiceCatalog    @relation(fields: [serviceId], references: [id])
-  brandId      Int               @map("brand_id")
-  brand        Brand             @relation(fields: [brandId], references: [id])
+  serviceId          Int               @map("service_id")
+  service            ServiceCatalog    @relation(fields: [serviceId], references: [id])
+  brandId            Int               @map("brand_id")
+  brand              Brand             @relation(fields: [brandId], references: [id])
   
-  clients      PromotionClient[]
+  clients            PromotionClient[]
 
   @@map("promotions")
 }
 
 model PromotionClient {
-  promotionId Int      @map("promotion_id")
-  clientId    Int      @map("client_id")
-  sentAt      DateTime @default(now()) @map("sent_at")
-  status      String   @default("SENT") @db.VarChar(20) // SENT | FAILED
+  promotionId  Int       @map("promotion_id")
+  clientId     Int       @map("client_id")
+  status       String    @default("QUEUED") @db.VarChar(20) // QUEUED | SENT | FAILED | REJECTED
+  errorMessage String?   @map("error_message") @db.Text
+  sentAt       DateTime? @map("sent_at")
 
-  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
-  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  promotion    Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  client       Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@id([promotionId, clientId])
+  @@index([status])
   @@map("promotion_clients")
 }
 

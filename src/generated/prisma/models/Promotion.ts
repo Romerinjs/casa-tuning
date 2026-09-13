@@ -28,12 +28,18 @@ export type AggregatePromotion = {
 
 export type PromotionAvgAggregateOutputType = {
   id: number | null
+  totalRecipients: number | null
+  sentCount: number | null
+  failedCount: number | null
   serviceId: number | null
   brandId: number | null
 }
 
 export type PromotionSumAggregateOutputType = {
   id: number | null
+  totalRecipients: number | null
+  sentCount: number | null
+  failedCount: number | null
   serviceId: number | null
   brandId: number | null
 }
@@ -42,7 +48,16 @@ export type PromotionMinAggregateOutputType = {
   id: number | null
   name: string | null
   templateName: string | null
+  whatsappTemplateId: string | null
+  kapsoBroadcastId: string | null
+  status: string | null
   fileUrl: string | null
+  totalRecipients: number | null
+  sentCount: number | null
+  failedCount: number | null
+  kapsoLastError: string | null
+  dispatchedAt: Date | null
+  completedAt: Date | null
   createdAt: Date | null
   serviceId: number | null
   brandId: number | null
@@ -52,7 +67,16 @@ export type PromotionMaxAggregateOutputType = {
   id: number | null
   name: string | null
   templateName: string | null
+  whatsappTemplateId: string | null
+  kapsoBroadcastId: string | null
+  status: string | null
   fileUrl: string | null
+  totalRecipients: number | null
+  sentCount: number | null
+  failedCount: number | null
+  kapsoLastError: string | null
+  dispatchedAt: Date | null
+  completedAt: Date | null
   createdAt: Date | null
   serviceId: number | null
   brandId: number | null
@@ -62,7 +86,17 @@ export type PromotionCountAggregateOutputType = {
   id: number
   name: number
   templateName: number
+  whatsappTemplateId: number
+  kapsoBroadcastId: number
+  status: number
   fileUrl: number
+  customParams: number
+  totalRecipients: number
+  sentCount: number
+  failedCount: number
+  kapsoLastError: number
+  dispatchedAt: number
+  completedAt: number
   createdAt: number
   serviceId: number
   brandId: number
@@ -72,12 +106,18 @@ export type PromotionCountAggregateOutputType = {
 
 export type PromotionAvgAggregateInputType = {
   id?: true
+  totalRecipients?: true
+  sentCount?: true
+  failedCount?: true
   serviceId?: true
   brandId?: true
 }
 
 export type PromotionSumAggregateInputType = {
   id?: true
+  totalRecipients?: true
+  sentCount?: true
+  failedCount?: true
   serviceId?: true
   brandId?: true
 }
@@ -86,7 +126,16 @@ export type PromotionMinAggregateInputType = {
   id?: true
   name?: true
   templateName?: true
+  whatsappTemplateId?: true
+  kapsoBroadcastId?: true
+  status?: true
   fileUrl?: true
+  totalRecipients?: true
+  sentCount?: true
+  failedCount?: true
+  kapsoLastError?: true
+  dispatchedAt?: true
+  completedAt?: true
   createdAt?: true
   serviceId?: true
   brandId?: true
@@ -96,7 +145,16 @@ export type PromotionMaxAggregateInputType = {
   id?: true
   name?: true
   templateName?: true
+  whatsappTemplateId?: true
+  kapsoBroadcastId?: true
+  status?: true
   fileUrl?: true
+  totalRecipients?: true
+  sentCount?: true
+  failedCount?: true
+  kapsoLastError?: true
+  dispatchedAt?: true
+  completedAt?: true
   createdAt?: true
   serviceId?: true
   brandId?: true
@@ -106,7 +164,17 @@ export type PromotionCountAggregateInputType = {
   id?: true
   name?: true
   templateName?: true
+  whatsappTemplateId?: true
+  kapsoBroadcastId?: true
+  status?: true
   fileUrl?: true
+  customParams?: true
+  totalRecipients?: true
+  sentCount?: true
+  failedCount?: true
+  kapsoLastError?: true
+  dispatchedAt?: true
+  completedAt?: true
   createdAt?: true
   serviceId?: true
   brandId?: true
@@ -203,7 +271,17 @@ export type PromotionGroupByOutputType = {
   id: number
   name: string
   templateName: string
+  whatsappTemplateId: string | null
+  kapsoBroadcastId: string | null
+  status: string
   fileUrl: string | null
+  customParams: runtime.JsonValue | null
+  totalRecipients: number
+  sentCount: number
+  failedCount: number
+  kapsoLastError: string | null
+  dispatchedAt: Date | null
+  completedAt: Date | null
   createdAt: Date
   serviceId: number
   brandId: number
@@ -236,7 +314,17 @@ export type PromotionWhereInput = {
   id?: Prisma.IntFilter<"Promotion"> | number
   name?: Prisma.StringFilter<"Promotion"> | string
   templateName?: Prisma.StringFilter<"Promotion"> | string
+  whatsappTemplateId?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  kapsoBroadcastId?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  status?: Prisma.StringFilter<"Promotion"> | string
   fileUrl?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  customParams?: Prisma.JsonNullableFilter<"Promotion">
+  totalRecipients?: Prisma.IntFilter<"Promotion"> | number
+  sentCount?: Prisma.IntFilter<"Promotion"> | number
+  failedCount?: Prisma.IntFilter<"Promotion"> | number
+  kapsoLastError?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  dispatchedAt?: Prisma.DateTimeNullableFilter<"Promotion"> | Date | string | null
+  completedAt?: Prisma.DateTimeNullableFilter<"Promotion"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Promotion"> | Date | string
   serviceId?: Prisma.IntFilter<"Promotion"> | number
   brandId?: Prisma.IntFilter<"Promotion"> | number
@@ -249,7 +337,17 @@ export type PromotionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   templateName?: Prisma.SortOrder
+  whatsappTemplateId?: Prisma.SortOrderInput | Prisma.SortOrder
+  kapsoBroadcastId?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
   fileUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  customParams?: Prisma.SortOrderInput | Prisma.SortOrder
+  totalRecipients?: Prisma.SortOrder
+  sentCount?: Prisma.SortOrder
+  failedCount?: Prisma.SortOrder
+  kapsoLastError?: Prisma.SortOrderInput | Prisma.SortOrder
+  dispatchedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   serviceId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
@@ -265,7 +363,17 @@ export type PromotionWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PromotionWhereInput | Prisma.PromotionWhereInput[]
   name?: Prisma.StringFilter<"Promotion"> | string
   templateName?: Prisma.StringFilter<"Promotion"> | string
+  whatsappTemplateId?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  kapsoBroadcastId?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  status?: Prisma.StringFilter<"Promotion"> | string
   fileUrl?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  customParams?: Prisma.JsonNullableFilter<"Promotion">
+  totalRecipients?: Prisma.IntFilter<"Promotion"> | number
+  sentCount?: Prisma.IntFilter<"Promotion"> | number
+  failedCount?: Prisma.IntFilter<"Promotion"> | number
+  kapsoLastError?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  dispatchedAt?: Prisma.DateTimeNullableFilter<"Promotion"> | Date | string | null
+  completedAt?: Prisma.DateTimeNullableFilter<"Promotion"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Promotion"> | Date | string
   serviceId?: Prisma.IntFilter<"Promotion"> | number
   brandId?: Prisma.IntFilter<"Promotion"> | number
@@ -278,7 +386,17 @@ export type PromotionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   templateName?: Prisma.SortOrder
+  whatsappTemplateId?: Prisma.SortOrderInput | Prisma.SortOrder
+  kapsoBroadcastId?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
   fileUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  customParams?: Prisma.SortOrderInput | Prisma.SortOrder
+  totalRecipients?: Prisma.SortOrder
+  sentCount?: Prisma.SortOrder
+  failedCount?: Prisma.SortOrder
+  kapsoLastError?: Prisma.SortOrderInput | Prisma.SortOrder
+  dispatchedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   serviceId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
@@ -296,7 +414,17 @@ export type PromotionScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"Promotion"> | number
   name?: Prisma.StringWithAggregatesFilter<"Promotion"> | string
   templateName?: Prisma.StringWithAggregatesFilter<"Promotion"> | string
+  whatsappTemplateId?: Prisma.StringNullableWithAggregatesFilter<"Promotion"> | string | null
+  kapsoBroadcastId?: Prisma.StringNullableWithAggregatesFilter<"Promotion"> | string | null
+  status?: Prisma.StringWithAggregatesFilter<"Promotion"> | string
   fileUrl?: Prisma.StringNullableWithAggregatesFilter<"Promotion"> | string | null
+  customParams?: Prisma.JsonNullableWithAggregatesFilter<"Promotion">
+  totalRecipients?: Prisma.IntWithAggregatesFilter<"Promotion"> | number
+  sentCount?: Prisma.IntWithAggregatesFilter<"Promotion"> | number
+  failedCount?: Prisma.IntWithAggregatesFilter<"Promotion"> | number
+  kapsoLastError?: Prisma.StringNullableWithAggregatesFilter<"Promotion"> | string | null
+  dispatchedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Promotion"> | Date | string | null
+  completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Promotion"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Promotion"> | Date | string
   serviceId?: Prisma.IntWithAggregatesFilter<"Promotion"> | number
   brandId?: Prisma.IntWithAggregatesFilter<"Promotion"> | number
@@ -305,7 +433,17 @@ export type PromotionScalarWhereWithAggregatesInput = {
 export type PromotionCreateInput = {
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   service: Prisma.ServiceCatalogCreateNestedOneWithoutPromotionsInput
   brand: Prisma.BrandCreateNestedOneWithoutPromotionsInput
@@ -316,7 +454,17 @@ export type PromotionUncheckedCreateInput = {
   id?: number
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   serviceId: number
   brandId: number
@@ -326,7 +474,17 @@ export type PromotionUncheckedCreateInput = {
 export type PromotionUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   service?: Prisma.ServiceCatalogUpdateOneRequiredWithoutPromotionsNestedInput
   brand?: Prisma.BrandUpdateOneRequiredWithoutPromotionsNestedInput
@@ -337,7 +495,17 @@ export type PromotionUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   serviceId?: Prisma.IntFieldUpdateOperationsInput | number
   brandId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -348,7 +516,17 @@ export type PromotionCreateManyInput = {
   id?: number
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   serviceId: number
   brandId: number
@@ -357,7 +535,17 @@ export type PromotionCreateManyInput = {
 export type PromotionUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -365,7 +553,17 @@ export type PromotionUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   serviceId?: Prisma.IntFieldUpdateOperationsInput | number
   brandId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -385,7 +583,17 @@ export type PromotionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   templateName?: Prisma.SortOrder
+  whatsappTemplateId?: Prisma.SortOrder
+  kapsoBroadcastId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   fileUrl?: Prisma.SortOrder
+  customParams?: Prisma.SortOrder
+  totalRecipients?: Prisma.SortOrder
+  sentCount?: Prisma.SortOrder
+  failedCount?: Prisma.SortOrder
+  kapsoLastError?: Prisma.SortOrder
+  dispatchedAt?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   serviceId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
@@ -393,6 +601,9 @@ export type PromotionCountOrderByAggregateInput = {
 
 export type PromotionAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  totalRecipients?: Prisma.SortOrder
+  sentCount?: Prisma.SortOrder
+  failedCount?: Prisma.SortOrder
   serviceId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
 }
@@ -401,7 +612,16 @@ export type PromotionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   templateName?: Prisma.SortOrder
+  whatsappTemplateId?: Prisma.SortOrder
+  kapsoBroadcastId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   fileUrl?: Prisma.SortOrder
+  totalRecipients?: Prisma.SortOrder
+  sentCount?: Prisma.SortOrder
+  failedCount?: Prisma.SortOrder
+  kapsoLastError?: Prisma.SortOrder
+  dispatchedAt?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   serviceId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
@@ -411,7 +631,16 @@ export type PromotionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   templateName?: Prisma.SortOrder
+  whatsappTemplateId?: Prisma.SortOrder
+  kapsoBroadcastId?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   fileUrl?: Prisma.SortOrder
+  totalRecipients?: Prisma.SortOrder
+  sentCount?: Prisma.SortOrder
+  failedCount?: Prisma.SortOrder
+  kapsoLastError?: Prisma.SortOrder
+  dispatchedAt?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   serviceId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
@@ -419,6 +648,9 @@ export type PromotionMinOrderByAggregateInput = {
 
 export type PromotionSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  totalRecipients?: Prisma.SortOrder
+  sentCount?: Prisma.SortOrder
+  failedCount?: Prisma.SortOrder
   serviceId?: Prisma.SortOrder
   brandId?: Prisma.SortOrder
 }
@@ -529,7 +761,17 @@ export type PromotionUpdateOneRequiredWithoutClientsNestedInput = {
 export type PromotionCreateWithoutBrandInput = {
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   service: Prisma.ServiceCatalogCreateNestedOneWithoutPromotionsInput
   clients?: Prisma.PromotionClientCreateNestedManyWithoutPromotionInput
@@ -539,7 +781,17 @@ export type PromotionUncheckedCreateWithoutBrandInput = {
   id?: number
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   serviceId: number
   clients?: Prisma.PromotionClientUncheckedCreateNestedManyWithoutPromotionInput
@@ -578,7 +830,17 @@ export type PromotionScalarWhereInput = {
   id?: Prisma.IntFilter<"Promotion"> | number
   name?: Prisma.StringFilter<"Promotion"> | string
   templateName?: Prisma.StringFilter<"Promotion"> | string
+  whatsappTemplateId?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  kapsoBroadcastId?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  status?: Prisma.StringFilter<"Promotion"> | string
   fileUrl?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  customParams?: Prisma.JsonNullableFilter<"Promotion">
+  totalRecipients?: Prisma.IntFilter<"Promotion"> | number
+  sentCount?: Prisma.IntFilter<"Promotion"> | number
+  failedCount?: Prisma.IntFilter<"Promotion"> | number
+  kapsoLastError?: Prisma.StringNullableFilter<"Promotion"> | string | null
+  dispatchedAt?: Prisma.DateTimeNullableFilter<"Promotion"> | Date | string | null
+  completedAt?: Prisma.DateTimeNullableFilter<"Promotion"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Promotion"> | Date | string
   serviceId?: Prisma.IntFilter<"Promotion"> | number
   brandId?: Prisma.IntFilter<"Promotion"> | number
@@ -587,7 +849,17 @@ export type PromotionScalarWhereInput = {
 export type PromotionCreateWithoutServiceInput = {
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   brand: Prisma.BrandCreateNestedOneWithoutPromotionsInput
   clients?: Prisma.PromotionClientCreateNestedManyWithoutPromotionInput
@@ -597,7 +869,17 @@ export type PromotionUncheckedCreateWithoutServiceInput = {
   id?: number
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   brandId: number
   clients?: Prisma.PromotionClientUncheckedCreateNestedManyWithoutPromotionInput
@@ -632,7 +914,17 @@ export type PromotionUpdateManyWithWhereWithoutServiceInput = {
 export type PromotionCreateWithoutClientsInput = {
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   service: Prisma.ServiceCatalogCreateNestedOneWithoutPromotionsInput
   brand: Prisma.BrandCreateNestedOneWithoutPromotionsInput
@@ -642,7 +934,17 @@ export type PromotionUncheckedCreateWithoutClientsInput = {
   id?: number
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   serviceId: number
   brandId: number
@@ -667,7 +969,17 @@ export type PromotionUpdateToOneWithWhereWithoutClientsInput = {
 export type PromotionUpdateWithoutClientsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   service?: Prisma.ServiceCatalogUpdateOneRequiredWithoutPromotionsNestedInput
   brand?: Prisma.BrandUpdateOneRequiredWithoutPromotionsNestedInput
@@ -677,7 +989,17 @@ export type PromotionUncheckedUpdateWithoutClientsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   serviceId?: Prisma.IntFieldUpdateOperationsInput | number
   brandId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -687,7 +1009,17 @@ export type PromotionCreateManyBrandInput = {
   id?: number
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   serviceId: number
 }
@@ -695,7 +1027,17 @@ export type PromotionCreateManyBrandInput = {
 export type PromotionUpdateWithoutBrandInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   service?: Prisma.ServiceCatalogUpdateOneRequiredWithoutPromotionsNestedInput
   clients?: Prisma.PromotionClientUpdateManyWithoutPromotionNestedInput
@@ -705,7 +1047,17 @@ export type PromotionUncheckedUpdateWithoutBrandInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   serviceId?: Prisma.IntFieldUpdateOperationsInput | number
   clients?: Prisma.PromotionClientUncheckedUpdateManyWithoutPromotionNestedInput
@@ -715,7 +1067,17 @@ export type PromotionUncheckedUpdateManyWithoutBrandInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   serviceId?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -724,7 +1086,17 @@ export type PromotionCreateManyServiceInput = {
   id?: number
   name: string
   templateName: string
+  whatsappTemplateId?: string | null
+  kapsoBroadcastId?: string | null
+  status?: string
   fileUrl?: string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: number
+  sentCount?: number
+  failedCount?: number
+  kapsoLastError?: string | null
+  dispatchedAt?: Date | string | null
+  completedAt?: Date | string | null
   createdAt?: Date | string
   brandId: number
 }
@@ -732,7 +1104,17 @@ export type PromotionCreateManyServiceInput = {
 export type PromotionUpdateWithoutServiceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   brand?: Prisma.BrandUpdateOneRequiredWithoutPromotionsNestedInput
   clients?: Prisma.PromotionClientUpdateManyWithoutPromotionNestedInput
@@ -742,7 +1124,17 @@ export type PromotionUncheckedUpdateWithoutServiceInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   brandId?: Prisma.IntFieldUpdateOperationsInput | number
   clients?: Prisma.PromotionClientUncheckedUpdateManyWithoutPromotionNestedInput
@@ -752,7 +1144,17 @@ export type PromotionUncheckedUpdateManyWithoutServiceInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateName?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kapsoBroadcastId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customParams?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  totalRecipients?: Prisma.IntFieldUpdateOperationsInput | number
+  sentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  failedCount?: Prisma.IntFieldUpdateOperationsInput | number
+  kapsoLastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dispatchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   brandId?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -792,7 +1194,17 @@ export type PromotionSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   id?: boolean
   name?: boolean
   templateName?: boolean
+  whatsappTemplateId?: boolean
+  kapsoBroadcastId?: boolean
+  status?: boolean
   fileUrl?: boolean
+  customParams?: boolean
+  totalRecipients?: boolean
+  sentCount?: boolean
+  failedCount?: boolean
+  kapsoLastError?: boolean
+  dispatchedAt?: boolean
+  completedAt?: boolean
   createdAt?: boolean
   serviceId?: boolean
   brandId?: boolean
@@ -806,7 +1218,17 @@ export type PromotionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   name?: boolean
   templateName?: boolean
+  whatsappTemplateId?: boolean
+  kapsoBroadcastId?: boolean
+  status?: boolean
   fileUrl?: boolean
+  customParams?: boolean
+  totalRecipients?: boolean
+  sentCount?: boolean
+  failedCount?: boolean
+  kapsoLastError?: boolean
+  dispatchedAt?: boolean
+  completedAt?: boolean
   createdAt?: boolean
   serviceId?: boolean
   brandId?: boolean
@@ -818,7 +1240,17 @@ export type PromotionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   name?: boolean
   templateName?: boolean
+  whatsappTemplateId?: boolean
+  kapsoBroadcastId?: boolean
+  status?: boolean
   fileUrl?: boolean
+  customParams?: boolean
+  totalRecipients?: boolean
+  sentCount?: boolean
+  failedCount?: boolean
+  kapsoLastError?: boolean
+  dispatchedAt?: boolean
+  completedAt?: boolean
   createdAt?: boolean
   serviceId?: boolean
   brandId?: boolean
@@ -830,13 +1262,23 @@ export type PromotionSelectScalar = {
   id?: boolean
   name?: boolean
   templateName?: boolean
+  whatsappTemplateId?: boolean
+  kapsoBroadcastId?: boolean
+  status?: boolean
   fileUrl?: boolean
+  customParams?: boolean
+  totalRecipients?: boolean
+  sentCount?: boolean
+  failedCount?: boolean
+  kapsoLastError?: boolean
+  dispatchedAt?: boolean
+  completedAt?: boolean
   createdAt?: boolean
   serviceId?: boolean
   brandId?: boolean
 }
 
-export type PromotionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "templateName" | "fileUrl" | "createdAt" | "serviceId" | "brandId", ExtArgs["result"]["promotion"]>
+export type PromotionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "templateName" | "whatsappTemplateId" | "kapsoBroadcastId" | "status" | "fileUrl" | "customParams" | "totalRecipients" | "sentCount" | "failedCount" | "kapsoLastError" | "dispatchedAt" | "completedAt" | "createdAt" | "serviceId" | "brandId", ExtArgs["result"]["promotion"]>
 export type PromotionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   service?: boolean | Prisma.ServiceCatalogDefaultArgs<ExtArgs>
   brand?: boolean | Prisma.BrandDefaultArgs<ExtArgs>
@@ -863,7 +1305,17 @@ export type $PromotionPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     id: number
     name: string
     templateName: string
+    whatsappTemplateId: string | null
+    kapsoBroadcastId: string | null
+    status: string
     fileUrl: string | null
+    customParams: runtime.JsonValue | null
+    totalRecipients: number
+    sentCount: number
+    failedCount: number
+    kapsoLastError: string | null
+    dispatchedAt: Date | null
+    completedAt: Date | null
     createdAt: Date
     serviceId: number
     brandId: number
@@ -1296,7 +1748,17 @@ export interface PromotionFieldRefs {
   readonly id: Prisma.FieldRef<"Promotion", 'Int'>
   readonly name: Prisma.FieldRef<"Promotion", 'String'>
   readonly templateName: Prisma.FieldRef<"Promotion", 'String'>
+  readonly whatsappTemplateId: Prisma.FieldRef<"Promotion", 'String'>
+  readonly kapsoBroadcastId: Prisma.FieldRef<"Promotion", 'String'>
+  readonly status: Prisma.FieldRef<"Promotion", 'String'>
   readonly fileUrl: Prisma.FieldRef<"Promotion", 'String'>
+  readonly customParams: Prisma.FieldRef<"Promotion", 'Json'>
+  readonly totalRecipients: Prisma.FieldRef<"Promotion", 'Int'>
+  readonly sentCount: Prisma.FieldRef<"Promotion", 'Int'>
+  readonly failedCount: Prisma.FieldRef<"Promotion", 'Int'>
+  readonly kapsoLastError: Prisma.FieldRef<"Promotion", 'String'>
+  readonly dispatchedAt: Prisma.FieldRef<"Promotion", 'DateTime'>
+  readonly completedAt: Prisma.FieldRef<"Promotion", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Promotion", 'DateTime'>
   readonly serviceId: Prisma.FieldRef<"Promotion", 'Int'>
   readonly brandId: Prisma.FieldRef<"Promotion", 'Int'>

@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect, useTransition, useMemo } from "react";
-import { getPresignedUploadUrlAction, getWhatsAppTemplatesAction, createPromotionAction } from "@/app/(authenticated)/promociones/actions";
+import {
+  getPresignedUploadUrlAction,
+  createAndDispatchPromotionAction,
+  syncBroadcastStatusAction,
+} from "@/app/(authenticated)/promociones/actions";
 import { useToast } from "@/components/ui/Toast";
 import {
   Megaphone,
@@ -13,17 +17,18 @@ import {
   Users,
   Tag,
   Wrench,
-  ChevronDown,
   Clock,
   Sparkles,
   Search,
-  ListFilter,
   Check,
-  Video,
   Image as ImageIcon,
   FileText,
-  AlertCircle,
   ArrowRight,
+  RefreshCw,
+  Calendar,
+  Gift,
+  CheckCheck,
+  Info,
 } from "lucide-react";
 
 interface BrandItem {
@@ -57,8 +62,15 @@ interface PromotionHistoryItem {
   id: number;
   name: string;
   templateName: string;
+  whatsappTemplateId?: string | null;
+  kapsoBroadcastId?: string | null;
+  status?: string;
+  totalRecipients?: number;
+  sentCount?: number;
+  failedCount?: number;
   fileUrl: string | null;
   createdAt: Date;
+  dispatchedAt?: Date | null;
   service: {
     name: string;
   };
@@ -68,7 +80,7 @@ interface PromotionHistoryItem {
   };
   clients: {
     clientId: number;
-    status: string; // SENT or FAILED or PENDING
+    status: string;
   }[];
 }
 
@@ -88,67 +100,45 @@ export default function PromocionesClientView({
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<"nueva" | "historial">("nueva");
 
-  // Nueva Campaña Form States
+  // Form Fields
   const [campaignName, setCampaignName] = useState("");
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [selectedBrandId, setSelectedBrandId] = useState("");
-  const [selectedTemplateName, setSelectedTemplateName] = useState("");
-  
-  // WhatsApp Templates States
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
-  const [templatesError, setTemplatesError] = useState<string | null>(null);
 
-  // Direct Upload States
+  // Dynamic Template Variables
+  const [benefitDescription, setBenefitDescription] = useState("");
+  const [validityDate, setValidityDate] = useState("");
+
+  // Cloudflare R2 Direct Upload
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
   // Clients checklist
   const [checkedClients, setCheckedClients] = useState<Record<number, boolean>>({});
   const [clientSearchTerm, setClientSearchTerm] = useState("");
 
+  // Dispatch transition
   const [isPending, startCreateTransition] = useTransition();
 
-  // Load templates on mount / when opening Nueva Campaña
-  useEffect(() => {
-    async function loadTemplates() {
-      setIsLoadingTemplates(true);
-      setTemplatesError(null);
-      try {
-        const res = await getWhatsAppTemplatesAction();
-        if (res.success && res.templates) {
-          setTemplates(res.templates);
-        } else {
-          setTemplatesError(res.error || "No se pudieron obtener las plantillas.");
-        }
-      } catch (err) {
-        setTemplatesError("Error al consultar las plantillas.");
-      } finally {
-        setIsLoadingTemplates(false);
-      }
-    }
-    loadTemplates();
-  }, []);
+  // Syncing state per promotion in history
+  const [syncingId, setSyncingId] = useState<number | null>(null);
 
-  // Selected template object helper
-  const selectedTemplateObj = useMemo(() => {
-    return templates.find((t) => t.name === selectedTemplateName);
-  }, [templates, selectedTemplateName]);
+  // Selected Brand Object
+  const selectedBrandObj = useMemo(() => {
+    if (!selectedBrandId) return null;
+    return brands.find((b) => b.id === parseInt(selectedBrandId, 10)) || null;
+  }, [brands, selectedBrandId]);
 
-  // Check if current template requires header media (IMAGE, VIDEO, DOCUMENT)
-  const headerMediaFormat = useMemo(() => {
-    if (!selectedTemplateObj) return null;
-    const header = selectedTemplateObj.components?.find((c: any) => c.type === "HEADER");
-    if (header && ["IMAGE", "VIDEO", "DOCUMENT"].includes(header.format)) {
-      return header.format as "IMAGE" | "VIDEO" | "DOCUMENT";
-    }
-    return null;
-  }, [selectedTemplateObj]);
+  // Selected Service Object
+  const selectedServiceObj = useMemo(() => {
+    if (!selectedServiceId) return null;
+    return services.find((s) => s.id === parseInt(selectedServiceId, 10)) || null;
+  }, [services, selectedServiceId]);
 
-  // Clients that qualify for the campaign (have active car matching selected brand)
+  // Clients with active cars matching selected brand
   const qualifiedClients = useMemo(() => {
     if (!selectedBrandId) return [];
     const brandIdNum = parseInt(selectedBrandId, 10);
@@ -157,27 +147,33 @@ export default function PromocionesClientView({
     );
   }, [clients, selectedBrandId]);
 
-  // Auto check/uncheck qualified clients when brand changes
+  // Auto check all qualified clients when brand changes
   useEffect(() => {
     const nextChecked: Record<number, boolean> = {};
     qualifiedClients.forEach((c) => {
       nextChecked[c.id] = true;
     });
     setCheckedClients(nextChecked);
-    setUploadedFileUrl(null);
-    setSelectedFile(null);
   }, [qualifiedClients]);
 
   // Filter qualified clients by text search
   const filteredClients = useMemo(() => {
+    const term = clientSearchTerm.trim().toLowerCase();
+    if (!term) return qualifiedClients;
     return qualifiedClients.filter(
       (c) =>
-        c.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-        c.phone.includes(clientSearchTerm)
+        c.name.toLowerCase().includes(term) ||
+        c.phone.includes(term) ||
+        c.cars.some((car) => car.plate.toLowerCase().includes(term))
     );
   }, [qualifiedClients, clientSearchTerm]);
 
-  // Select all / deselect all helpers
+  // Count of selected clients
+  const selectedClientsCount = useMemo(() => {
+    return Object.values(checkedClients).filter(Boolean).length;
+  }, [checkedClients]);
+
+  // Select all / deselect all
   const handleSelectAll = () => {
     const nextChecked: Record<number, boolean> = {};
     qualifiedClients.forEach((c) => {
@@ -190,39 +186,29 @@ export default function PromocionesClientView({
     setCheckedClients({});
   };
 
-  // Direct upload to R2
+  // Direct upload to Cloudflare R2 via presigned URL
   const handleFileUpload = async (file: File) => {
     if (!file) return;
 
-    // Strict validation
-    if (headerMediaFormat === "IMAGE" && !file.type.startsWith("image/")) {
+    if (!file.type.startsWith("image/")) {
       setUploadError("Por favor, suba una imagen válida (JPG, PNG, WEBP).");
       return;
     }
-    if (headerMediaFormat === "VIDEO" && !file.type.startsWith("video/")) {
-      setUploadError("Por favor, suba un video válido (MP4).");
-      return;
-    }
-    if (headerMediaFormat === "DOCUMENT" && file.type !== "application/pdf") {
-      setUploadError("Por favor, suba un documento PDF válido.");
-      return;
-    }
 
-    // Size limit 50MB (50 * 1024 * 1024 bytes)
-    if (file.size > 50 * 1024 * 1024) {
-      setUploadError("El tamaño del archivo supera el límite permitido de 50MB.");
+    if (file.size > 20 * 1024 * 1024) {
+      setUploadError("El tamaño de la imagen no debe superar los 20MB.");
       return;
     }
 
     setUploadError(null);
     setIsUploading(true);
     setUploadProgress(0);
-    setSelectedFile(file);
+    setSelectedFileName(file.name);
 
     try {
       const res = await getPresignedUploadUrlAction(file.name, file.type);
       if (!res.success || !res.uploadUrl || !res.fileUrl) {
-        setUploadError(res.error || "No se pudo generar la URL firmada.");
+        setUploadError(res.error || "No se pudo generar la URL firmada de subida.");
         setIsUploading(false);
         return;
       }
@@ -241,9 +227,9 @@ export default function PromocionesClientView({
       xhr.onload = () => {
         if (xhr.status === 200) {
           setUploadedFileUrl(res.fileUrl);
-          showToast("Archivo subido con éxito.", "success");
+          showToast("Banner subido exitosamente a Cloudflare R2.", "success");
         } else {
-          setUploadError("Error al cargar el archivo directamente en storage.");
+          setUploadError("Error al cargar la imagen en el almacenamiento R2.");
         }
         setIsUploading(false);
       };
@@ -256,32 +242,33 @@ export default function PromocionesClientView({
       xhr.send(file);
     } catch (err) {
       console.error(err);
-      setUploadError("Ocurrió un error inesperado al iniciar la subida.");
+      setUploadError("Ocurrió un error inesperado al iniciar la carga.");
       setIsUploading(false);
     }
   };
 
-  const handleCampaignSubmit = (e: React.FormEvent) => {
+  // Handle Form Submit
+  const handleLaunchCampaign = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!campaignName.trim()) {
       showToast("Ingrese el nombre de la campaña.", "warning");
       return;
     }
-    if (!selectedServiceId) {
-      showToast("Seleccione el servicio asociado.", "warning");
-      return;
-    }
     if (!selectedBrandId) {
-      showToast("Seleccione la marca objetivo.", "warning");
+      showToast("Seleccione la marca de vehículo objetivo.", "warning");
       return;
     }
-    if (!selectedTemplateName) {
-      showToast("Seleccione una plantilla de WhatsApp.", "warning");
+    if (!selectedServiceId) {
+      showToast("Seleccione el servicio promocionado.", "warning");
       return;
     }
-    if (headerMediaFormat && !uploadedFileUrl) {
-      showToast("Esta plantilla requiere que suba el archivo de cabecera.", "warning");
+    if (!benefitDescription.trim()) {
+      showToast("Ingrese la descripción del beneficio o descuento.", "warning");
+      return;
+    }
+    if (!validityDate.trim()) {
+      showToast("Ingrese la fecha de vigencia de la oferta.", "warning");
       return;
     }
 
@@ -294,49 +281,65 @@ export default function PromocionesClientView({
       return;
     }
 
-    const formData = new FormData();
-    formData.append("name", campaignName.trim());
-    formData.append("serviceId", selectedServiceId);
-    formData.append("brandId", selectedBrandId);
-    formData.append("templateName", selectedTemplateName);
-    if (uploadedFileUrl) {
-      formData.append("fileUrl", uploadedFileUrl);
-    }
-    formData.append("clientIds", JSON.stringify(selectedIds));
-
     startCreateTransition(async () => {
-      const res = await createPromotionAction(null, formData);
+      const res = await createAndDispatchPromotionAction({
+        promotionName: campaignName.trim(),
+        brandId: parseInt(selectedBrandId, 10),
+        serviceId: parseInt(selectedServiceId, 10),
+        clientIds: selectedIds,
+        variables: {
+          benefitDescription: benefitDescription.trim(),
+          validityDate: validityDate.trim(),
+        },
+        fileUrl: uploadedFileUrl,
+      });
+
       if (res.success) {
-        showToast("Campaña de mercadeo creada e iniciada con éxito.", "success");
-        // Reset Form
+        showToast(
+          `¡Campaña encolada con éxito en Kapso Broadcasts (${res.added} destinatarios)!`,
+          "success"
+        );
+        // Reset form
         setCampaignName("");
-        setSelectedServiceId("");
         setSelectedBrandId("");
-        setSelectedTemplateName("");
+        setSelectedServiceId("");
+        setBenefitDescription("");
+        setValidityDate("");
         setUploadedFileUrl(null);
-        setSelectedFile(null);
+        setSelectedFileName(null);
         setCheckedClients({});
         setActiveTab("historial");
       } else {
-        showToast(res.error || "Ocurrió un error al crear la campaña.", "error");
+        showToast(res.error || "Ocurrió un error al lanzar la campaña.", "error");
       }
     });
   };
 
-  // Helper icons for media formats
-  const getMediaIcon = (format: string | null) => {
-    if (!format) return null;
-    switch (format) {
-      case "VIDEO":
-        return <Video className="h-5 w-5 text-indigo-500" />;
-      case "IMAGE":
-        return <ImageIcon className="h-5 w-5 text-emerald-500" />;
-      case "DOCUMENT":
-        return <FileText className="h-5 w-5 text-amber-500" />;
-      default:
-        return null;
+  // Sync individual broadcast status
+  const handleSyncStatus = async (promotionId: number) => {
+    setSyncingId(promotionId);
+    try {
+      const res = await syncBroadcastStatusAction(promotionId);
+      if (res.success) {
+        showToast(
+          `Estado sincronizado: ${res.status} (${res.sentCount} enviados, ${res.failedCount} fallidos)`,
+          "success"
+        );
+      } else {
+        showToast(res.error || "No se pudo sincronizar el estado.", "error");
+      }
+    } catch {
+      showToast("Error de conexión al sincronizar.", "error");
+    } finally {
+      setSyncingId(null);
     }
   };
+
+  // Sample client name for mock preview
+  const sampleClientName = useMemo(() => {
+    const firstSelected = qualifiedClients.find((c) => checkedClients[c.id]);
+    return firstSelected ? firstSelected.name.split(" ")[0] : "Juan";
+  }, [qualifiedClients, checkedClients]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -344,7 +347,7 @@ export default function PromocionesClientView({
       <header className="h-16 border-b border-zinc-200 bg-white px-8 flex items-center justify-between shrink-0">
         <h2 className="text-xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
           <Megaphone className="h-5.5 w-5.5 text-[#C9A84C]" />
-          Promociones y WhatsApp Marketing
+          Campañas y WhatsApp Marketing
         </h2>
       </header>
 
@@ -377,16 +380,42 @@ export default function PromocionesClientView({
       {/* CONTENT AREA */}
       <div className="flex-1 overflow-y-auto p-8">
         {activeTab === "nueva" ? (
-          <form onSubmit={handleCampaignSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start max-w-6xl mx-auto">
-            {/* LEFT 2 COLUMNS: CONFIG AND UPLOADER */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Campaign configuration card */}
+          <form
+            onSubmit={handleLaunchCampaign}
+            className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start max-w-7xl mx-auto"
+          >
+            {/* COLUMNA IZQUIERDA (CONFIGURACIÓN Y VARIABLES): 7 COLS */}
+            <div className="xl:col-span-7 space-y-6">
+              {/* Tarjeta 1: Datos Base de Campaña */}
               <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs space-y-4">
-                <h3 className="text-sm font-bold text-zinc-800 flex items-center gap-2 border-b border-zinc-100 pb-3">
-                  <Sparkles className="h-4.5 w-4.5 text-[#C9A84C]" />
-                  Configurar Campaña
-                </h3>
+                <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+                  <h3 className="text-sm font-bold text-zinc-850 flex items-center gap-2">
+                    <Sparkles className="h-4.5 w-4.5 text-[#C9A84C]" />
+                    Configuración de Campaña
+                  </h3>
+                  {/* Indicador reactivo de plantilla */}
+                  <div
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase transition-all ${
+                      uploadedFileUrl
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-blue-50 text-blue-700 border border-blue-200"
+                    }`}
+                  >
+                    {uploadedFileUrl ? (
+                      <>
+                        <ImageIcon className="h-3 w-3" />
+                        <span>Plantilla: Con Banner Multimedia</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="h-3 w-3" />
+                        <span>Plantilla: Solo Texto</span>
+                      </>
+                    )}
+                  </div>
+                </div>
 
+                {/* Nombre de campaña */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                     Nombre de la Campaña *
@@ -394,34 +423,15 @@ export default function PromocionesClientView({
                   <input
                     type="text"
                     required
-                    placeholder="Ej. Promo Polarizados Toyota Junio"
+                    placeholder="Ej. Promo Polarizados Mazda Octubre"
                     value={campaignName}
                     onChange={(e) => setCampaignName(e.target.value)}
-                    className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all font-semibold"
+                    className="w-full px-3.5 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all font-semibold"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
-                      <Wrench className="h-3 w-3" />
-                      Servicio Promocionado *
-                    </label>
-                    <select
-                      value={selectedServiceId}
-                      onChange={(e) => setSelectedServiceId(e.target.value)}
-                      required
-                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none cursor-pointer"
-                    >
-                      <option value="">Seleccionar...</option>
-                      {services.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
+                {/* Selectores Marca y Servicio */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
                       <Tag className="h-3 w-3" />
@@ -433,7 +443,7 @@ export default function PromocionesClientView({
                       required
                       className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none cursor-pointer"
                     >
-                      <option value="">Seleccionar...</option>
+                      <option value="">Seleccionar marca objetivo...</option>
                       {brands.map((b) => (
                         <option key={b.id} value={b.id}>
                           {b.name}
@@ -441,82 +451,92 @@ export default function PromocionesClientView({
                       ))}
                     </select>
                   </div>
-                </div>
 
-                {/* Templates Selector */}
-                <div className="space-y-1 pt-2">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">
-                    Plantilla WhatsApp Aprobada *
-                  </label>
-                  {isLoadingTemplates ? (
-                    <div className="flex items-center gap-2 text-xs text-zinc-500 py-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border border-[#9A7A28] border-t-transparent" />
-                      Cargando plantillas de Kapso...
-                    </div>
-                  ) : templatesError ? (
-                    <div className="text-xs text-red-500 bg-red-50 p-3 rounded-lg border border-red-100 flex items-center gap-1.5">
-                      <AlertCircle className="h-4 w-4 shrink-0" />
-                      {templatesError}
-                    </div>
-                  ) : (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
+                      <Wrench className="h-3 w-3" />
+                      Servicio Promocionado *
+                    </label>
                     <select
-                      value={selectedTemplateName}
-                      onChange={(e) => {
-                        setSelectedTemplateName(e.target.value);
-                        setUploadedFileUrl(null);
-                        setSelectedFile(null);
-                        setUploadError(null);
-                      }}
+                      value={selectedServiceId}
+                      onChange={(e) => setSelectedServiceId(e.target.value)}
                       required
-                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-850 focus:border-[#C9A84C] focus:bg-white focus:outline-none cursor-pointer"
+                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none cursor-pointer"
                     >
-                      <option value="">Seleccionar plantilla aprobada...</option>
-                      {templates.map((t) => (
-                        <option key={t.name} value={t.name}>
-                          {t.name} ({t.language})
+                      <option value="">Seleccionar servicio...</option>
+                      {services.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
                         </option>
                       ))}
                     </select>
-                  )}
-
-                  {/* Render template body preview */}
-                  {selectedTemplateObj && (
-                    <div className="bg-[#FBF5E6]/40 border border-[#C9A84C]/25 rounded-xl p-4 mt-3 space-y-2 text-xs">
-                      <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#9A7A28] block">
-                        Vista previa del texto
-                      </span>
-                      <p className="text-zinc-700 whitespace-pre-wrap leading-relaxed">
-                        {selectedTemplateObj.components?.find((c: any) => c.type === "BODY")?.text}
-                      </p>
-                      <p className="text-[10px] text-zinc-400 italic">
-                        Nota: Las variables se mapean automáticamente (1 = Cliente, 2 = Servicio, 3 = Marca).
-                      </p>
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
 
-              {/* Media Uploader Card */}
-              {headerMediaFormat && (
-                <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs space-y-4 animate-[fadeIn_0.2s_ease-out]">
-                  <h3 className="text-sm font-bold text-zinc-800 flex items-center gap-2 border-b border-zinc-100 pb-3">
-                    {getMediaIcon(headerMediaFormat)}
-                    Subir Archivo de Cabecera ({headerMediaFormat})
-                  </h3>
-                  <p className="text-xs text-zinc-400">
-                    Esta plantilla requiere una cabecera de tipo <strong>{headerMediaFormat}</strong>. Sube el archivo correspondiente (máximo 50MB).
-                  </p>
+              {/* Tarjeta 2: Variables Dinámicas */}
+              <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs space-y-4">
+                <h3 className="text-sm font-bold text-zinc-850 flex items-center gap-2 border-b border-zinc-100 pb-3">
+                  <Gift className="h-4.5 w-4.5 text-[#C9A84C]" />
+                  Variables Dinámicas de la Promoción
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Beneficio o Descuento */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
+                      <Gift className="h-3 w-3" />
+                      Beneficio o Descuento *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej. 20% de descuento en PPF frontal"
+                      value={benefitDescription}
+                      onChange={(e) => setBenefitDescription(e.target.value)}
+                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-medium text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Fecha de Vigencia */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Fecha de Vigencia *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej. 31 de Octubre de 2026"
+                      value={validityDate}
+                      onChange={(e) => setValidityDate(e.target.value)}
+                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-medium text-zinc-800 focus:border-[#C9A84C] focus:bg-white focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Uploader Directo a Cloudflare R2 */}
+                <div className="pt-2 border-t border-zinc-100 space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <ImageIcon className="h-3 w-3" />
+                      Banner Multimedia (Opcional - Cloudflare R2)
+                    </span>
+                    <span className="text-[9px] text-zinc-400 lowercase font-normal">
+                      (Si subes imagen se activa automáticamente la plantilla con header multimedia)
+                    </span>
+                  </label>
 
                   {isUploading ? (
-                    <div className="border border-zinc-200/80 rounded-xl p-5 bg-zinc-50/50 flex flex-col gap-3">
+                    <div className="border border-zinc-200 rounded-xl p-4 bg-zinc-50 flex flex-col gap-2">
                       <div className="flex items-center justify-between text-xs font-semibold text-zinc-650">
                         <span className="flex items-center gap-2">
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#C9A84C] border-t-transparent" />
-                          Subiendo {selectedFile?.name}...
+                          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#C9A84C] border-t-transparent" />
+                          Subiendo {selectedFileName}...
                         </span>
                         <span>{uploadProgress}%</span>
                       </div>
-                      <div className="w-full h-2.5 bg-zinc-200 rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-zinc-200 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-[#C9A84C] to-[#9A7A28] transition-all duration-150"
                           style={{ width: `${uploadProgress}%` }}
@@ -524,24 +544,28 @@ export default function PromocionesClientView({
                       </div>
                     </div>
                   ) : uploadedFileUrl ? (
-                    <div className="bg-zinc-50 border border-green-200 rounded-xl p-4 flex items-center justify-between gap-3 animate-[scaleIn_0.15s_ease-out]">
+                    <div className="bg-zinc-50 border border-green-200 rounded-xl p-3 flex items-center justify-between gap-3 animate-[fadeIn_0.15s_ease-out]">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-lg bg-green-50 text-green-600 border border-green-100 flex items-center justify-center shrink-0">
-                          <CheckCircle className="h-5 w-5" />
-                        </div>
+                        <img
+                          src={uploadedFileUrl}
+                          alt="Banner preview"
+                          className="h-12 w-12 rounded-lg object-cover border border-zinc-200 shrink-0"
+                        />
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-zinc-850 truncate">{selectedFile?.name}</p>
-                          <p className="text-[9px] text-green-600 font-bold uppercase tracking-wider">Archivo cargado en storage</p>
+                          <p className="text-xs font-bold text-zinc-850 truncate">{selectedFileName || "banner.jpg"}</p>
+                          <p className="text-[9px] text-green-600 font-bold uppercase tracking-wider">
+                            Cargado en Cloudflare R2
+                          </p>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => {
                           setUploadedFileUrl(null);
-                          setSelectedFile(null);
+                          setSelectedFileName(null);
                         }}
-                        className="h-8.5 w-8.5 rounded-lg flex items-center justify-center text-zinc-450 hover:text-red-500 hover:bg-red-50 border border-transparent transition-all cursor-pointer"
-                        title="Eliminar archivo"
+                        className="h-8 w-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
+                        title="Eliminar imagen y volver a modo Solo Texto"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -558,169 +582,264 @@ export default function PromocionesClientView({
                       onClick={() => {
                         const input = document.createElement("input");
                         input.type = "file";
-                        if (headerMediaFormat === "IMAGE") input.accept = "image/*";
-                        if (headerMediaFormat === "VIDEO") input.accept = "video/mp4";
-                        if (headerMediaFormat === "DOCUMENT") input.accept = "application/pdf";
+                        input.accept = "image/*";
                         input.onchange = (ev) => {
                           const file = (ev.target as HTMLInputElement).files?.[0];
                           if (file) handleFileUpload(file);
                         };
                         input.click();
                       }}
-                      className="border-2 border-dashed border-zinc-200 hover:border-[#C9A84C]/50 hover:bg-[#FBF5E6]/10 rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group select-none animate-[fadeIn_0.15s_ease-out]"
+                      className="border-2 border-dashed border-zinc-200 hover:border-[#C9A84C]/60 hover:bg-[#FBF5E6]/10 rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 group select-none"
                     >
-                      <div className="h-10 w-10 rounded-lg bg-zinc-50 group-hover:bg-[#FBF5E6]/40 flex items-center justify-center border border-zinc-150 group-hover:border-[#C9A84C]/25 text-zinc-400 group-hover:text-[#9A7A28] transition-colors shadow-2xs">
-                        <UploadCloud className="h-5 w-5" />
+                      <div className="h-9 w-9 rounded-lg bg-zinc-50 group-hover:bg-[#FBF5E6]/40 flex items-center justify-center border border-zinc-150 group-hover:border-[#C9A84C]/30 text-zinc-400 group-hover:text-[#9A7A28] transition-colors">
+                        <UploadCloud className="h-4.5 w-4.5" />
                       </div>
-                      <div className="space-y-0.5">
-                        <p className="text-xs font-bold text-zinc-750">Seleccionar o Arrastrar Archivo</p>
-                        <p className="text-[10px] text-zinc-400">
-                          Soporta {headerMediaFormat === "IMAGE" ? "JPG, PNG, WEBP" : headerMediaFormat === "VIDEO" ? "MP4" : "PDF"} (Máx. 50MB)
-                        </p>
-                      </div>
+                      <p className="text-xs font-bold text-zinc-750">Seleccionar o Arrastrar Banner Promocional</p>
+                      <p className="text-[10px] text-zinc-400">JPG, PNG o WEBP (Máximo 20MB)</p>
                     </div>
                   )}
 
                   {uploadError && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-center text-xs font-semibold text-red-650 flex items-center justify-center gap-1.5 animate-[fadeIn_0.15s_ease-out]">
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-2.5 text-center text-xs font-semibold text-red-650 flex items-center justify-center gap-1.5">
                       <XCircle className="h-4 w-4 shrink-0" />
                       <span>{uploadError}</span>
                     </div>
                   )}
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* RIGHT COLUMN: CLIENTS TARGET LIST */}
-            <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs flex flex-col max-h-[85vh]">
-              <h3 className="text-sm font-bold text-zinc-800 flex items-center gap-2 border-b border-zinc-100 pb-3 shrink-0">
-                <Users className="h-4.5 w-4.5 text-[#C9A84C]" />
-                Clientes Destinatarios ({qualifiedClients.length})
-              </h3>
-
-              {!selectedBrandId ? (
-                <div className="p-6 text-center text-xs text-zinc-400 italic">
-                  Seleccione una marca objetivo para cargar los clientes destinatarios correspondientes.
+              {/* Tarjeta 3: Segmentación y Checklist Interactivo */}
+              <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs flex flex-col max-h-[480px]">
+                <div className="flex items-center justify-between border-b border-zinc-100 pb-3 shrink-0">
+                  <h3 className="text-sm font-bold text-zinc-850 flex items-center gap-2">
+                    <Users className="h-4.5 w-4.5 text-[#C9A84C]" />
+                    Destinatarios objetivo:{" "}
+                    {selectedBrandObj ? (
+                      <span className="text-[#9A7A28]">
+                        {qualifiedClients.length} clientes con {selectedBrandObj.name}
+                      </span>
+                    ) : (
+                      <span className="text-zinc-400 font-normal">Seleccione una marca</span>
+                    )}
+                  </h3>
+                  {qualifiedClients.length > 0 && (
+                    <span className="text-xs font-bold text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded-full">
+                      {selectedClientsCount} seleccionados
+                    </span>
+                  )}
                 </div>
-              ) : qualifiedClients.length === 0 ? (
-                <div className="p-6 text-center text-xs text-zinc-400 italic">
-                  No hay clientes registrados que posean vehículos de esta marca.
-                </div>
-              ) : (
-                <div className="flex-1 flex flex-col overflow-hidden pt-3 space-y-4">
-                  {/* Select Toggles */}
-                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider shrink-0 select-none">
-                    <button
-                      type="button"
-                      onClick={handleSelectAll}
-                      className="text-[#9A7A28] hover:text-[#C9A84C] transition-colors cursor-pointer"
-                    >
-                      Seleccionar Todos
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDeselectAll}
-                      className="text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
-                    >
-                      Deseleccionar Todos
-                    </button>
-                  </div>
 
-                  {/* Search box inside client targeting */}
-                  <div className="relative shrink-0">
-                    <Search className="absolute inset-y-0 left-2.5 my-auto h-3.5 w-3.5 text-zinc-400" />
-                    <input
-                      type="text"
-                      placeholder="Buscar destinatario..."
-                      value={clientSearchTerm}
-                      onChange={(e) => setClientSearchTerm(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-[#C9A84C]"
-                    />
+                {!selectedBrandId ? (
+                  <div className="p-8 text-center text-xs text-zinc-400 italic">
+                    Seleccione una Marca de Carro Objetivo en el formulario superior para cargar la lista segmentada.
                   </div>
+                ) : qualifiedClients.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-zinc-400 italic">
+                    No se encontraron clientes registrados con vehículos activos de marca{" "}
+                    <strong>{selectedBrandObj?.name}</strong>.
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col overflow-hidden pt-3 space-y-3">
+                    {/* Botones de selección masiva */}
+                    <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider shrink-0 select-none">
+                      <button
+                        type="button"
+                        onClick={handleSelectAll}
+                        className="text-[#9A7A28] hover:text-[#C9A84C] transition-colors cursor-pointer"
+                      >
+                        Seleccionar Todos ({qualifiedClients.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDeselectAll}
+                        className="text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer"
+                      >
+                        Deseleccionar Todos
+                      </button>
+                    </div>
 
-                  {/* Scrollable list */}
-                  <div className="flex-1 overflow-y-auto pr-1 space-y-2">
-                    {filteredClients.map((client) => {
-                      const isChecked = !!checkedClients[client.id];
-                      return (
-                        <div
-                          key={client.id}
-                          onClick={() => {
-                            setCheckedClients((prev) => ({
-                              ...prev,
-                              [client.id]: !prev[client.id],
-                            }));
-                          }}
-                          className={`p-3 border rounded-xl cursor-pointer transition-all flex items-start gap-2.5 ${
-                            isChecked
-                              ? "border-[#C9A84C] bg-[#FBF5E6]/30"
-                              : "border-zinc-200 hover:bg-zinc-50/50"
-                          }`}
-                        >
+                    {/* Buscador de destinatarios */}
+                    <div className="relative shrink-0">
+                      <Search className="absolute inset-y-0 left-2.5 my-auto h-3.5 w-3.5 text-zinc-400" />
+                      <input
+                        type="text"
+                        placeholder="Buscar por nombre, celular o placa..."
+                        value={clientSearchTerm}
+                        onChange={(e) => setClientSearchTerm(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-[#C9A84C]"
+                      />
+                    </div>
+
+                    {/* Lista Scrolleable */}
+                    <div className="flex-1 overflow-y-auto pr-1 space-y-1.5">
+                      {filteredClients.map((client) => {
+                        const isChecked = !!checkedClients[client.id];
+                        const matchingCars = client.cars.filter(
+                          (c) => c.brandId === parseInt(selectedBrandId, 10)
+                        );
+
+                        return (
                           <div
-                            className={`h-4.5 w-4.5 rounded border flex items-center justify-center mt-0.5 shrink-0 transition-all ${
+                            key={client.id}
+                            onClick={() => {
+                              setCheckedClients((prev) => ({
+                                ...prev,
+                                [client.id]: !prev[client.id],
+                              }));
+                            }}
+                            className={`p-2.5 border rounded-lg cursor-pointer transition-all flex items-center justify-between gap-3 ${
                               isChecked
-                                ? "bg-[#C9A84C] border-[#C9A84C] text-[#0A0A0C]"
-                                : "border-zinc-300 bg-white"
+                                ? "border-[#C9A84C]/80 bg-[#FBF5E6]/35"
+                                : "border-zinc-200/80 hover:bg-zinc-50/70"
                             }`}
                           >
-                            {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-zinc-800 leading-tight">{client.name}</p>
-                            <p className="text-[10px] text-zinc-400 mt-0.5">{client.phone}</p>
-                            <div className="flex flex-wrap gap-1 mt-1.5">
-                              {client.cars
-                                .filter((car) => car.brandId === parseInt(selectedBrandId, 10))
-                                .map((car) => (
-                                  <span
-                                    key={car.id}
-                                    className="text-[8px] bg-zinc-150 border border-zinc-250 font-mono font-bold text-zinc-700 px-1 rounded"
-                                  >
-                                    {car.plate}
-                                  </span>
-                                ))}
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div
+                                className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-all ${
+                                  isChecked
+                                    ? "bg-[#C9A84C] border-[#C9A84C] text-[#0A0A0C]"
+                                    : "border-zinc-300 bg-white"
+                                }`}
+                              >
+                                {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-zinc-850 truncate">{client.name}</p>
+                                <p className="text-[10px] text-zinc-400">{client.phone}</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-1 shrink-0">
+                              {matchingCars.map((car) => (
+                                <span
+                                  key={car.id}
+                                  className="text-[9px] bg-zinc-100 border border-zinc-200 font-mono font-bold text-zinc-700 px-1.5 py-0.5 rounded"
+                                >
+                                  {car.plate}
+                                </span>
+                              ))}
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
+                )}
+              </div>
+            </div>
 
-                  {/* Summary dispatch send button */}
-                  <div className="pt-3 border-t border-zinc-100 shrink-0">
-                    <button
-                      type="submit"
-                      disabled={isPending || isUploading}
-                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#C9A84C] hover:bg-[#9A7A28] px-4 py-2.5 text-xs font-bold text-[#0A0A0C] transition-all disabled:opacity-50 cursor-pointer shadow-sm active:scale-98"
-                    >
-                      {isPending ? (
-                        <>
-                          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
-                          <span>Despachando...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Disparar Campaña</span>
-                          <ArrowRight className="h-4 w-4" />
-                        </>
-                      )}
-                    </button>
+            {/* COLUMNA DERECHA (PREVISUALIZACIÓN WHATSAPP + BOTÓN DE ACCIÓN): 5 COLS */}
+            <div className="xl:col-span-5 space-y-6 xl:sticky xl:top-6">
+              {/* WhatsApp Mock Mobile Container */}
+              <div className="bg-[#EFEAE2] border border-zinc-300 rounded-2xl overflow-hidden shadow-md flex flex-col">
+                {/* WhatsApp Chat Header */}
+                <div className="bg-[#075E54] px-4 py-3 text-white flex items-center gap-3 shrink-0">
+                  <div className="h-9 w-9 rounded-full bg-[#128C7E] border border-white/20 flex items-center justify-center font-bold text-xs text-white">
+                    CT
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold leading-tight truncate">Casa Tuning Colombia</p>
+                    <p className="text-[10px] text-emerald-100/90 leading-none mt-0.5">en línea</p>
                   </div>
                 </div>
-              )}
+
+                {/* WhatsApp Chat Body Area */}
+                <div className="p-4 space-y-3 min-h-[360px] flex flex-col justify-end bg-[radial-gradient(#dcd4c8_1px,transparent_1px)] [background-size:16px_16px]">
+                  <div className="self-center bg-[#E1F3FB] text-[#4A4A4A] text-[9px] font-semibold px-2.5 py-1 rounded-md shadow-2xs">
+                    HOY
+                  </div>
+
+                  {/* Message Bubble */}
+                  <div className="max-w-[92%] bg-white rounded-lg rounded-tl-xs p-2.5 shadow-sm space-y-2 border border-black/5">
+                    {/* Header Image if present */}
+                    {uploadedFileUrl ? (
+                      <div className="rounded-md overflow-hidden bg-zinc-100 border border-zinc-200 max-h-48">
+                        <img
+                          src={uploadedFileUrl}
+                          alt="Banner WhatsApp Header"
+                          className="w-full h-auto object-cover"
+                        />
+                      </div>
+                    ) : null}
+
+                    {/* Text Body with Live Interpolation */}
+                    <div className="text-xs text-zinc-800 leading-relaxed space-y-2 whitespace-pre-wrap">
+                      <p>
+                        ¡Hola <strong>{sampleClientName}</strong>! En Casa Tuning tenemos una promoción especial para tu{" "}
+                        <strong>{selectedBrandObj ? selectedBrandObj.name : "vehículo"}</strong>:{" "}
+                        <span className="font-semibold text-zinc-900">
+                          {benefitDescription.trim() || "[Descripción del beneficio o descuento]"}
+                        </span>
+                        . Oferta válida hasta el{" "}
+                        <span className="font-semibold text-zinc-900">
+                          {validityDate.trim() || "[Fecha de vigencia]"}
+                        </span>
+                        . ¡Escríbenos para agendar tu cita y transformar tu vehículo!
+                      </p>
+                      <p className="text-[10px] text-zinc-500 italic">
+                        Servicio: {selectedServiceObj ? selectedServiceObj.name : "Personalización y Cuidado Automotriz"}.
+                      </p>
+                    </div>
+
+                    {/* Time and Double Check */}
+                    <div className="flex items-center justify-end gap-1 text-[9px] text-zinc-400 pt-0.5 select-none">
+                      <span>10:45 a. m.</span>
+                      <CheckCheck className="h-3.5 w-3.5 text-[#34B7F1]" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botón de Lanzamiento Dinámico */}
+              <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-xs space-y-3">
+                <button
+                  type="submit"
+                  disabled={
+                    isPending ||
+                    isUploading ||
+                    selectedClientsCount === 0 ||
+                    !campaignName.trim() ||
+                    !selectedBrandId ||
+                    !selectedServiceId ||
+                    !benefitDescription.trim() ||
+                    !validityDate.trim()
+                  }
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9A84C] hover:bg-[#9A7A28] px-5 py-3 text-xs font-bold text-[#0A0A0C] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-98"
+                >
+                  {isPending ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0A0A0C] border-t-transparent" />
+                      <span>Encolando en Kapso Broadcasts...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Lanzar Campaña ({selectedClientsCount} clientes seleccionados)</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+
+                <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 justify-center">
+                  <Info className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                  <span>Kapso gestionará el pacing y entrega contra Meta WhatsApp API.</span>
+                </div>
+              </div>
             </div>
           </form>
         ) : (
           /* HISTORIAL DE CAMPAÑAS */
-          <div className="max-w-5xl mx-auto space-y-4">
-            <h3 className="text-sm font-bold text-zinc-800 flex items-center gap-2 border-b border-zinc-100 pb-3">
-              <Clock className="h-4.5 w-4.5 text-[#C9A84C]" />
-              Campañas de Mercadeo Enviadas
-            </h3>
+          <div className="max-w-6xl mx-auto space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <h3 className="text-sm font-bold text-zinc-800 flex items-center gap-2">
+                <Clock className="h-4.5 w-4.5 text-[#C9A84C]" />
+                Historial de Campañas de Mercadeo
+              </h3>
+              <span className="text-xs text-zinc-400 font-medium">
+                Total registradas: {promotions.length}
+              </span>
+            </div>
 
             {promotions.length === 0 ? (
-              <div className="bg-white border border-zinc-200 rounded-xl p-10 text-center text-zinc-400">
+              <div className="bg-white border border-zinc-200 rounded-xl p-12 text-center text-zinc-400">
                 No hay registros de campañas en el historial.
               </div>
             ) : (
@@ -730,52 +849,62 @@ export default function PromocionesClientView({
                     <thead>
                       <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-450 font-bold uppercase tracking-wider select-none">
                         <th className="py-3 px-4 font-bold">Campaña / Fecha</th>
-                        <th className="py-3 px-4 font-bold">Plantilla / Media</th>
                         <th className="py-3 px-4 font-bold">Servicio / Marca</th>
+                        <th className="py-3 px-4 font-bold">Plantilla / Media</th>
                         <th className="py-3 px-4 font-bold text-center">Destinatarios</th>
-                        <th className="py-3 px-4 font-bold text-center">Estado del Envío</th>
+                        <th className="py-3 px-4 font-bold text-center">Estado Broadcast</th>
+                        <th className="py-3 px-4 font-bold text-right">Acciones</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-150 text-zinc-700">
                       {promotions.map((p) => {
-                        const total = p.clients.length;
-                        const sent = p.clients.filter((c) => c.status === "SENT").length;
-                        const failed = p.clients.filter((c) => c.status === "FAILED").length;
-                        const pending = p.clients.filter((c) => c.status === "PENDING").length;
+                        const total = p.totalRecipients || p.clients.length;
+                        const status = (p.status || "DISPATCHING").toUpperCase();
+
+                        let statusBadge = (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                            {status}
+                          </span>
+                        );
+
+                        if (status === "SENDING") {
+                          statusBadge = (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1 justify-center">
+                              <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-ping" />
+                              SENDING
+                            </span>
+                          );
+                        } else if (status === "COMPLETED") {
+                          statusBadge = (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">
+                              COMPLETED
+                            </span>
+                          );
+                        } else if (status === "FAILED") {
+                          statusBadge = (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">
+                              FAILED
+                            </span>
+                          );
+                        }
 
                         return (
                           <tr key={p.id} className="hover:bg-zinc-50/50 transition-colors">
                             <td className="py-3.5 px-4">
                               <span className="font-bold text-zinc-900 leading-tight block">{p.name}</span>
                               <span className="text-[10px] text-zinc-400 mt-1 block">
-                                {new Date(p.createdAt).toLocaleDateString("es-ES", {
+                                {new Date(p.createdAt).toLocaleDateString("es-CO", {
                                   day: "numeric",
                                   month: "short",
                                   year: "numeric",
                                 })}{" "}
-                                {new Date(p.createdAt).toLocaleTimeString("es-ES", {
+                                {new Date(p.createdAt).toLocaleTimeString("es-CO", {
                                   hour: "2-digit",
                                   minute: "2-digit",
                                 })}
                               </span>
                             </td>
-                            <td className="py-3.5 px-4 font-medium">
-                              <code className="text-[10px] bg-zinc-100 border border-zinc-200 text-zinc-650 px-1 rounded">
-                                {p.templateName}
-                              </code>
-                              {p.fileUrl ? (
-                                <a
-                                  href={p.fileUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[9px] text-[#9A7A28] hover:underline font-bold mt-1 block flex items-center gap-1"
-                                >
-                                  Ver Media Adjunto
-                                </a>
-                              ) : (
-                                <span className="text-[9px] text-zinc-400 block mt-1">Sin archivo adjunto</span>
-                              )}
-                            </td>
+
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2">
                                 {p.brand.logo && (
@@ -786,38 +915,56 @@ export default function PromocionesClientView({
                                   />
                                 )}
                                 <div className="min-w-0">
-                                  <span className="font-semibold block truncate max-w-[120px]">{p.service.name}</span>
+                                  <span className="font-semibold block truncate max-w-[130px]">{p.service.name}</span>
                                   <span className="text-[10px] text-zinc-400 block">{p.brand.name}</span>
                                 </div>
                               </div>
                             </td>
-                            <td className="py-3.5 px-4 text-center font-bold text-zinc-800">
-                              {total}
+
+                            <td className="py-3.5 px-4 font-medium">
+                              <code className="text-[10px] bg-zinc-100 border border-zinc-200 text-zinc-650 px-1.5 py-0.5 rounded">
+                                {p.templateName}
+                              </code>
+                              {p.fileUrl ? (
+                                <a
+                                  href={p.fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[9px] text-[#9A7A28] hover:underline font-bold mt-1 block flex items-center gap-1"
+                                >
+                                  <ImageIcon className="h-2.5 w-2.5" />
+                                  Ver Banner R2
+                                </a>
+                              ) : (
+                                <span className="text-[9px] text-zinc-400 block mt-1">Solo Texto</span>
+                              )}
                             </td>
-                            <td className="py-3.5 px-4">
-                              <div className="flex flex-col items-center gap-1">
-                                <div className="flex items-center gap-2 text-[10px] font-bold">
-                                  <span className="text-green-600 font-semibold bg-green-50 border border-green-200 px-1.5 py-0.5 rounded">
-                                    {sent} ✓
-                                  </span>
-                                  {failed > 0 && (
-                                    <span className="text-red-600 font-semibold bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
-                                      {failed} ✕
-                                    </span>
-                                  )}
-                                  {pending > 0 && (
-                                    <span className="text-zinc-500 font-semibold bg-zinc-50 border border-zinc-200 px-1.5 py-0.5 rounded">
-                                      {pending} ...
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="w-24 h-1.5 bg-zinc-100 border border-zinc-200 rounded-full overflow-hidden mt-1">
-                                  <div
-                                    className="h-full bg-green-500 transition-all duration-150"
-                                    style={{ width: `${(sent / total) * 100}%` }}
-                                  />
-                                </div>
+
+                            <td className="py-3.5 px-4 text-center">
+                              <span className="font-bold text-zinc-850 block">{total}</span>
+                              <div className="flex items-center justify-center gap-2 text-[9px] text-zinc-400 mt-0.5">
+                                <span className="text-green-600 font-semibold">{p.sentCount ?? 0} env.</span>
+                                <span>•</span>
+                                <span className="text-red-500 font-semibold">{p.failedCount ?? 0} fall.</span>
                               </div>
+                            </td>
+
+                            <td className="py-3.5 px-4 text-center">{statusBadge}</td>
+
+                            <td className="py-3.5 px-4 text-right">
+                              {p.kapsoBroadcastId && (
+                                <button
+                                  onClick={() => handleSyncStatus(p.id)}
+                                  disabled={syncingId === p.id}
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-zinc-600 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200 px-2.5 py-1.5 rounded-md transition-all cursor-pointer disabled:opacity-50"
+                                  title="Consultar progreso a Kapso Broadcasts"
+                                >
+                                  <RefreshCw
+                                    className={`h-3 w-3 ${syncingId === p.id ? "animate-spin text-[#9A7A28]" : ""}`}
+                                  />
+                                  <span>{syncingId === p.id ? "Sincronizando..." : "Sincronizar"}</span>
+                                </button>
+                              )}
                             </td>
                           </tr>
                         );

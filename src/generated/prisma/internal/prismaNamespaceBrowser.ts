@@ -264,7 +264,17 @@ export const PromotionScalarFieldEnum = {
   id: 'id',
   name: 'name',
   templateName: 'templateName',
+  whatsappTemplateId: 'whatsappTemplateId',
+  kapsoBroadcastId: 'kapsoBroadcastId',
+  status: 'status',
   fileUrl: 'fileUrl',
+  customParams: 'customParams',
+  totalRecipients: 'totalRecipients',
+  sentCount: 'sentCount',
+  failedCount: 'failedCount',
+  kapsoLastError: 'kapsoLastError',
+  dispatchedAt: 'dispatchedAt',
+  completedAt: 'completedAt',
   createdAt: 'createdAt',
   serviceId: 'serviceId',
   brandId: 'brandId'
@@ -276,8 +286,9 @@ export type PromotionScalarFieldEnum = (typeof PromotionScalarFieldEnum)[keyof t
 export const PromotionClientScalarFieldEnum = {
   promotionId: 'promotionId',
   clientId: 'clientId',
-  sentAt: 'sentAt',
-  status: 'status'
+  status: 'status',
+  errorMessage: 'errorMessage',
+  sentAt: 'sentAt'
 } as const
 
 export type PromotionClientScalarFieldEnum = (typeof PromotionClientScalarFieldEnum)[keyof typeof PromotionClientScalarFieldEnum]

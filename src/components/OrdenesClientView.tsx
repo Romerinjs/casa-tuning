@@ -797,6 +797,17 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                               <Download className="h-4 w-4" />
                             )}
                           </button>
+                          {statusName === "EN_PROCESO" && (
+                            <button
+                              type="button"
+                              onClick={() => handleCompleteDelivery(order.id, false)}
+                              disabled={isSavingDelivery}
+                              className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-zinc-200/80 hover:bg-zinc-50 hover:border-zinc-300 text-zinc-750 transition-all cursor-pointer select-none disabled:opacity-50 shadow-2xs"
+                              title="Notificar (Entregar sin firmar)"
+                            >
+                              <Send className="h-4 w-4 text-zinc-600" />
+                            </button>
+                          )}
                           {statusName === "ENTREGADO" ? (
                             <button
                               type="button"
@@ -1579,11 +1590,14 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
             <div className="px-6 py-4 border-t border-zinc-150 bg-zinc-50 flex gap-2 justify-end">
               <button
                 type="button"
-                onClick={() => handleCompleteDelivery(deliveryOrder.id, false)}
+                onClick={() => {
+                  setDeliveryOrder(null);
+                  setDeliverySignatureData("");
+                }}
                 disabled={isSavingDelivery}
                 className="h-10 px-4 rounded-lg border border-zinc-300 hover:bg-zinc-100 text-xs font-bold text-zinc-700 transition-colors cursor-pointer select-none disabled:opacity-50"
               >
-                Entregar sin firmar
+                Cancelar
               </button>
               <button
                 type="button"

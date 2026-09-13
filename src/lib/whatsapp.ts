@@ -70,15 +70,35 @@ export function obtenerRecomendaciones(servicios: { name: string }[]): { service
 }
 
 /**
+ * Formatea y valida el número de celular al estándar internacional E.164 (+57XXXXXXXXXX)
+ */
+export function formatearTelefonoE164(phone: string): { valid: boolean; formatted: string } {
+  if (!phone) return { valid: false, formatted: "" };
+  const clean = phone.trim().replace(/[^\d+]/g, "");
+  if (clean.startsWith("+")) {
+    const digits = clean.slice(1);
+    if (digits.length >= 10 && digits.length <= 15) {
+      return { valid: true, formatted: clean };
+    }
+  }
+  const onlyDigits = clean.replace(/\D/g, "");
+  if (onlyDigits.length === 10) {
+    return { valid: true, formatted: `+57${onlyDigits}` };
+  }
+  if (onlyDigits.length >= 11 && onlyDigits.length <= 15) {
+    return { valid: true, formatted: `+${onlyDigits}` };
+  }
+  return {
+    valid: onlyDigits.length >= 10,
+    formatted: clean.startsWith("+") ? clean : `+${onlyDigits}`,
+  };
+}
+
+/**
  * Formatea el número de celular al estándar internacional E.164 (Ej: +57XXXXXXXXXX)
  */
-function formatearTelefono(phone: string): string {
-  const clean = phone.replace(/\D/g, "");
-  // Por defecto si es de 10 dígitos y es Colombia añadimos prefijo +57
-  if (clean.length === 10) {
-    return `+57${clean}`;
-  }
-  return `+${clean}`;
+export function formatearTelefono(phone: string): string {
+  return formatearTelefonoE164(phone).formatted;
 }
 
 /**
