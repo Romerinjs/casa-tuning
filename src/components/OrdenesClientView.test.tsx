@@ -1,11 +1,14 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
 
 import OrdenesClientView from "./OrdenesClientView";
 
 const mocks = vi.hoisted(() => ({
   saveOrderSignatureAction: vi.fn(),
+  notifyCustomerOrderReadyAction: vi.fn(),
+  updateOrderStatusAction: vi.fn(),
   showToast: vi.fn(),
 }));
 
@@ -23,20 +26,27 @@ vi.mock("@/app/(authenticated)/ordenes/actions", () => ({
   downloadOrderPdfAction: vi.fn(),
   hideOrderFromOrdersPanelAction: vi.fn(),
   saveOrderSignatureAction: mocks.saveOrderSignatureAction,
-  updateOrderStatusAction: vi.fn(),
+  notifyCustomerOrderReadyAction: mocks.notifyCustomerOrderReadyAction,
+  updateOrderStatusAction: mocks.updateOrderStatusAction,
   uploadDeliveryPdfAction: vi.fn(),
 }));
 
-const buildOrder = (id: number, code: string, plate: string) => ({
+const buildOrder = (
+  id: number,
+  code: string,
+  plate: string,
+  statusName: string = "ENTREGADO",
+  signatureUrl: string | null = null,
+) => ({
   id,
   code,
   mileage: null,
-  signatureUrl: null,
+  signatureUrl,
   observations: null,
   serviceDescription: null,
   checklist: null,
   createdAt: new Date("2026-09-07T12:00:00.000Z"),
-  status: { name: "ENTREGADO" },
+  status: { name: statusName },
   client: {
     name: `Cliente ${id}`,
     phone: "3001234567",
@@ -56,9 +66,11 @@ const buildOrder = (id: number, code: string, plate: string) => ({
   comments: [],
 });
 
-describe("OrdenesClientView signature handoff", () => {
+describe("OrdenesClientView notification and signature flows", () => {
   beforeEach(() => {
     mocks.saveOrderSignatureAction.mockReset();
+    mocks.notifyCustomerOrderReadyAction.mockReset();
+    mocks.updateOrderStatusAction.mockReset();
     mocks.showToast.mockReset();
 
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
@@ -112,6 +124,78 @@ describe("OrdenesClientView signature handoff", () => {
     expect(mocks.showToast).toHaveBeenCalledWith(
       "Por favor, dibuje la firma primero.",
       "warning",
+    );
+  });
+
+  it("envía notificación de vehículo listo sin alterar estado ni entregar la orden", async () => {
+    mocks.notifyCustomerOrderReadyAction.mockResolvedValueOnce({
+      success: true,
+    });
+    const user = userEvent.setup();
+    render(
+      <OrdenesClientView
+        orders={[buildOrder(30, "OT-0030", "NOT123", "EN_PROCESO")]}
+      />,
+    );
+
+    const notifyButton = screen.getByRole("button", {
+      name: "Notificar al cliente de la orden OT-0030",
+    });
+    expect(notifyButton).toBeInTheDocument();
+
+    await user.click(notifyButton);
+
+    expect(mocks.notifyCustomerOrderReadyAction).toHaveBeenCalledWith(30);
+    expect(mocks.updateOrderStatusAction).not.toHaveBeenCalled();
+    expect(mocks.showToast).toHaveBeenCalledWith(
+      "Notificación enviada a Cliente 30 vía WhatsApp.",
+      "success",
+    );
+  });
+
+  it("requiere firma para entregar desde el modal de entrega", async () => {
+    mocks.saveOrderSignatureAction.mockResolvedValueOnce({ success: true });
+    mocks.updateOrderStatusAction.mockResolvedValueOnce({ success: true });
+
+    const user = userEvent.setup();
+    render(
+      <OrdenesClientView
+        orders={[buildOrder(31, "OT-0031", "DEL123", "EN_PROCESO")]}
+      />,
+    );
+
+    // Abrir modal de entrega
+    await user.click(screen.getByRole("button", { name: "Entregar" }));
+    expect(
+      screen.getByText("Confirmar Entrega de Vehículo"),
+    ).toBeInTheDocument();
+
+    const submitDeliveryBtn = screen.getByRole("button", {
+      name: "Guardar y Entregar",
+    });
+    expect(submitDeliveryBtn).toBeDisabled();
+
+    // Dibujar firma
+    const deliveryCanvas = document.getElementById("delivery-sig-canvas");
+    expect(deliveryCanvas).toBeInstanceOf(HTMLCanvasElement);
+    fireEvent.mouseDown(deliveryCanvas as HTMLCanvasElement);
+    fireEvent.mouseUp(deliveryCanvas as HTMLCanvasElement);
+
+    expect(submitDeliveryBtn).toBeEnabled();
+
+    await user.click(submitDeliveryBtn);
+
+    expect(mocks.saveOrderSignatureAction).toHaveBeenCalledWith(
+      31,
+      "data:image/png;base64,stale-signature",
+    );
+    expect(mocks.updateOrderStatusAction).toHaveBeenCalledWith(
+      31,
+      "ENTREGADO",
+    );
+    expect(mocks.showToast).toHaveBeenCalledWith(
+      "Vehículo entregado y firmado con éxito.",
+      "success",
     );
   });
 });

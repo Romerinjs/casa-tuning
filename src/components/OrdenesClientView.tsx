@@ -10,6 +10,7 @@ import {
   downloadOrderPdfAction,
   hideOrderFromOrdersPanelAction,
   saveOrderSignatureAction,
+  notifyCustomerOrderReadyAction,
 } from "@/app/(authenticated)/ordenes/actions";
 import HideOrderModal from "@/components/HideOrderModal";
 import { useToast } from "@/components/ui/Toast";
@@ -122,6 +123,8 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
   const [isSavingDelivery, setIsSavingDelivery] = useState(false);
   const [isSavingSignature, setIsSavingSignature] = useState(false);
   const [detailsSignatureData, setDetailsSignatureData] = useState("");
+  const [notifyingOrderId, setNotifyingOrderId] = useState<number | null>(null);
+  const [deletePdfTarget, setDeletePdfTarget] = useState<OrderData | null>(null);
 
   // Canvas drawing variables for modal
   useEffect(() => {
@@ -314,17 +317,37 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
     }
   };
 
-  const handleCompleteDelivery = async (orderId: number, withSignature: boolean) => {
+  const handleNotifyOrderReady = async (order: OrderData) => {
+    setNotifyingOrderId(order.id);
+    try {
+      const res = await notifyCustomerOrderReadyAction(order.id);
+      if (res.success) {
+        showToast(`Notificación enviada a ${order.client.name} vía WhatsApp.`, "success");
+      } else {
+        showToast(res.error || "No se pudo enviar la notificación.", "error");
+      }
+    } catch (err: any) {
+      console.error("Error notifying client:", err);
+      showToast("Error de conexión al enviar la notificación.", "error");
+    } finally {
+      setNotifyingOrderId(null);
+    }
+  };
+
+  const handleCompleteDelivery = async (orderId: number) => {
+    if (!deliverySignatureData) {
+      showToast("Por favor, dibuje la firma del cliente para completar la entrega.", "warning");
+      return;
+    }
+
     setIsSavingDelivery(true);
     try {
-      // 1. If withSignature is true, save signature first
-      if (withSignature && deliverySignatureData) {
-        const sigRes = await saveOrderSignatureAction(orderId, deliverySignatureData);
-        if (!sigRes.success) {
-          showToast(sigRes.error || "Error al guardar la firma.", "error");
-          setIsSavingDelivery(false);
-          return;
-        }
+      // 1. Save client signature
+      const sigRes = await saveOrderSignatureAction(orderId, deliverySignatureData);
+      if (!sigRes.success) {
+        showToast(sigRes.error || "Error al guardar la firma.", "error");
+        setIsSavingDelivery(false);
+        return;
       }
 
       // 2. Change status to ENTREGADO
@@ -335,12 +358,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
         return;
       }
       
-      if (withSignature && deliverySignatureData) {
-        showToast("Vehículo entregado y firmado con éxito.", "success");
-      } else {
-        showToast("Vehículo entregado sin firma con éxito.", "success");
-      }
-      
+      showToast("Vehículo entregado y firmado con éxito.", "success");
       setDeliveryOrder(null);
       setDeliverySignatureData("");
     } catch (err) {
@@ -800,12 +818,17 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                           {statusName === "EN_PROCESO" && (
                             <button
                               type="button"
-                              onClick={() => handleCompleteDelivery(order.id, false)}
-                              disabled={isSavingDelivery}
-                              className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-zinc-200/80 hover:bg-zinc-50 hover:border-zinc-300 text-zinc-750 transition-all cursor-pointer select-none disabled:opacity-50 shadow-2xs"
-                              title="Notificar (Entregar sin firmar)"
+                              onClick={() => handleNotifyOrderReady(order)}
+                              disabled={notifyingOrderId === order.id}
+                              className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-emerald-200/90 bg-emerald-50/80 hover:bg-emerald-100 hover:border-emerald-300 text-emerald-700 hover:text-emerald-800 transition-all cursor-pointer select-none disabled:opacity-50 shadow-2xs group"
+                              title="Notificar al cliente por WhatsApp (Vehículo listo para retiro)"
+                              aria-label={`Notificar al cliente de la orden ${order.code}`}
                             >
-                              <Send className="h-4 w-4 text-zinc-600" />
+                              {notifyingOrderId === order.id ? (
+                                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+                              ) : (
+                                <Send className="h-4 w-4 text-emerald-600 group-hover:text-emerald-800 transition-colors" />
+                              )}
                             </button>
                           )}
                           {statusName === "ENTREGADO" ? (
@@ -903,9 +926,10 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                               </a>
                               <button
                                 type="button"
-                                onClick={() => handlePdfDelete(order.id)}
+                                onClick={() => setDeletePdfTarget(order)}
                                 className="h-8.5 w-8.5 rounded-lg flex items-center justify-center text-zinc-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 border border-transparent transition-all cursor-pointer"
                                 title="Eliminar documento"
+                                aria-label={`Eliminar documento de la orden ${order.code}`}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -947,6 +971,50 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
           onConfirm={handleConfirmHideOrder}
         />
       ) : null}
+
+      {/* MODAL DE CONFIRMACIÓN DE ELIMINACIÓN DE FACTURA PDF */}
+      {deletePdfTarget && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div
+            className="bg-white border border-zinc-200 rounded-2xl w-full max-w-sm overflow-hidden flex flex-col shadow-2xl p-6 space-y-4 animate-[scaleIn_0.2s_ease-out]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-12 w-12 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-2xs">
+              <Trash2 className="h-6 w-6" />
+            </div>
+            <div className="text-center space-y-1.5">
+              <h3 className="text-base font-extrabold text-zinc-900">
+                ¿Eliminar Factura Electrónica?
+              </h3>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Se eliminará el documento PDF adjunto a la orden <strong className="text-zinc-800">{deletePdfTarget.code}</strong>. Esta acción no se puede deshacer.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletePdfTarget(null)}
+                disabled={isUploadingPdf === deletePdfTarget.id}
+                className="h-10 px-4 rounded-lg border border-zinc-200 hover:bg-zinc-100 text-xs font-bold text-zinc-700 transition-colors cursor-pointer select-none disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const id = deletePdfTarget.id;
+                  setDeletePdfTarget(null);
+                  handlePdfDelete(id);
+                }}
+                disabled={isUploadingPdf === deletePdfTarget.id}
+                className="h-10 px-4 rounded-lg bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white transition-colors cursor-pointer select-none disabled:opacity-50 shadow-sm"
+              >
+                {isUploadingPdf === deletePdfTarget.id ? "Eliminando..." : "Eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DETAILS MODAL */}
       {selectedOrder && (
@@ -1557,7 +1625,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                    Firma del Cliente (Opcional)
+                    Firma del Cliente (Obligatoria para entrega)
                   </span>
                   {deliverySignatureData && (
                     <span className="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">
@@ -1566,7 +1634,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
                   )}
                 </div>
                 <p className="text-[10px] text-zinc-500 leading-normal">
-                  Si el cliente está presente, dibuje su firma sobre el lienzo para dejar constancia de la entrega de conformidad.
+                  El cliente debe firmar sobre el lienzo para dejar constancia de la entrega y conformidad del vehículo.
                 </p>
                 <div className="border border-zinc-250 rounded-xl bg-white overflow-hidden relative h-28 w-full shadow-[inset_0_1px_3px_rgba(0,0,0,0.06)]">
                   <canvas
@@ -1601,7 +1669,7 @@ export default function OrdenesClientView({ orders }: OrdenesClientViewProps) {
               </button>
               <button
                 type="button"
-                onClick={() => handleCompleteDelivery(deliveryOrder.id, true)}
+                onClick={() => handleCompleteDelivery(deliveryOrder.id)}
                 disabled={isSavingDelivery || !deliverySignatureData}
                 className="h-10 px-5 rounded-lg bg-[#C9A84C] hover:bg-[#b0903c] text-xs font-bold text-[#0A0A0C] transition-colors cursor-pointer select-none disabled:opacity-50 shadow-sm shadow-[#C9A84C]/25 animate-colors"
               >
