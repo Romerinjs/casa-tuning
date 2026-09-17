@@ -422,7 +422,7 @@ export async function sendWhatsAppPromotionAction(promotionId: number, clientId:
 }
 
 /**
- * Envía una notificación de WhatsApp simple avisando que el vehículo está listo para retiro
+ * Envía una notificación de WhatsApp avisando que el vehículo está listo para retiro (Plantilla vehiculo_listo_retiro)
  */
 export async function sendWhatsAppReadyAction(orderId: number): Promise<boolean> {
   try {
@@ -449,13 +449,24 @@ export async function sendWhatsAppReadyAction(orderId: number): Promise<boolean>
     const payload = {
       messaging_product: "whatsapp",
       to: recipientPhone,
-      type: "text",
-      text: {
-        body: `Hola ${customerName}, te informamos que tu vehículo ${vehicleName} con placas ${plate} ya está listo para retiro en Casa Tuning. ¡Te esperamos!`
+      type: "template",
+      template: {
+        name: "vehiculo_listo_retiro",
+        language: { code: "es_MX" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: customerName }, // {{1}}: Nombre del cliente
+              { type: "text", text: plate },        // {{2}}: Placa
+              { type: "text", text: vehicleName }   // {{3}}: Marca y modelo del vehículo
+            ]
+          }
+        ]
       }
     };
 
-    console.log(`[WhatsApp Kapso] Enviando mensaje de vehículo listo para orden ${order.code} a ${recipientPhone}`);
+    console.log(`[WhatsApp Kapso] Enviando plantilla 'vehiculo_listo_retiro' para orden ${order.code} a ${recipientPhone}`);
     const success = await enviarMensajeKapso(payload);
 
     if (success) {

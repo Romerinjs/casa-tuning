@@ -151,22 +151,15 @@ export async function updateOrderStatusAction(
           },
         });
 
-        if (completeOrder) {
+        if (completeOrder && completeOrder.signatureUrl) {
           after(async () => {
             try {
-              if (completeOrder.signatureUrl) {
-                // Send delivery email and WhatsApp in background if signed
-                if (completeOrder.client.email) {
-                  await sendDeliveryEmail(completeOrder.client.email, completeOrder);
-                }
-                if (completeOrder.client.phone) {
-                  await sendWhatsAppDeliveryAction(orderId);
-                }
-              } else {
-                // Send WhatsApp in background if unsigned (skip email as requested)
-                if (completeOrder.client.phone) {
-                  await sendWhatsAppReadyAction(orderId);
-                }
+              // Send delivery email and WhatsApp in background if signed
+              if (completeOrder.client.email) {
+                await sendDeliveryEmail(completeOrder.client.email, completeOrder);
+              }
+              if (completeOrder.client.phone) {
+                await sendWhatsAppDeliveryAction(orderId);
               }
             } catch (bgErr) {
               console.error("Error in background delivery notifications:", bgErr);
@@ -188,6 +181,68 @@ export async function updateOrderStatusAction(
     return {
       success: false,
       error: "Ocurrió un error al intentar cambiar el estado.",
+    };
+  }
+}
+
+/**
+ * Envía una notificación por WhatsApp al cliente informando que su vehículo está listo para retiro,
+ * sin alterar el estado de la orden.
+ */
+export async function notifyCustomerOrderReadyAction(orderId: number) {
+  try {
+    const user = await verifySession();
+
+    if (!Number.isInteger(orderId) || orderId <= 0) {
+      return { success: false, error: "ID de orden inválido." };
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        client: true,
+        car: {
+          include: { brand: true },
+        },
+      },
+    });
+
+    if (!order) {
+      return { success: false, error: "La orden no existe." };
+    }
+
+    if (!order.client.phone) {
+      return {
+        success: false,
+        error: "El cliente no tiene un número de celular registrado para WhatsApp.",
+      };
+    }
+
+    const sent = await sendWhatsAppReadyAction(orderId);
+    if (!sent) {
+      return {
+        success: false,
+        error: "No se pudo enviar la notificación por WhatsApp. Verifique la conexión con Kapso o el estado de la plantilla.",
+      };
+    }
+
+    await prisma.activityLog.create({
+      data: {
+        description: `Notificación de vehículo listo enviada al cliente vía WhatsApp (${order.client.phone})`,
+        orderId: order.id,
+        userId: user.id,
+      },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/ordenes");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in notifyCustomerOrderReadyAction:", error);
+    return {
+      success: false,
+      error: "Ocurrió un error inesperado al enviar la notificación.",
     };
   }
 }
