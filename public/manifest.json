@@ -6,13 +6,21 @@
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
   "lang": "es-CO",
   "dir": "ltr",
   "theme_color": "#0A0A0C",
   "background_color": "#0A0A0C",
-  "categories": ["business", "productivity", "utilities"],
+  "categories": [
+    "business",
+    "productivity",
+    "utilities"
+  ],
   "prefer_related_applications": false,
   "icons": [
     {
@@ -76,6 +84,106 @@
           "sizes": "192x192"
         }
       ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Panel de Control Operativo Casa Tuning en Escritorio"
+    },
+    {
+      "src": "/screenshots/mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Portal de Recepción e Inspección Móvil"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/recepcion",
+      "name": "Documentos e Imágenes de Inspección",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ],
+      "accept": {
+        "image/jpeg": [".jpg", ".jpeg"],
+        "image/png": [".png"],
+        "image/webp": [".webp"],
+        "application/pdf": [".pdf"]
+      }
+    }
+  ],
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+casatuning",
+      "url": "/ordenes?action=%s"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "/manifest.json"
+    }
+  ],
+  "share_target": {
+    "action": "/recepcion",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ec4e53d7",
+  "widgets": [
+    {
+      "name": "Casa Tuning Resumen",
+      "short_name": "Órdenes CT",
+      "description": "Widget de estado de órdenes de Casa Tuning",
+      "tag": "ct-orders-widget",
+      "template": "widget-template",
+      "ms_ac_template": "/widget-template.json",
+      "data": "/manifest.json",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "/screenshots/desktop.png",
+          "sizes": "1280x720",
+          "label": "Widget de Casa Tuning"
+        }
+      ],
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "note_taking": {
+    "new_note_url": "/recepcion"
+  },
+  "scope_extensions": [
+    {
+      "origin": "https://casa-tuning.com"
     }
   ]
 }
